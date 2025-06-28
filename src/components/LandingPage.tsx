@@ -430,6 +430,31 @@ function LandingPage() {
                           />
                         </div>
 
+                        {/* reCAPTCHA Attribution Text */}
+                        <div className={`text-xs text-center transition-colors duration-300 ${
+                          darkMode ? 'text-gray-500' : 'text-gray-400'
+                        }`}>
+                          This site is protected by reCAPTCHA and the Google{' '}
+                          <a 
+                            href="https://policies.google.com/privacy" 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:text-blue-500 underline"
+                          >
+                            Privacy Policy
+                          </a>
+                          {' '}and{' '}
+                          <a 
+                            href="https://policies.google.com/terms" 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:text-blue-500 underline"
+                          >
+                            Terms of Service
+                          </a>
+                          {' '}apply.
+                        </div>
+
                         {error && (
                           <StatusMessage
                             type="error"
