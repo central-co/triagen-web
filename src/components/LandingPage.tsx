@@ -256,7 +256,7 @@ function LandingPage() {
 
             {/* Waitlist Form */}
             {showWaitlistForm && (
-              <div id="waitlist-form" className="mt-16 max-w-md mx-auto">
+              <div id="waitlist-form" className="mt-16 max-w-2xl mx-auto">
                 <Card darkMode={darkMode} hoverEffect>
                   {isSubmitted ? (
                     <div className="text-center">
@@ -319,53 +319,57 @@ function LandingPage() {
                       </div>
 
                       <form onSubmit={handleFormSubmit} className="space-y-4">
-                        <div>
-                          <label htmlFor="name" className={`block text-sm font-medium mb-2 transition-colors duration-300 ${
-                            darkMode ? 'text-gray-300' : 'text-triagen-dark-bg'
-                          }`}>
-                            Nome completo *
-                          </label>
-                          <input
-                            type="text"
-                            id="name"
-                            name="name"
-                            value={formData.name}
-                            onChange={handleInputChange}
-                            placeholder="Seu nome completo"
-                            className={`font-sans w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-triagen-secondary-green/50 focus:border-triagen-secondary-green ${
-                              darkMode
-                                ? 'bg-gray-800/50 border-triagen-border-dark text-white placeholder-gray-400'
-                                : 'bg-white/70 border-triagen-border-light text-triagen-dark-bg placeholder-triagen-text-light'
-                            }`}
-                            disabled={isLoading}
-                            required
-                          />
+                        {/* Nome e Email lado a lado */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <label htmlFor="name" className={`block text-sm font-medium mb-2 transition-colors duration-300 ${
+                              darkMode ? 'text-gray-300' : 'text-triagen-dark-bg'
+                            }`}>
+                              Nome completo *
+                            </label>
+                            <input
+                              type="text"
+                              id="name"
+                              name="name"
+                              value={formData.name}
+                              onChange={handleInputChange}
+                              placeholder="Seu nome completo"
+                              className={`font-sans w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-triagen-secondary-green/50 focus:border-triagen-secondary-green ${
+                                darkMode
+                                  ? 'bg-gray-800/50 border-triagen-border-dark text-white placeholder-gray-400'
+                                  : 'bg-white/70 border-triagen-border-light text-triagen-dark-bg placeholder-triagen-text-light'
+                              }`}
+                              disabled={isLoading}
+                              required
+                            />
+                          </div>
+
+                          <div>
+                            <label htmlFor="email" className={`block text-sm font-medium mb-2 transition-colors duration-300 ${
+                              darkMode ? 'text-gray-300' : 'text-triagen-dark-bg'
+                            }`}>
+                              Email *
+                            </label>
+                            <input
+                              type="email"
+                              id="email"
+                              name="email"
+                              value={formData.email}
+                              onChange={handleInputChange}
+                              placeholder="seu@email.com"
+                              className={`font-sans w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-triagen-secondary-green/50 focus:border-triagen-secondary-green ${
+                                darkMode
+                                  ? 'bg-gray-800/50 border-triagen-border-dark text-white placeholder-gray-400'
+                                  : 'bg-white/70 border-triagen-border-light text-triagen-dark-bg placeholder-triagen-text-light'
+                              }`}
+                              disabled={isLoading}
+                              required
+                            />
+                          </div>
                         </div>
 
-                        <div>
-                          <label htmlFor="email" className={`block text-sm font-medium mb-2 transition-colors duration-300 ${
-                            darkMode ? 'text-gray-300' : 'text-triagen-dark-bg'
-                          }`}>
-                            Email *
-                          </label>
-                          <input
-                            type="email"
-                            id="email"
-                            name="email"
-                            value={formData.email}
-                            onChange={handleInputChange}
-                            placeholder="seu@email.com"
-                            className={`font-sans w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-triagen-secondary-green/50 focus:border-triagen-secondary-green ${
-                              darkMode
-                                ? 'bg-gray-800/50 border-triagen-border-dark text-white placeholder-gray-400'
-                                : 'bg-white/70 border-triagen-border-light text-triagen-dark-bg placeholder-triagen-text-light'
-                            }`}
-                            disabled={isLoading}
-                            required
-                          />
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-3">
+                        {/* Empresa e Cargo lado a lado */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div>
                             <label htmlFor="company" className={`block text-sm font-medium mb-2 transition-colors duration-300 ${
                               darkMode ? 'text-gray-300' : 'text-triagen-dark-bg'
