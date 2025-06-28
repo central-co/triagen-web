@@ -7,6 +7,12 @@ import LoginPage from './components/auth/LoginPage';
 import RegisterPage from './components/auth/RegisterPage';
 import DashboardLayout from './components/dashboard/DashboardLayout';
 import DashboardHome from './components/dashboard/DashboardHome';
+import JobsPage from './components/dashboard/jobs/JobsPage';
+import NewJobPage from './components/dashboard/jobs/NewJobPage';
+import JobApplicationPage from './components/dashboard/jobs/JobApplicationPage';
+import CandidatesPage from './components/dashboard/candidates/CandidatesPage';
+import ReportsPage from './components/dashboard/reports/ReportsPage';
+import SettingsPage from './components/dashboard/settings/SettingsPage';
 
 // Protected Route component
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -53,6 +59,7 @@ function App() {
       <Route path="/" element={<LandingPage />} />
       <Route path="/interview" element={<InterviewPage />} />
       <Route path="/interview/:token" element={<InterviewPage />} />
+      <Route path="/apply/:jobId" element={<JobApplicationPage />} />
       
       {/* Auth routes */}
       <Route path="/auth/login" element={
@@ -73,11 +80,11 @@ function App() {
         </ProtectedRoute>
       }>
         <Route index element={<DashboardHome />} />
-        <Route path="jobs" element={<div>Jobs Page - Em desenvolvimento</div>} />
-        <Route path="jobs/new" element={<div>New Job Page - Em desenvolvimento</div>} />
-        <Route path="candidates" element={<div>Candidates Page - Em desenvolvimento</div>} />
-        <Route path="reports" element={<div>Reports Page - Em desenvolvimento</div>} />
-        <Route path="settings" element={<div>Settings Page - Em desenvolvimento</div>} />
+        <Route path="jobs" element={<JobsPage />} />
+        <Route path="jobs/new" element={<NewJobPage />} />
+        <Route path="candidates" element={<CandidatesPage />} />
+        <Route path="reports" element={<ReportsPage />} />
+        <Route path="settings" element={<SettingsPage />} />
       </Route>
       
       {/* 404 */}
