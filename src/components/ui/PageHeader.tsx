@@ -39,7 +39,7 @@ function PageHeader({
     <header className={`backdrop-blur-xl border-b transition-all duration-300 sticky top-0 z-40 h-20 ${
       darkMode 
         ? 'bg-gray-900/80 border-gray-700/50' 
-        : 'bg-white/80 border-gray-200/50'
+        : 'bg-white/80 border-triagen-petrol/10'
     } ${className}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
         <div className="flex justify-between items-center h-full">
@@ -60,7 +60,7 @@ function PageHeader({
                 className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 flex-shrink-0 ${
                   darkMode 
                     ? 'bg-gray-800/50 text-yellow-400 hover:bg-gray-700/50' 
-                    : 'bg-gray-100/50 text-gray-600 hover:bg-gray-200/50'
+                    : 'bg-triagen-light/50 text-triagen-petrol hover:bg-triagen-light/70'
                 }`}
                 title={darkMode ? 'Modo claro' : 'Modo escuro'}
               >
@@ -78,18 +78,22 @@ function PageHeader({
                   onClick={onJoinWaitlist}
                   icon={UserPlus}
                   iconPosition="left"
-                  className="h-10 px-4 text-sm whitespace-nowrap flex-shrink-0"
+                  className={`h-10 px-4 text-sm whitespace-nowrap flex-shrink-0 ${
+                    darkMode 
+                      ? 'bg-triagen-mint/10 border-triagen-mint/30 text-triagen-mint hover:bg-triagen-mint/20' 
+                      : 'bg-triagen-salmon/10 border-triagen-salmon/30 text-triagen-salmon hover:bg-triagen-salmon/20'
+                  }`}
                 >
-                  Lista de Espera
+                  Teste Grátis
                 </Button>
                 
                 <Button 
                   variant="primary"
                   size="sm"
                   onClick={onStartInterview}
-                  className="h-10 px-4 text-sm whitespace-nowrap flex-shrink-0"
+                  className="h-10 px-4 text-sm whitespace-nowrap flex-shrink-0 bg-gradient-to-r from-triagen-petrol to-blue-600"
                 >
-                  Iniciar Entrevista
+                  Entrevista Demo
                 </Button>
               </>
             )}

@@ -1,4 +1,3 @@
-
 import { DivideIcon as LucideIcon } from 'lucide-react';
 
 export interface SectionHeaderProps {
@@ -29,21 +28,21 @@ function SectionHeader({
         <div className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-medium mb-6 backdrop-blur-sm border ${
           darkMode 
             ? 'bg-gray-800/30 border-gray-700/50 text-gray-300' 
-            : 'bg-white/30 border-gray-200/50 text-gray-600'
+            : 'bg-white/30 border-triagen-petrol/20 text-triagen-petrol'
         }`}>
-          <Icon className="h-4 w-4 mr-2" />
+          <Icon className="h-4 w-4 mr-2 text-triagen-salmon" />
           {label}
         </div>
       )}
       
-      <h2 className={`text-4xl md:text-5xl font-bold mb-6 transition-colors duration-300 ${
-        darkMode ? 'text-white' : 'text-gray-900'
+      <h2 className={`font-heading text-4xl md:text-5xl font-bold mb-6 transition-colors duration-300 ${
+        darkMode ? 'text-white' : 'text-triagen-petrol'
       } ${alignmentClasses}`}>
         {title}
       </h2>
       
       {description && (
-        <p className={`text-xl transition-colors duration-300 ${
+        <p className={`font-sans text-xl transition-colors duration-300 ${
           darkMode ? 'text-gray-400' : 'text-gray-600'
         } ${alignmentClasses}`}>
           {description}

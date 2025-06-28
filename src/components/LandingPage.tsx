@@ -15,7 +15,15 @@ import {
   User,
   MessageSquare,
   X,
-  Shield
+  Shield,
+  FileText,
+  CheckCircle,
+  BarChart3,
+  Heart,
+  Mic,
+  UserCheck,
+  Clock,
+  Download
 } from 'lucide-react';
 import useDarkMode from '../hooks/useDarkMode';
 import AnimatedBackground from './ui/AnimatedBackground';
@@ -145,35 +153,35 @@ function LandingPage() {
   };
 
   const stats = [
-    { icon: Users, value: '10K+', label: 'Candidatos avaliados', iconColor: 'from-blue-500 to-blue-600' },
-    { icon: Building, value: '200+', label: 'Empresas parceiras', iconColor: 'from-green-500 to-green-600' },
-    { icon: TrendingUp, value: '85%', label: 'Taxa de satisfação', iconColor: 'from-purple-500 to-purple-600' },
-    { icon: Star, value: '4.9', label: 'Avaliação média', iconColor: 'from-orange-500 to-orange-600' }
+    { icon: Users, value: '2.5K+', label: 'Candidatos ouvidos', iconColor: 'from-triagen-petrol to-blue-600' },
+    { icon: Building, value: '50+', label: 'Empresas parceiras', iconColor: 'from-triagen-mint to-green-500' },
+    { icon: Clock, value: '80%', label: 'Redução no tempo de triagem', iconColor: 'from-triagen-salmon to-red-500' },
+    { icon: Heart, value: '95%', label: 'Satisfação dos candidatos', iconColor: 'from-purple-500 to-pink-500' }
   ];
 
   const features = [
     {
-      icon: Bot,
-      title: 'IA Conversacional Avançada',
-      description: 'Nossa IA conduz entrevistas naturais e envolventes, adaptando-se ao perfil de cada candidato em tempo real.',
-      iconColor: 'from-blue-500 to-blue-600'
+      icon: Mic,
+      title: 'Escuta Empática e Inclusiva',
+      description: 'Nossa IA conversa com cada candidato de forma natural e acessível, garantindo que todas as vozes sejam ouvidas, independente do perfil ou background.',
+      iconColor: 'from-triagen-petrol to-blue-600'
     },
     {
       icon: Brain,
-      title: 'Análise Comportamental',
-      description: 'Avaliação profunda de soft skills, competências técnicas e adequação cultural através de análise avançada.',
-      iconColor: 'from-purple-500 to-purple-600'
+      title: 'Contexto Primeiro, Não Apenas Palavras-chave',
+      description: 'Análise profunda que vai além do currículo, entendendo a compatibilidade real entre candidato e vaga através de conversas estruturadas.',
+      iconColor: 'from-triagen-mint to-green-500'
     },
     {
-      icon: Target,
-      title: 'Personalização Completa',
-      description: 'Entrevistas totalmente customizadas para cada vaga, setor e nível hierárquico específico.',
-      iconColor: 'from-green-500 to-green-600'
+      icon: UserCheck,
+      title: 'Etapa Adicional, Não Substituta',
+      description: 'Amplificamos seu funil de candidatos e entregamos apenas os perfis com maior fit, poupando horas de trabalho manual sem substituir o toque humano.',
+      iconColor: 'from-triagen-salmon to-red-500'
     }
   ];
 
   return (
-    <div className={`min-h-screen transition-all duration-500 ${darkMode ? 'dark bg-gray-900' : 'bg-white'}`}>
+    <div className={`min-h-screen transition-all duration-500 ${darkMode ? 'dark bg-gray-900' : 'bg-triagen-light'}`}>
       {/* Animated Background */}
       <AnimatedBackground darkMode={darkMode} scrollY={scrollY} />
 
@@ -193,37 +201,37 @@ function LandingPage() {
             <div className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-medium mb-8 backdrop-blur-sm border ${
               darkMode 
                 ? 'bg-gray-800/30 border-gray-700/50 text-gray-300' 
-                : 'bg-white/30 border-gray-200/50 text-gray-600'
+                : 'bg-white/30 border-triagen-petrol/20 text-triagen-petrol'
             }`}>
-              <Sparkles className="h-4 w-4 mr-2" />
-              Revolucionando o processo seletivo com IA
+              <Heart className="h-4 w-4 mr-2 text-triagen-salmon" />
+              Democratizando a escuta no recrutamento
             </div>
             
-            <h1 className={`text-5xl md:text-7xl font-bold mb-8 transition-colors duration-300 ${
-              darkMode ? 'text-white' : 'text-gray-900'
+            <h1 className={`font-heading text-5xl md:text-7xl font-bold mb-8 transition-colors duration-300 ${
+              darkMode ? 'text-white' : 'text-triagen-petrol'
             }`}>
-              Entrevistas de emprego do{' '}
-              <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                futuro
+              Para quem acredita que{' '}
+              <span className="bg-gradient-to-r from-triagen-mint to-triagen-salmon bg-clip-text text-transparent">
+                recrutar bem começa por ouvir
               </span>
             </h1>
             
-            <p className={`text-xl md:text-2xl mb-12 transition-colors duration-300 leading-relaxed ${
+            <p className={`font-sans text-xl md:text-2xl mb-12 transition-colors duration-300 leading-relaxed ${
               darkMode ? 'text-gray-400' : 'text-gray-600'
             }`}>
-              Nossa IA conduz entrevistas personalizadas, avalia candidatos com precisão e 
-              acelera seu processo de contratação com insights profundos e relatórios detalhados.
+              Amplie seu funil de candidatos e afunile com contexto. Nossa IA empática entrevista todos que se candidatam, 
+              entregando apenas os perfis com maior fit — humanizando o processo sem inflar os custos.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
                 variant="primary"
                 size="lg"
-                onClick={handleStartInterview}
+                onClick={handleWaitlistClick}
                 icon={ArrowRight}
-                className="text-lg px-8 py-4"
+                className="text-lg px-8 py-4 bg-gradient-to-r from-triagen-petrol to-blue-600 hover:from-triagen-petrol/90 hover:to-blue-600/90"
               >
-                Começar entrevista gratuita
+                Teste Grátis (5 Candidatos)
               </Button>
               
               <Button
@@ -231,9 +239,13 @@ function LandingPage() {
                 size="lg"
                 onClick={handleWaitlistClick}
                 darkMode={darkMode}
-                className="text-lg px-8 py-4"
+                className={`text-lg px-8 py-4 border-2 ${
+                  darkMode 
+                    ? 'border-triagen-mint/50 text-triagen-mint hover:bg-triagen-mint/10' 
+                    : 'border-triagen-salmon/50 text-triagen-salmon hover:bg-triagen-salmon/10'
+                }`}
               >
-                Junte-se à lista de espera
+                Piloto Acadêmico (R$200)
               </Button>
             </div>
 
@@ -243,27 +255,27 @@ function LandingPage() {
                 <Card darkMode={darkMode} hoverEffect>
                   {isSubmitted ? (
                     <div className="text-center">
-                      <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-r from-green-500 to-green-600 flex items-center justify-center">
+                      <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-r from-triagen-mint to-green-500 flex items-center justify-center">
                         <Mail className="h-8 w-8 text-white" />
                       </div>
                       
-                      <h3 className={`text-xl font-bold mb-4 transition-colors duration-300 ${
-                        darkMode ? 'text-white' : 'text-gray-900'
+                      <h3 className={`font-heading text-xl font-bold mb-4 transition-colors duration-300 ${
+                        darkMode ? 'text-white' : 'text-triagen-petrol'
                       }`}>
                         Obrigado por se inscrever!
                       </h3>
                       
-                      <p className={`mb-6 transition-colors duration-300 ${
+                      <p className={`font-sans mb-6 transition-colors duration-300 ${
                         darkMode ? 'text-gray-400' : 'text-gray-600'
                       }`}>
-                        Você foi adicionado à nossa lista de espera. Verifique seu email para confirmação.
+                        Você foi adicionado à nossa lista. Verifique seu email para confirmação.
                       </p>
                       
                       <Button
                         variant="primary"
                         size="md"
                         onClick={handleCloseForm}
-                        className="w-full"
+                        className="w-full bg-gradient-to-r from-triagen-petrol to-blue-600"
                       >
                         Fechar
                       </Button>
@@ -272,20 +284,20 @@ function LandingPage() {
                     <>
                       <div className="flex justify-between items-center mb-6">
                         <div className="text-center flex-1">
-                          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 flex items-center justify-center">
+                          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-r from-triagen-petrol to-blue-600 flex items-center justify-center">
                             <User className="h-8 w-8 text-white" />
                           </div>
                           
-                          <h3 className={`text-xl font-bold mb-2 transition-colors duration-300 ${
-                            darkMode ? 'text-white' : 'text-gray-900'
+                          <h3 className={`font-heading text-xl font-bold mb-2 transition-colors duration-300 ${
+                            darkMode ? 'text-white' : 'text-triagen-petrol'
                           }`}>
-                            Entre na Lista de Espera
+                            Comece a Ouvir Mais
                           </h3>
                           
-                          <p className={`text-sm transition-colors duration-300 ${
+                          <p className={`font-sans text-sm transition-colors duration-300 ${
                             darkMode ? 'text-gray-400' : 'text-gray-600'
                           }`}>
-                            Seja um dos primeiros a testar nossa IA
+                            Teste grátis ou piloto acadêmico
                           </p>
                         </div>
                         
@@ -304,7 +316,7 @@ function LandingPage() {
                       <form onSubmit={handleFormSubmit} className="space-y-4">
                         <div>
                           <label htmlFor="name" className={`block text-sm font-medium mb-2 transition-colors duration-300 ${
-                            darkMode ? 'text-gray-300' : 'text-gray-700'
+                            darkMode ? 'text-gray-300' : 'text-triagen-petrol'
                           }`}>
                             Nome completo *
                           </label>
@@ -315,10 +327,10 @@ function LandingPage() {
                             value={formData.name}
                             onChange={handleInputChange}
                             placeholder="Seu nome completo"
-                            className={`w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 ${
+                            className={`font-sans w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-triagen-mint/50 focus:border-triagen-mint ${
                               darkMode
                                 ? 'bg-gray-800/50 border-gray-600/50 text-white placeholder-gray-400'
-                                : 'bg-white/50 border-gray-300/50 text-gray-900 placeholder-gray-500'
+                                : 'bg-white/50 border-gray-300/50 text-triagen-petrol placeholder-gray-500'
                             }`}
                             disabled={isLoading}
                             required
@@ -327,7 +339,7 @@ function LandingPage() {
 
                         <div>
                           <label htmlFor="email" className={`block text-sm font-medium mb-2 transition-colors duration-300 ${
-                            darkMode ? 'text-gray-300' : 'text-gray-700'
+                            darkMode ? 'text-gray-300' : 'text-triagen-petrol'
                           }`}>
                             Email *
                           </label>
@@ -338,10 +350,10 @@ function LandingPage() {
                             value={formData.email}
                             onChange={handleInputChange}
                             placeholder="seu@email.com"
-                            className={`w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 ${
+                            className={`font-sans w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-triagen-mint/50 focus:border-triagen-mint ${
                               darkMode
                                 ? 'bg-gray-800/50 border-gray-600/50 text-white placeholder-gray-400'
-                                : 'bg-white/50 border-gray-300/50 text-gray-900 placeholder-gray-500'
+                                : 'bg-white/50 border-gray-300/50 text-triagen-petrol placeholder-gray-500'
                             }`}
                             disabled={isLoading}
                             required
@@ -351,7 +363,7 @@ function LandingPage() {
                         <div className="grid grid-cols-2 gap-3">
                           <div>
                             <label htmlFor="company" className={`block text-sm font-medium mb-2 transition-colors duration-300 ${
-                              darkMode ? 'text-gray-300' : 'text-gray-700'
+                              darkMode ? 'text-gray-300' : 'text-triagen-petrol'
                             }`}>
                               Empresa
                             </label>
@@ -362,10 +374,10 @@ function LandingPage() {
                               value={formData.company}
                               onChange={handleInputChange}
                               placeholder="Sua empresa"
-                              className={`w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 ${
+                              className={`font-sans w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-triagen-mint/50 focus:border-triagen-mint ${
                                 darkMode
                                   ? 'bg-gray-800/50 border-gray-600/50 text-white placeholder-gray-400'
-                                  : 'bg-white/50 border-gray-300/50 text-gray-900 placeholder-gray-500'
+                                  : 'bg-white/50 border-gray-300/50 text-triagen-petrol placeholder-gray-500'
                               }`}
                               disabled={isLoading}
                             />
@@ -373,7 +385,7 @@ function LandingPage() {
 
                           <div>
                             <label htmlFor="job_title" className={`block text-sm font-medium mb-2 transition-colors duration-300 ${
-                              darkMode ? 'text-gray-300' : 'text-gray-700'
+                              darkMode ? 'text-gray-300' : 'text-triagen-petrol'
                             }`}>
                               Cargo
                             </label>
@@ -384,10 +396,10 @@ function LandingPage() {
                               value={formData.job_title}
                               onChange={handleInputChange}
                               placeholder="Seu cargo"
-                              className={`w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 ${
+                              className={`font-sans w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-triagen-mint/50 focus:border-triagen-mint ${
                                 darkMode
                                   ? 'bg-gray-800/50 border-gray-600/50 text-white placeholder-gray-400'
-                                  : 'bg-white/50 border-gray-300/50 text-gray-900 placeholder-gray-500'
+                                  : 'bg-white/50 border-gray-300/50 text-triagen-petrol placeholder-gray-500'
                               }`}
                               disabled={isLoading}
                             />
@@ -401,19 +413,19 @@ function LandingPage() {
                             id="newsletter_consent"
                             checked={newsletterConsent}
                             onChange={(e) => setNewsletterConsent(e.target.checked)}
-                            className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                            className="mt-1 h-4 w-4 text-triagen-mint focus:ring-triagen-mint border-gray-300 rounded"
                             disabled={isLoading}
                             required
                           />
-                          <label htmlFor="newsletter_consent" className={`text-sm transition-colors duration-300 ${
+                          <label htmlFor="newsletter_consent" className={`font-sans text-sm transition-colors duration-300 ${
                             darkMode ? 'text-gray-300' : 'text-gray-700'
                           }`}>
                             Aceito receber comunicações sobre o TriaGen e concordo com os{' '}
-                            <a href="#" className="text-blue-600 hover:text-blue-500 underline">
+                            <a href="#" className="text-triagen-mint hover:text-triagen-mint/80 underline">
                               termos de uso
                             </a>
                             {' '}e{' '}
-                            <a href="#" className="text-blue-600 hover:text-blue-500 underline">
+                            <a href="#" className="text-triagen-mint hover:text-triagen-mint/80 underline">
                               política de privacidade
                             </a>
                             . *
@@ -431,7 +443,7 @@ function LandingPage() {
                         </div>
 
                         {/* reCAPTCHA Attribution Text */}
-                        <div className={`text-xs text-center transition-colors duration-300 ${
+                        <div className={`font-sans text-xs text-center transition-colors duration-300 ${
                           darkMode ? 'text-gray-500' : 'text-gray-400'
                         }`}>
                           This site is protected by reCAPTCHA and the Google{' '}
@@ -439,7 +451,7 @@ function LandingPage() {
                             href="https://policies.google.com/privacy" 
                             target="_blank" 
                             rel="noopener noreferrer"
-                            className="text-blue-600 hover:text-blue-500 underline"
+                            className="text-triagen-mint hover:text-triagen-mint/80 underline"
                           >
                             Privacy Policy
                           </a>
@@ -448,7 +460,7 @@ function LandingPage() {
                             href="https://policies.google.com/terms" 
                             target="_blank" 
                             rel="noopener noreferrer"
-                            className="text-blue-600 hover:text-blue-500 underline"
+                            className="text-triagen-mint hover:text-triagen-mint/80 underline"
                           >
                             Terms of Service
                           </a>
@@ -471,15 +483,16 @@ function LandingPage() {
                           isLoading={isLoading}
                           disabled={!formData.name || !formData.email || !newsletterConsent}
                           icon={MessageSquare}
+                          className="bg-gradient-to-r from-triagen-petrol to-blue-600"
                         >
-                          {isLoading ? 'Enviando...' : 'Entrar na Lista'}
+                          {isLoading ? 'Enviando...' : 'Começar Agora'}
                         </Button>
                       </form>
 
                       <StatusMessage
                         type="info"
-                        title="Segurança e Privacidade"
-                        message="Seus dados são protegidos por criptografia e verificação anti-spam. Não compartilhamos informações com terceiros."
+                        title="Transparência e Confiança"
+                        message="Seus dados são protegidos e você tem controle total sobre como nossa IA conduz as entrevistas. Sem surpresas, apenas resultados."
                         darkMode={darkMode}
                         className="mt-4"
                         icon={Shield}
@@ -515,10 +528,10 @@ function LandingPage() {
       <section className="py-32 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <SectionHeader
-            icon={Bot}
-            label="Recursos"
-            title="Tecnologia de ponta para recrutamento inteligente"
-            description="Descubra como nossa IA revoluciona o processo de entrevistas com recursos avançados e análises precisas."
+            icon={Heart}
+            label="Como Funciona"
+            title="Eficiência sem frieza, tecnologia com empatia"
+            description="Nossa IA não substitui você — ela amplifica sua capacidade de ouvir todos os candidatos e identificar os melhores fits com precisão e humanidade."
             darkMode={darkMode}
           />
           
@@ -533,6 +546,156 @@ function LandingPage() {
                 iconColor={feature.iconColor}
               />
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Report Example Section */}
+      <section className="py-32 relative">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <SectionHeader
+            icon={FileText}
+            label="Relatórios Inteligentes"
+            title="Insights que fazem a diferença"
+            description="Receba análises detalhadas e transparentes sobre cada candidato, com dados que realmente importam para sua decisão."
+            darkMode={darkMode}
+          />
+          
+          <div className="max-w-4xl mx-auto">
+            <Card darkMode={darkMode} hoverEffect className="overflow-hidden">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Left side - Report preview */}
+                <div>
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className={`font-heading text-xl font-bold ${darkMode ? 'text-white' : 'text-triagen-petrol'}`}>
+                      Análise do Candidato
+                    </h3>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-r from-triagen-mint to-green-500 flex items-center justify-center">
+                        <span className="text-white text-sm font-bold">8.7</span>
+                      </div>
+                      <span className={`font-sans text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                        Compatibilidade
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Competências */}
+                  <div className="space-y-4 mb-6">
+                    <div>
+                      <div className="flex justify-between items-center mb-2">
+                        <span className={`font-sans text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-triagen-petrol'}`}>
+                          Comunicação
+                        </span>
+                        <span className="text-triagen-mint text-sm font-bold">Excelente</span>
+                      </div>
+                      <div className={`h-2 rounded-full ${darkMode ? 'bg-gray-700' : 'bg-gray-200'}`}>
+                        <div className="h-full bg-gradient-to-r from-triagen-mint to-green-500 rounded-full" style={{ width: '90%' }}></div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="flex justify-between items-center mb-2">
+                        <span className={`font-sans text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-triagen-petrol'}`}>
+                          Experiência Técnica
+                        </span>
+                        <span className="text-triagen-salmon text-sm font-bold">Muito Bom</span>
+                      </div>
+                      <div className={`h-2 rounded-full ${darkMode ? 'bg-gray-700' : 'bg-gray-200'}`}>
+                        <div className="h-full bg-gradient-to-r from-triagen-salmon to-red-500 rounded-full" style={{ width: '75%' }}></div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="flex justify-between items-center mb-2">
+                        <span className={`font-sans text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-triagen-petrol'}`}>
+                          Fit Cultural
+                        </span>
+                        <span className="text-blue-500 text-sm font-bold">Excelente</span>
+                      </div>
+                      <div className={`h-2 rounded-full ${darkMode ? 'bg-gray-700' : 'bg-gray-200'}`}>
+                        <div className="h-full bg-gradient-to-r from-triagen-petrol to-blue-600 rounded-full" style={{ width: '95%' }}></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Action buttons */}
+                  <div className="flex space-x-3">
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      icon={Download}
+                      className="bg-gradient-to-r from-triagen-petrol to-blue-600"
+                    >
+                      Baixar PDF
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      icon={BarChart3}
+                      darkMode={darkMode}
+                      className={darkMode ? 'border-triagen-mint/50 text-triagen-mint' : 'border-triagen-salmon/50 text-triagen-salmon'}
+                    >
+                      Ver Detalhes
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Right side - Key insights */}
+                <div>
+                  <h4 className={`font-heading text-lg font-bold mb-4 ${darkMode ? 'text-white' : 'text-triagen-petrol'}`}>
+                    Pontos-chave da Entrevista
+                  </h4>
+                  
+                  <div className="space-y-4">
+                    <div className="flex items-start space-x-3">
+                      <CheckCircle className="h-5 w-5 text-triagen-mint flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className={`font-sans text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-triagen-petrol'}`}>
+                          Pontos Fortes
+                        </p>
+                        <p className={`font-sans text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                          Comunicação clara, experiência sólida em React, demonstrou proatividade
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start space-x-3">
+                      <Target className="h-5 w-5 text-triagen-salmon flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className={`font-sans text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-triagen-petrol'}`}>
+                          Áreas de Desenvolvimento
+                        </p>
+                        <p className={`font-sans text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                          Poderia aprofundar conhecimentos em TypeScript e testes automatizados
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start space-x-3">
+                      <Brain className="h-5 w-5 text-blue-500 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className={`font-sans text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-triagen-petrol'}`}>
+                          Recomendação da IA
+                        </p>
+                        <p className={`font-sans text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                          Candidato promissor para posição júnior/pleno. Agendar entrevista técnica.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className={`mt-6 p-4 rounded-xl ${
+                    darkMode ? 'bg-triagen-mint/10 border border-triagen-mint/20' : 'bg-triagen-mint/10 border border-triagen-mint/30'
+                  }`}>
+                    <p className={`font-sans text-sm ${darkMode ? 'text-gray-300' : 'text-triagen-petrol'}`}>
+                      <strong>Checklist Automático:</strong> Todos os pontos-chave da vaga foram cobertos durante a conversa, 
+                      garantindo uma avaliação completa e justa.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </Card>
           </div>
         </div>
       </section>
