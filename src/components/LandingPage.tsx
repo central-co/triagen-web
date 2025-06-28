@@ -1,6 +1,6 @@
-
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import ReCAPTCHA from 'react-google-recaptcha';
 import {
   Users,
   Bot,
@@ -14,7 +14,8 @@ import {
   Mail,
   User,
   MessageSquare,
-  X
+  X,
+  Shield
 } from 'lucide-react';
 import useDarkMode from '../hooks/useDarkMode';
 import AnimatedBackground from './ui/AnimatedBackground';
@@ -36,11 +37,13 @@ function LandingPage() {
     company: '',
     job_title: ''
   });
+  const [newsletterConsent, setNewsletterConsent] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [error, setError] = useState('');
   const { darkMode, toggleDarkMode } = useDarkMode();
   const navigate = useNavigate();
+  const recaptchaRef = useRef<ReCAPTCHA>(null);
 
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
@@ -78,18 +81,57 @@ function LandingPage() {
       return;
     }
 
+    if (!newsletterConsent) {
+      setError('É necessário aceitar receber comunicações para continuar');
+      return;
+    }
+
+    // Get reCAPTCHA token
+    const recaptchaToken = await recaptchaRef.current?.executeAsync();
+    if (!recaptchaToken) {
+      setError('Falha na verificação de segurança. Tente novamente.');
+      return;
+    }
+
     setIsLoading(true);
     setError('');
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      setIsSubmitted(true);
-      setFormData({ name: '', email: '', company: '', job_title: '' });
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      if (!supabaseUrl) {
+        throw new Error('Configuração do Supabase não encontrada');
+      }
+
+      const response = await fetch(`${supabaseUrl}/functions/v1/waitlist-signup`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          name: formData.name,
+          company: formData.company || null,
+          job_title: formData.job_title || null,
+          newsletter_consent: newsletterConsent,
+          recaptcha_token: recaptchaToken,
+        }),
+      });
+
+      if (response.ok) {
+        setIsSubmitted(true);
+        setFormData({ name: '', email: '', company: '', job_title: '' });
+        setNewsletterConsent(false);
+      } else {
+        const errorData = await response.json();
+        setError(errorData.error || 'Erro ao enviar formulário. Tente novamente.');
+      }
     } catch (err) {
-      setError('Erro ao enviar formulário. Tente novamente.');
+      console.error('Waitlist submission error:', err);
+      setError('Erro de conexão. Verifique sua internet e tente novamente.');
     } finally {
       setIsLoading(false);
+      recaptchaRef.current?.reset();
     }
   };
 
@@ -98,6 +140,8 @@ function LandingPage() {
     setIsSubmitted(false);
     setError('');
     setFormData({ name: '', email: '', company: '', job_title: '' });
+    setNewsletterConsent(false);
+    recaptchaRef.current?.reset();
   };
 
   const stats = [
@@ -212,7 +256,7 @@ function LandingPage() {
                       <p className={`mb-6 transition-colors duration-300 ${
                         darkMode ? 'text-gray-400' : 'text-gray-600'
                       }`}>
-                        Você foi adicionado à nossa lista de espera. Em breve entraremos em contato.
+                        Você foi adicionado à nossa lista de espera. Verifique seu email para confirmação.
                       </p>
                       
                       <Button
@@ -350,6 +394,42 @@ function LandingPage() {
                           </div>
                         </div>
 
+                        {/* Newsletter Consent */}
+                        <div className="flex items-start space-x-3">
+                          <input
+                            type="checkbox"
+                            id="newsletter_consent"
+                            checked={newsletterConsent}
+                            onChange={(e) => setNewsletterConsent(e.target.checked)}
+                            className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                            disabled={isLoading}
+                            required
+                          />
+                          <label htmlFor="newsletter_consent" className={`text-sm transition-colors duration-300 ${
+                            darkMode ? 'text-gray-300' : 'text-gray-700'
+                          }`}>
+                            Aceito receber comunicações sobre o TriaGen e concordo com os{' '}
+                            <a href="#" className="text-blue-600 hover:text-blue-500 underline">
+                              termos de uso
+                            </a>
+                            {' '}e{' '}
+                            <a href="#" className="text-blue-600 hover:text-blue-500 underline">
+                              política de privacidade
+                            </a>
+                            . *
+                          </label>
+                        </div>
+
+                        {/* reCAPTCHA */}
+                        <div className="flex justify-center">
+                          <ReCAPTCHA
+                            ref={recaptchaRef}
+                            sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY || ''}
+                            size="invisible"
+                            theme={darkMode ? 'dark' : 'light'}
+                          />
+                        </div>
+
                         {error && (
                           <StatusMessage
                             type="error"
@@ -364,7 +444,7 @@ function LandingPage() {
                           size="lg"
                           fullWidth
                           isLoading={isLoading}
-                          disabled={!formData.name || !formData.email}
+                          disabled={!formData.name || !formData.email || !newsletterConsent}
                           icon={MessageSquare}
                         >
                           {isLoading ? 'Enviando...' : 'Entrar na Lista'}
@@ -373,9 +453,11 @@ function LandingPage() {
 
                       <StatusMessage
                         type="info"
-                        message="Prometemos não enviar spam. Você receberá apenas atualizações importantes."
+                        title="Segurança e Privacidade"
+                        message="Seus dados são protegidos por criptografia e verificação anti-spam. Não compartilhamos informações com terceiros."
                         darkMode={darkMode}
                         className="mt-4"
+                        icon={Shield}
                       />
                     </>
                   )}
