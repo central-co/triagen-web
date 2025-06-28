@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search, Filter, MoreVertical, Users, Calendar, MapPin, Briefcase } from 'lucide-react';
+import { Plus, Search, Filter, MoreVertical, Users, Calendar, MapPin, Briefcase, Copy, ExternalLink, Check } from 'lucide-react';
 import useDarkMode from '../../../hooks/useDarkMode';
 import { useAuth } from '../../../hooks/useAuth';
 import { supabase } from '../../../lib/supabase';
@@ -15,6 +15,7 @@ function JobsPage() {
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [copiedJobId, setCopiedJobId] = useState<string | null>(null);
   const { darkMode } = useDarkMode(true);
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -47,7 +48,7 @@ function JobsPage() {
 
       const company = companies[0];
 
-      // Then get jobs for that company
+      // Then get jobs for that company with candidate count
       const { data: jobsData, error: jobsError } = await supabase
         .from('jobs')
         .select(`
@@ -68,6 +69,25 @@ function JobsPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const copyJobLink = async (jobId: string) => {
+    const baseUrl = window.location.origin;
+    const jobLink = `${baseUrl}/apply/${jobId}`;
+    
+    try {
+      await navigator.clipboard.writeText(jobLink);
+      setCopiedJobId(jobId);
+      setTimeout(() => setCopiedJobId(null), 2000);
+    } catch (err) {
+      console.error('Failed to copy link:', err);
+    }
+  };
+
+  const openJobLink = (jobId: string) => {
+    const baseUrl = window.location.origin;
+    const jobLink = `${baseUrl}/apply/${jobId}`;
+    window.open(jobLink, '_blank');
   };
 
   const filteredJobs = jobs.filter(job => {
@@ -208,81 +228,117 @@ function JobsPage() {
           </div>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="space-y-6">
           {filteredJobs.map((job) => (
             <Card key={job.id} darkMode={darkMode} hoverEffect>
-              <div className="flex justify-between items-start mb-4">
-                <div className="flex-1">
-                  <h3 className={`font-heading text-xl font-semibold mb-2 ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
-                    {job.title}
-                  </h3>
-                  <div className="flex items-center space-x-4 text-sm">
-                    {job.location && (
+              <div className="space-y-4">
+                {/* Header */}
+                <div className="flex justify-between items-start">
+                  <div className="flex-1">
+                    <h3 className={`font-heading text-xl font-semibold mb-2 ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
+                      {job.title}
+                    </h3>
+                    <div className="flex items-center space-x-4 text-sm">
+                      {job.location && (
+                        <div className={`flex items-center space-x-1 ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
+                          <MapPin className="h-4 w-4" />
+                          <span>{job.location}</span>
+                        </div>
+                      )}
                       <div className={`flex items-center space-x-1 ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
-                        <MapPin className="h-4 w-4" />
-                        <span>{job.location}</span>
+                        <Calendar className="h-4 w-4" />
+                        <span>{job.contract_type}</span>
                       </div>
-                    )}
-                    <div className={`flex items-center space-x-1 ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
-                      <Calendar className="h-4 w-4" />
-                      <span>{job.contract_type}</span>
+                      <div className={`flex items-center space-x-1 ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
+                        <Users className="h-4 w-4" />
+                        <span>{(job as any).candidates?.[0]?.count || 0} candidatos</span>
+                      </div>
                     </div>
                   </div>
+                  
+                  <div className="flex items-center space-x-2">
+                    <span className={`px-3 py-1 rounded-lg text-xs font-medium ${getStatusColor(job.status)}`}>
+                      {getStatusText(job.status)}
+                    </span>
+                  </div>
                 </div>
-                
-                <div className="flex items-center space-x-2">
-                  <span className={`px-3 py-1 rounded-lg text-xs font-medium ${getStatusColor(job.status)}`}>
-                    {getStatusText(job.status)}
-                  </span>
-                  <button className={`p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 ${
-                    darkMode ? 'text-gray-400' : 'text-triagen-text-light'
-                  }`}>
-                    <MoreVertical className="h-4 w-4" />
-                  </button>
-                </div>
-              </div>
 
-              <p className={`font-sans text-sm mb-4 line-clamp-2 ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
-                {job.description}
-              </p>
+                {/* Description */}
+                <p className={`font-sans text-sm line-clamp-2 ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
+                  {job.description}
+                </p>
 
-              <div className="flex items-center justify-between">
-                <div className={`flex items-center space-x-2 ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
-                  <Users className="h-4 w-4" />
-                  <span className="font-sans text-sm">
-                    {(job as any).candidates?.[0]?.count || 0} candidatos
-                  </span>
-                </div>
-                
-                <div className="flex space-x-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => navigate(`/dashboard/jobs/${job.id}/candidates`)}
-                    darkMode={darkMode}
-                  >
-                    Ver Candidatos
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => navigate(`/dashboard/jobs/${job.id}/edit`)}
-                    darkMode={darkMode}
-                  >
-                    Editar
-                  </Button>
-                </div>
-              </div>
-
-              {job.deadline && (
-                <div className={`mt-4 pt-4 border-t ${
-                  darkMode ? 'border-triagen-border-dark' : 'border-triagen-border-light'
+                {/* Job Application Link */}
+                <div className={`p-4 rounded-xl border ${
+                  darkMode ? 'border-triagen-border-dark bg-gray-800/30' : 'border-triagen-border-light bg-triagen-light-bg/30'
                 }`}>
-                  <p className={`font-sans text-xs ${darkMode ? 'text-gray-500' : 'text-triagen-text-light'}`}>
-                    Prazo: {new Date(job.deadline).toLocaleDateString('pt-BR')}
-                  </p>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className={`font-semibold text-sm mb-1 ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
+                        Link para Candidatura
+                      </h4>
+                      <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
+                        Compartilhe este link para que candidatos se inscrevam
+                      </p>
+                    </div>
+                    <div className="flex space-x-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => copyJobLink(job.id)}
+                        icon={copiedJobId === job.id ? Check : Copy}
+                        darkMode={darkMode}
+                        className={copiedJobId === job.id ? 'border-triagen-secondary-green text-triagen-secondary-green' : ''}
+                      >
+                        {copiedJobId === job.id ? 'Copiado!' : 'Copiar'}
+                      </Button>
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => openJobLink(job.id)}
+                        icon={ExternalLink}
+                        darkMode={darkMode}
+                      >
+                        Abrir
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  <div className={`mt-3 p-2 rounded-lg text-xs font-mono break-all ${
+                    darkMode ? 'bg-gray-900/50 text-gray-300' : 'bg-white/50 text-triagen-text-dark'
+                  }`}>
+                    {window.location.origin}/apply/{job.id}
+                  </div>
                 </div>
-              )}
+
+                {/* Actions */}
+                <div className="flex justify-between items-center pt-4 border-t border-inherit">
+                  <div className="flex space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => navigate(`/dashboard/jobs/${job.id}/candidates`)}
+                      darkMode={darkMode}
+                    >
+                      Ver Candidatos
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => navigate(`/dashboard/jobs/${job.id}/edit`)}
+                      darkMode={darkMode}
+                    >
+                      Editar
+                    </Button>
+                  </div>
+
+                  {job.deadline && (
+                    <div className={`text-xs ${darkMode ? 'text-gray-500' : 'text-triagen-text-light'}`}>
+                      Prazo: {new Date(job.deadline).toLocaleDateString('pt-BR')}
+                    </div>
+                  )}
+                </div>
+              </div>
             </Card>
           ))}
         </div>
