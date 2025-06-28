@@ -18,7 +18,7 @@ function Footer({ darkMode, onJoinWaitlist }: FooterProps) {
           <div className="space-y-6">
             <Logo darkMode={true} />
             <p className="font-sans text-gray-300 leading-relaxed">
-              Para quem acredita que recrutar bem começa por ouvir. 
+              Mais alcance, mais precisão. 
               Democratizamos a escuta no recrutamento com IA empática e transparente.
             </p>
             <div className="flex items-center space-x-2 text-triagen-mint">

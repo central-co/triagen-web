@@ -1,4 +1,3 @@
-
 import { Link } from 'react-router-dom';
 import useDarkMode from '../hooks/useDarkMode';
 import AnimatedBackground from './ui/AnimatedBackground';
@@ -10,7 +9,7 @@ function NotFoundPage() {
   const { darkMode } = useDarkMode(true);
 
   return (
-    <div className={`min-h-screen transition-all duration-500 ${darkMode ? 'dark bg-gray-900' : 'bg-white'}`}>
+    <div className={`min-h-screen transition-all duration-500 ${darkMode ? 'dark bg-gray-900' : 'bg-triagen-light'}`}>
       <AnimatedBackground darkMode={darkMode} />
       
       {/* Header */}
@@ -21,17 +20,22 @@ function NotFoundPage() {
         <div className="max-w-md w-full">
           <Card darkMode={darkMode} hoverEffect>
             <div className="text-center">
-              <h1 className={`text-6xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent`}>
+              <h1 className={`font-heading text-6xl font-bold mb-4 bg-gradient-to-r from-triagen-petrol to-triagen-blue bg-clip-text text-transparent`}>
                 404
               </h1>
-              <h2 className={`text-2xl font-bold mb-4 transition-colors duration-300 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+              <h2 className={`font-heading text-2xl font-bold mb-4 transition-colors duration-300 ${darkMode ? 'text-white' : 'text-triagen-petrol'}`}>
                 Página não encontrada
               </h2>
-              <p className={`mb-8 transition-colors duration-300 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+              <p className={`font-sans mb-8 transition-colors duration-300 ${darkMode ? 'text-gray-400' : 'text-triagen-light-text'}`}>
                 A página que você está procurando não existe ou foi movida.
               </p>
               <Link to="/">
-                <Button variant="primary" size="lg" fullWidth>
+                <Button 
+                  variant="primary" 
+                  size="lg" 
+                  fullWidth
+                  className="bg-gradient-to-r from-triagen-petrol to-triagen-blue"
+                >
                   Voltar para a Home
                 </Button>
               </Link>

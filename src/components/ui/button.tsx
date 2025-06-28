@@ -33,16 +33,16 @@ function Button({
   };
   
   const variantClasses = {
-    primary: 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:shadow-xl',
+    primary: 'bg-gradient-to-r from-triagen-petrol to-triagen-blue text-white hover:shadow-xl',
     secondary: darkMode 
       ? 'bg-gray-800/50 text-gray-300 border border-gray-600/50 hover:bg-gray-700/50 hover:border-gray-500/50' 
-      : 'bg-white/50 text-gray-700 border border-gray-300/50 hover:bg-white/70 hover:border-gray-400/50',
+      : 'bg-white/70 text-triagen-petrol border border-triagen-light-text/30 hover:bg-white/90 hover:border-triagen-light-text/50',
     outline: darkMode
       ? 'border-2 border-gray-600/50 text-gray-300 hover:border-gray-500/50 hover:bg-gray-800/30'
-      : 'border-2 border-gray-300/50 text-gray-700 hover:border-gray-400/50 hover:bg-white/30',
+      : 'border-2 border-triagen-light-text/30 text-triagen-petrol hover:border-triagen-light-text/50 hover:bg-white/30',
     ghost: darkMode
       ? 'text-gray-300 hover:bg-gray-800/30'
-      : 'text-gray-700 hover:bg-white/30'
+      : 'text-triagen-petrol hover:bg-white/30'
   };
   
   const widthClass = fullWidth ? 'w-full' : '';
@@ -56,7 +56,7 @@ function Button({
       {...props}
     >
       {variant === 'primary' && (
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-triagen-mint to-triagen-blue opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
       )}
       <div className="relative flex items-center justify-center space-x-2">
         {isLoading ? (

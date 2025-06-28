@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Bot, Lock, ArrowRight } from 'lucide-react';
@@ -67,7 +66,7 @@ function InterviewPage() {
   }
 
   return (
-    <div className={`min-h-screen transition-all duration-500 ${darkMode ? 'dark bg-gray-900' : 'bg-white'}`}>
+    <div className={`min-h-screen transition-all duration-500 ${darkMode ? 'dark bg-gray-900' : 'bg-triagen-light'}`}>
       {/* Animated Background */}
       <AnimatedBackground darkMode={darkMode} />
 
@@ -80,15 +79,15 @@ function InterviewPage() {
           <Card darkMode={darkMode} hoverEffect>
             {/* Header */}
             <div className="text-center mb-8">
-              <div className={`w-20 h-20 mx-auto mb-6 rounded-3xl bg-gradient-to-r from-blue-600 to-purple-600 flex items-center justify-center transition-transform duration-300 hover:scale-110`}>
+              <div className={`w-20 h-20 mx-auto mb-6 rounded-3xl bg-gradient-to-r from-triagen-petrol to-triagen-blue flex items-center justify-center transition-transform duration-300 hover:scale-110`}>
                 <Bot className="h-10 w-10 text-white" />
               </div>
 
-              <h1 className={`text-3xl font-bold mb-3 transition-colors duration-300 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+              <h1 className={`font-heading text-3xl font-bold mb-3 transition-colors duration-300 ${darkMode ? 'text-white' : 'text-triagen-petrol'}`}>
                 Entrevista com IA
               </h1>
 
-              <p className={`transition-colors duration-300 leading-relaxed ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+              <p className={`font-sans transition-colors duration-300 leading-relaxed ${darkMode ? 'text-gray-400' : 'text-triagen-light-text'}`}>
                 Insira o código da sua entrevista para começar a conversa com nossa IA especializada
               </p>
             </div>
@@ -96,7 +95,7 @@ function InterviewPage() {
             {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <label htmlFor="token" className={`block text-sm font-medium mb-3 transition-colors duration-300 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                <label htmlFor="token" className={`block text-sm font-medium mb-3 transition-colors duration-300 ${darkMode ? 'text-gray-300' : 'text-triagen-petrol'}`}>
                   <Lock className="h-4 w-4 inline mr-2" />
                   Código da Entrevista
                 </label>
@@ -106,10 +105,10 @@ function InterviewPage() {
                   value={token}
                   onChange={(e) => setToken(e.target.value)}
                   placeholder="Digite o código recebido por email"
-                  className={`w-full px-4 py-4 rounded-2xl border transition-all duration-300 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 ${
+                  className={`font-sans w-full px-4 py-4 rounded-2xl border transition-all duration-300 focus:ring-2 focus:ring-triagen-mint/50 focus:border-triagen-mint ${
                     darkMode
                       ? 'bg-gray-800/50 border-gray-600/50 text-white placeholder-gray-400'
-                      : 'bg-white/50 border-gray-300/50 text-gray-900 placeholder-gray-500'
+                      : 'bg-white/70 border-triagen-light-text/30 text-triagen-petrol placeholder-triagen-light-text'
                   }`}
                   disabled={isLoading}
                 />
@@ -131,7 +130,7 @@ function InterviewPage() {
                 isLoading={isLoading}
                 disabled={!token.trim()}
                 icon={ArrowRight}
-                className="h-12 px-6 text-base whitespace-nowrap"
+                className="h-12 px-6 text-base whitespace-nowrap bg-gradient-to-r from-triagen-petrol to-triagen-blue"
               >
                 {isLoading ? 'Validando código...' : 'Iniciar Entrevista'}
               </Button>

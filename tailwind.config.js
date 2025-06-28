@@ -6,9 +6,14 @@ export default {
       colors: {
         'triagen': {
           'petrol': '#1B2A41',
-          'mint': '#7FFFD4',
-          'light': '#F5F5F7',
-          'salmon': '#FF857A',
+          'mint': '#4ECDC4',
+          'light': '#F8FAFC',
+          'salmon': '#FF6B6B',
+          'blue': '#3B82F6',
+          'dark-text': '#1F2937',
+          'light-text': '#6B7280',
+          'light-gray': '#F1F5F9',
+          'dark-gray': '#374151',
         }
       },
       fontFamily: {

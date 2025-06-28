@@ -1,4 +1,3 @@
-
 import { CheckCircle, AlertCircle, AlertTriangle, Info, DivideIcon as LucideIcon } from 'lucide-react';
 
 export interface StatusMessageProps {
@@ -29,24 +28,24 @@ function StatusMessage({
 
   const typeClasses = {
     success: darkMode
-      ? 'bg-green-500/10 border-green-500/20 text-green-400'
-      : 'bg-green-50/50 border-green-200/50 text-green-600',
+      ? 'bg-triagen-mint/10 border-triagen-mint/20 text-triagen-mint'
+      : 'bg-triagen-mint/10 border-triagen-mint/30 text-green-700',
     error: darkMode
-      ? 'bg-red-500/10 border-red-500/20 text-red-400'
-      : 'bg-red-50/50 border-red-200/50 text-red-600',
+      ? 'bg-triagen-salmon/10 border-triagen-salmon/20 text-triagen-salmon'
+      : 'bg-triagen-salmon/10 border-triagen-salmon/30 text-red-700',
     warning: darkMode
       ? 'bg-orange-500/10 border-orange-500/20 text-orange-400'
       : 'bg-orange-50/50 border-orange-200/50 text-orange-600',
     info: darkMode
-      ? 'bg-blue-500/10 border-blue-500/20 text-blue-400'
-      : 'bg-blue-50/50 border-blue-200/50 text-blue-600'
+      ? 'bg-triagen-blue/10 border-triagen-blue/20 text-triagen-blue'
+      : 'bg-triagen-blue/10 border-triagen-blue/30 text-blue-700'
   };
 
   const iconColors = {
-    success: 'text-green-500',
-    error: 'text-red-500',
+    success: 'text-triagen-mint',
+    error: 'text-triagen-salmon',
     warning: 'text-orange-500',
-    info: 'text-blue-500'
+    info: 'text-triagen-blue'
   };
 
   return (

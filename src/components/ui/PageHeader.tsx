@@ -59,7 +59,7 @@ function PageHeader({
                 onClick={toggleDarkMode}
                 className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 flex-shrink-0 ${
                   darkMode 
-                    ? 'bg-gray-800/50 text-yellow-400 hover:bg-gray-700/50' 
+                    ? 'bg-gray-800/50 text-triagen-mint hover:bg-gray-700/50' 
                     : 'bg-triagen-light/50 text-triagen-petrol hover:bg-triagen-light/70'
                 }`}
                 title={darkMode ? 'Modo claro' : 'Modo escuro'}
@@ -91,7 +91,7 @@ function PageHeader({
                   variant="primary"
                   size="sm"
                   onClick={onStartInterview}
-                  className="h-10 px-4 text-sm whitespace-nowrap flex-shrink-0 bg-gradient-to-r from-triagen-petrol to-blue-600"
+                  className="h-10 px-4 text-sm whitespace-nowrap flex-shrink-0 bg-gradient-to-r from-triagen-petrol to-triagen-blue"
                 >
                   Entrevista Demo
                 </Button>
