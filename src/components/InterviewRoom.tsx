@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import {
   Room,
@@ -177,7 +176,7 @@ function InterviewRoom({ jwtToken, onLeave }: InterviewRoomProps) {
               size="lg"
               fullWidth
               onClick={connectToRoom}
-              className="mt-4"
+              className="mt-4 bg-gradient-to-r from-triagen-dark-bg to-triagen-primary-accent"
             >
               Reconectar
             </Button>
@@ -212,23 +211,23 @@ function InterviewRoom({ jwtToken, onLeave }: InterviewRoomProps) {
       <div className="flex items-center justify-center min-h-screen px-4">
         <Card darkMode={darkMode} className="max-w-2xl w-full">
           <div className="text-center mb-8">
-            <h1 className={`text-3xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+            <h1 className={`text-3xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
               Entrevista em Andamento
             </h1>
-            <p className={`${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+            <p className={`${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
               Participantes conectados: {participants.length + 1}
             </p>
           </div>
 
           {/* Audio level indicator */}
           <div className="mb-8">
-            <div className={`h-2 rounded-full ${darkMode ? 'bg-gray-700' : 'bg-gray-200'}`}>
+            <div className={`h-2 rounded-full ${darkMode ? 'bg-gray-700' : 'bg-triagen-border-light'}`}>
               <div
-                className="h-full bg-gradient-to-r from-green-500 to-blue-500 rounded-full transition-all duration-100"
+                className="h-full bg-gradient-to-r from-triagen-secondary-accent to-triagen-primary-accent rounded-full transition-all duration-100"
                 style={{ width: `${Math.min(audioLevel * 100, 100)}%` }}
               />
             </div>
-            <p className={`text-sm mt-2 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+            <p className={`text-sm mt-2 ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
               Nível do microfone
             </p>
           </div>

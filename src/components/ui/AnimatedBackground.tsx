@@ -10,18 +10,18 @@ function AnimatedBackground({ darkMode, scrollY = 0, isRoom = false }: AnimatedB
       <div
         className={`absolute -top-40 -right-40 w-80 h-80 rounded-full ${
           isRoom ? 'opacity-10' : 'opacity-20'
-        } blur-3xl transition-all duration-1000 ${darkMode ? 'bg-triagen-mint' : 'bg-triagen-mint/60'}`}
+        } blur-3xl transition-all duration-1000 ${darkMode ? 'bg-triagen-secondary-accent' : 'bg-triagen-secondary-accent/60'}`}
         style={!isRoom ? { transform: `translateY(${scrollY * 0.1}px)` } : undefined}
       ></div>
       <div
         className={`absolute top-1/2 -left-40 w-96 h-96 rounded-full ${
           isRoom ? 'opacity-5' : 'opacity-15'
-        } blur-3xl transition-all duration-1000 ${darkMode ? 'bg-triagen-salmon' : 'bg-triagen-salmon/60'}`}
+        } blur-3xl transition-all duration-1000 ${darkMode ? 'bg-triagen-highlight-warm' : 'bg-triagen-highlight-warm/60'}`}
         style={!isRoom ? { transform: `translateY(${scrollY * -0.05}px)` } : undefined}
       ></div>
       {!isRoom && (
         <div
-          className={`absolute bottom-0 right-1/4 w-64 h-64 rounded-full opacity-10 blur-3xl transition-all duration-1000 ${darkMode ? 'bg-triagen-petrol' : 'bg-triagen-petrol/60'}`}
+          className={`absolute bottom-0 right-1/4 w-64 h-64 rounded-full opacity-10 blur-3xl transition-all duration-1000 ${darkMode ? 'bg-triagen-dark-bg' : 'bg-triagen-dark-bg/60'}`}
           style={{ transform: `translateY(${scrollY * 0.08}px)` }}
         ></div>
       )}

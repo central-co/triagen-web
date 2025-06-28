@@ -10,7 +10,7 @@ interface FooterProps {
 function Footer({ darkMode, onJoinWaitlist }: FooterProps) {
   return (
     <footer className={`py-16 relative ${
-      darkMode ? 'bg-triagen-petrol text-white' : 'bg-triagen-petrol text-white'
+      darkMode ? 'bg-triagen-dark-bg text-white' : 'bg-triagen-dark-bg text-white'
     }`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
@@ -21,7 +21,7 @@ function Footer({ darkMode, onJoinWaitlist }: FooterProps) {
               Mais alcance, mais precisão. 
               Democratizamos a escuta no recrutamento com IA empática e transparente.
             </p>
-            <div className="flex items-center space-x-2 text-triagen-mint">
+            <div className="flex items-center space-x-2 text-triagen-secondary-accent">
               <Heart className="h-4 w-4" />
               <span className="font-sans text-sm">Humanizando o recrutamento</span>
             </div>
@@ -32,15 +32,15 @@ function Footer({ darkMode, onJoinWaitlist }: FooterProps) {
             <h3 className="font-heading text-lg font-semibold text-white">Contato</h3>
             <div className="space-y-4">
               <div className="flex items-start space-x-3">
-                <Mail className="h-5 w-5 text-triagen-mint mt-0.5" />
+                <Mail className="h-5 w-5 text-triagen-secondary-accent mt-0.5" />
                 <span className="font-sans text-gray-300">contato@triagen.com.br</span>
               </div>
               <div className="flex items-start space-x-3">
-                <Phone className="h-5 w-5 text-triagen-mint mt-0.5" />
+                <Phone className="h-5 w-5 text-triagen-secondary-accent mt-0.5" />
                 <span className="font-sans text-gray-300">+55 (11) 9999-9999</span>
               </div>
               <div className="flex items-start space-x-3">
-                <MapPin className="h-5 w-5 text-triagen-mint mt-0.5" />
+                <MapPin className="h-5 w-5 text-triagen-secondary-accent mt-0.5" />
                 <span className="font-sans text-gray-300">São Paulo, SP</span>
               </div>
             </div>
@@ -58,7 +58,7 @@ function Footer({ darkMode, onJoinWaitlist }: FooterProps) {
                 variant="primary"
                 size="md"
                 onClick={onJoinWaitlist}
-                className="w-full bg-gradient-to-r from-triagen-mint to-green-500 text-triagen-petrol font-semibold"
+                className="w-full bg-gradient-to-r from-triagen-secondary-accent to-green-500 text-white font-semibold"
               >
                 Teste Grátis (5 Candidatos)
               </Button>
@@ -66,7 +66,7 @@ function Footer({ darkMode, onJoinWaitlist }: FooterProps) {
                 variant="outline"
                 size="md"
                 onClick={onJoinWaitlist}
-                className="w-full border-triagen-salmon text-triagen-salmon hover:bg-triagen-salmon/10"
+                className="w-full border-triagen-highlight-warm text-triagen-highlight-warm hover:bg-triagen-highlight-warm/10"
               >
                 Piloto Acadêmico (R$200)
               </Button>
@@ -81,9 +81,9 @@ function Footer({ darkMode, onJoinWaitlist }: FooterProps) {
               © 2025 TriaGen. Todos os direitos reservados.
             </p>
             <div className="flex items-center space-x-6 text-sm text-gray-400">
-              <a href="#" className="font-sans hover:text-triagen-mint transition-colors">Termos de Uso</a>
-              <a href="#" className="font-sans hover:text-triagen-mint transition-colors">Privacidade</a>
-              <a href="#" className="font-sans hover:text-triagen-mint transition-colors">Cookies</a>
+              <a href="#" className="font-sans hover:text-triagen-secondary-accent transition-colors">Termos de Uso</a>
+              <a href="#" className="font-sans hover:text-triagen-secondary-accent transition-colors">Privacidade</a>
+              <a href="#" className="font-sans hover:text-triagen-secondary-accent transition-colors">Cookies</a>
             </div>
           </div>
         </div>

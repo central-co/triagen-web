@@ -66,7 +66,7 @@ function InterviewPage() {
   }
 
   return (
-    <div className={`min-h-screen transition-all duration-500 ${darkMode ? 'dark bg-gray-900' : 'bg-triagen-light'}`}>
+    <div className={`min-h-screen transition-all duration-500 ${darkMode ? 'dark bg-gray-900' : 'bg-triagen-light-bg'}`}>
       {/* Animated Background */}
       <AnimatedBackground darkMode={darkMode} />
 
@@ -79,15 +79,15 @@ function InterviewPage() {
           <Card darkMode={darkMode} hoverEffect>
             {/* Header */}
             <div className="text-center mb-8">
-              <div className={`w-20 h-20 mx-auto mb-6 rounded-3xl bg-gradient-to-r from-triagen-petrol to-triagen-blue flex items-center justify-center transition-transform duration-300 hover:scale-110`}>
+              <div className={`w-20 h-20 mx-auto mb-6 rounded-3xl bg-gradient-to-r from-triagen-dark-bg to-triagen-primary-accent flex items-center justify-center transition-transform duration-300 hover:scale-110`}>
                 <Bot className="h-10 w-10 text-white" />
               </div>
 
-              <h1 className={`font-heading text-3xl font-bold mb-3 transition-colors duration-300 ${darkMode ? 'text-white' : 'text-triagen-petrol'}`}>
+              <h1 className={`font-heading text-3xl font-bold mb-3 transition-colors duration-300 ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
                 Entrevista com IA
               </h1>
 
-              <p className={`font-sans transition-colors duration-300 leading-relaxed ${darkMode ? 'text-gray-400' : 'text-triagen-light-text'}`}>
+              <p className={`font-sans transition-colors duration-300 leading-relaxed ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
                 Insira o código da sua entrevista para começar a conversa com nossa IA especializada
               </p>
             </div>
@@ -95,7 +95,7 @@ function InterviewPage() {
             {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <label htmlFor="token" className={`block text-sm font-medium mb-3 transition-colors duration-300 ${darkMode ? 'text-gray-300' : 'text-triagen-petrol'}`}>
+                <label htmlFor="token" className={`block text-sm font-medium mb-3 transition-colors duration-300 ${darkMode ? 'text-gray-300' : 'text-triagen-dark-bg'}`}>
                   <Lock className="h-4 w-4 inline mr-2" />
                   Código da Entrevista
                 </label>
@@ -105,10 +105,10 @@ function InterviewPage() {
                   value={token}
                   onChange={(e) => setToken(e.target.value)}
                   placeholder="Digite o código recebido por email"
-                  className={`font-sans w-full px-4 py-4 rounded-2xl border transition-all duration-300 focus:ring-2 focus:ring-triagen-mint/50 focus:border-triagen-mint ${
+                  className={`font-sans w-full px-4 py-4 rounded-2xl border transition-all duration-300 focus:ring-2 focus:ring-triagen-secondary-accent/50 focus:border-triagen-secondary-accent ${
                     darkMode
-                      ? 'bg-gray-800/50 border-gray-600/50 text-white placeholder-gray-400'
-                      : 'bg-white/70 border-triagen-light-text/30 text-triagen-petrol placeholder-triagen-light-text'
+                      ? 'bg-gray-800/50 border-triagen-border-dark text-white placeholder-gray-400'
+                      : 'bg-white/70 border-triagen-border-light text-triagen-dark-bg placeholder-triagen-text-light'
                   }`}
                   disabled={isLoading}
                 />
@@ -130,7 +130,7 @@ function InterviewPage() {
                 isLoading={isLoading}
                 disabled={!token.trim()}
                 icon={ArrowRight}
-                className="h-12 px-6 text-base whitespace-nowrap bg-gradient-to-r from-triagen-petrol to-triagen-blue"
+                className="h-12 px-6 text-base whitespace-nowrap bg-gradient-to-r from-triagen-dark-bg to-triagen-primary-accent"
               >
                 {isLoading ? 'Validando código...' : 'Iniciar Entrevista'}
               </Button>

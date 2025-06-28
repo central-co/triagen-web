@@ -5,15 +5,15 @@ export default {
     extend: {
       colors: {
         'triagen': {
-          'petrol': '#1B2A41',
-          'mint': '#4ECDC4',
-          'light': '#F8FAFC',
-          'salmon': '#FF6B6B',
-          'blue': '#3B82F6',
-          'dark-text': '#1F2937',
-          'light-text': '#6B7280',
-          'light-gray': '#F1F5F9',
-          'dark-gray': '#374151',
+          'dark-bg': '#1B2A41',
+          'light-bg': '#F8FAFC',
+          'primary-accent': '#4A90E2',
+          'secondary-accent': '#2E8B57',
+          'highlight-warm': '#FF8C69',
+          'text-dark': '#1F2937',
+          'text-light': '#6B7280',
+          'border-light': '#E5E7EB',
+          'border-dark': '#4B5563',
         }
       },
       fontFamily: {

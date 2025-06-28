@@ -28,24 +28,24 @@ function StatusMessage({
 
   const typeClasses = {
     success: darkMode
-      ? 'bg-triagen-mint/10 border-triagen-mint/20 text-triagen-mint'
-      : 'bg-triagen-mint/10 border-triagen-mint/30 text-green-700',
+      ? 'bg-triagen-secondary-accent/10 border-triagen-secondary-accent/20 text-triagen-secondary-accent'
+      : 'bg-triagen-secondary-accent/10 border-triagen-secondary-accent/30 text-green-700',
     error: darkMode
-      ? 'bg-triagen-salmon/10 border-triagen-salmon/20 text-triagen-salmon'
-      : 'bg-triagen-salmon/10 border-triagen-salmon/30 text-red-700',
+      ? 'bg-triagen-highlight-warm/10 border-triagen-highlight-warm/20 text-triagen-highlight-warm'
+      : 'bg-triagen-highlight-warm/10 border-triagen-highlight-warm/30 text-red-700',
     warning: darkMode
       ? 'bg-orange-500/10 border-orange-500/20 text-orange-400'
       : 'bg-orange-50/50 border-orange-200/50 text-orange-600',
     info: darkMode
-      ? 'bg-triagen-blue/10 border-triagen-blue/20 text-triagen-blue'
-      : 'bg-triagen-blue/10 border-triagen-blue/30 text-blue-700'
+      ? 'bg-triagen-primary-accent/10 border-triagen-primary-accent/20 text-triagen-primary-accent'
+      : 'bg-triagen-primary-accent/10 border-triagen-primary-accent/30 text-blue-700'
   };
 
   const iconColors = {
-    success: 'text-triagen-mint',
-    error: 'text-triagen-salmon',
+    success: 'text-triagen-secondary-accent',
+    error: 'text-triagen-highlight-warm',
     warning: 'text-orange-500',
-    info: 'text-triagen-blue'
+    info: 'text-triagen-primary-accent'
   };
 
   return (

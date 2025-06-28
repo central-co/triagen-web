@@ -38,8 +38,8 @@ function PageHeader({
   return (
     <header className={`backdrop-blur-xl border-b transition-all duration-300 sticky top-0 z-40 h-20 ${
       darkMode 
-        ? 'bg-gray-900/80 border-gray-700/50' 
-        : 'bg-white/80 border-triagen-petrol/10'
+        ? 'bg-gray-900/80 border-triagen-border-dark' 
+        : 'bg-triagen-light-bg/80 border-triagen-border-light'
     } ${className}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
         <div className="flex justify-between items-center h-full">
@@ -59,8 +59,8 @@ function PageHeader({
                 onClick={toggleDarkMode}
                 className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 flex-shrink-0 ${
                   darkMode 
-                    ? 'bg-gray-800/50 text-triagen-mint hover:bg-gray-700/50' 
-                    : 'bg-triagen-light/50 text-triagen-petrol hover:bg-triagen-light/70'
+                    ? 'bg-gray-800/50 text-triagen-secondary-accent hover:bg-gray-700/50' 
+                    : 'bg-triagen-light-bg/50 text-triagen-dark-bg hover:bg-triagen-light-bg/70'
                 }`}
                 title={darkMode ? 'Modo claro' : 'Modo escuro'}
               >
@@ -80,8 +80,8 @@ function PageHeader({
                   iconPosition="left"
                   className={`h-10 px-4 text-sm whitespace-nowrap flex-shrink-0 ${
                     darkMode 
-                      ? 'bg-triagen-mint/10 border-triagen-mint/30 text-triagen-mint hover:bg-triagen-mint/20' 
-                      : 'bg-triagen-salmon/10 border-triagen-salmon/30 text-triagen-salmon hover:bg-triagen-salmon/20'
+                      ? 'bg-triagen-secondary-accent/10 border-triagen-secondary-accent/30 text-triagen-secondary-accent hover:bg-triagen-secondary-accent/20' 
+                      : 'bg-triagen-highlight-warm/10 border-triagen-highlight-warm/30 text-triagen-highlight-warm hover:bg-triagen-highlight-warm/20'
                   }`}
                 >
                   Teste Grátis
@@ -91,7 +91,7 @@ function PageHeader({
                   variant="primary"
                   size="sm"
                   onClick={onStartInterview}
-                  className="h-10 px-4 text-sm whitespace-nowrap flex-shrink-0 bg-gradient-to-r from-triagen-petrol to-triagen-blue"
+                  className="h-10 px-4 text-sm whitespace-nowrap flex-shrink-0 bg-gradient-to-r from-triagen-dark-bg to-triagen-primary-accent"
                 >
                   Entrevista Demo
                 </Button>

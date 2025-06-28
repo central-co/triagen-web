@@ -27,23 +27,23 @@ function SectionHeader({
       {label && Icon && (
         <div className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-medium mb-6 backdrop-blur-sm border ${
           darkMode 
-            ? 'bg-gray-800/30 border-gray-700/50 text-gray-300' 
-            : 'bg-white/30 border-triagen-petrol/20 text-triagen-petrol'
+            ? 'bg-gray-800/30 border-triagen-border-dark text-gray-300' 
+            : 'bg-triagen-light-bg/30 border-triagen-border-light text-triagen-dark-bg'
         }`}>
-          <Icon className="h-4 w-4 mr-2 text-triagen-salmon" />
+          <Icon className="h-4 w-4 mr-2 text-triagen-highlight-warm" />
           {label}
         </div>
       )}
       
       <h2 className={`font-heading text-4xl md:text-5xl font-bold mb-6 transition-colors duration-300 ${
-        darkMode ? 'text-white' : 'text-triagen-petrol'
+        darkMode ? 'text-white' : 'text-triagen-dark-bg'
       } ${alignmentClasses}`}>
         {title}
       </h2>
       
       {description && (
         <p className={`font-sans text-xl transition-colors duration-300 ${
-          darkMode ? 'text-gray-400' : 'text-gray-600'
+          darkMode ? 'text-gray-400' : 'text-triagen-text-light'
         } ${alignmentClasses}`}>
           {description}
         </p>

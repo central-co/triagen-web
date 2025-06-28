@@ -9,7 +9,7 @@ function NotFoundPage() {
   const { darkMode } = useDarkMode(true);
 
   return (
-    <div className={`min-h-screen transition-all duration-500 ${darkMode ? 'dark bg-gray-900' : 'bg-triagen-light'}`}>
+    <div className={`min-h-screen transition-all duration-500 ${darkMode ? 'dark bg-gray-900' : 'bg-triagen-light-bg'}`}>
       <AnimatedBackground darkMode={darkMode} />
       
       {/* Header */}
@@ -20,13 +20,13 @@ function NotFoundPage() {
         <div className="max-w-md w-full">
           <Card darkMode={darkMode} hoverEffect>
             <div className="text-center">
-              <h1 className={`font-heading text-6xl font-bold mb-4 bg-gradient-to-r from-triagen-petrol to-triagen-blue bg-clip-text text-transparent`}>
+              <h1 className={`font-heading text-6xl font-bold mb-4 bg-gradient-to-r from-triagen-dark-bg to-triagen-primary-accent bg-clip-text text-transparent`}>
                 404
               </h1>
-              <h2 className={`font-heading text-2xl font-bold mb-4 transition-colors duration-300 ${darkMode ? 'text-white' : 'text-triagen-petrol'}`}>
+              <h2 className={`font-heading text-2xl font-bold mb-4 transition-colors duration-300 ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
                 Página não encontrada
               </h2>
-              <p className={`font-sans mb-8 transition-colors duration-300 ${darkMode ? 'text-gray-400' : 'text-triagen-light-text'}`}>
+              <p className={`font-sans mb-8 transition-colors duration-300 ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
                 A página que você está procurando não existe ou foi movida.
               </p>
               <Link to="/">
@@ -34,7 +34,7 @@ function NotFoundPage() {
                   variant="primary" 
                   size="lg" 
                   fullWidth
-                  className="bg-gradient-to-r from-triagen-petrol to-triagen-blue"
+                  className="bg-gradient-to-r from-triagen-dark-bg to-triagen-primary-accent"
                 >
                   Voltar para a Home
                 </Button>

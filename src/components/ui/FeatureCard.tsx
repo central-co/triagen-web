@@ -16,7 +16,7 @@ function FeatureCard({
   description,
   darkMode = false,
   className = '',
-  iconColor = 'from-triagen-petrol to-blue-600',
+  iconColor = 'from-triagen-dark-bg to-triagen-primary-accent',
   layout = 'vertical'
 }: FeatureCardProps) {
   const baseClasses = 'group transition-all duration-300 hover:scale-105 hover:shadow-xl';
@@ -25,17 +25,17 @@ function FeatureCard({
     return (
       <div className={`${baseClasses} flex items-start space-x-4 p-6 rounded-2xl backdrop-blur-sm border ${
         darkMode 
-          ? 'bg-gray-800/20 border-gray-700/30 hover:bg-gray-800/40' 
-          : 'bg-white/20 border-triagen-petrol/10 hover:bg-white/40'
+          ? 'bg-gray-800/20 border-triagen-border-dark hover:bg-gray-800/40' 
+          : 'bg-triagen-light-bg/20 border-triagen-border-light hover:bg-triagen-light-bg/40'
       } ${className}`}>
         <div className={`w-14 h-14 rounded-2xl bg-gradient-to-r ${iconColor} flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300`}>
           <Icon className="h-7 w-7 text-white" />
         </div>
         <div>
-          <h3 className={`font-heading text-lg font-semibold mb-2 transition-colors duration-300 ${darkMode ? 'text-white' : 'text-triagen-petrol'}`}>
+          <h3 className={`font-heading text-lg font-semibold mb-2 transition-colors duration-300 ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
             {title}
           </h3>
-          <p className={`font-sans transition-colors duration-300 leading-relaxed ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+          <p className={`font-sans transition-colors duration-300 leading-relaxed ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
             {description}
           </p>
         </div>
@@ -46,16 +46,16 @@ function FeatureCard({
   return (
     <div className={`${baseClasses} p-8 rounded-3xl backdrop-blur-xl border ${
       darkMode 
-        ? 'bg-gray-800/30 border-gray-700/50 hover:bg-gray-800/50' 
-        : 'bg-white/30 border-triagen-petrol/10 hover:bg-white/50'
+        ? 'bg-gray-800/30 border-triagen-border-dark hover:bg-gray-800/50' 
+        : 'bg-triagen-light-bg/30 border-triagen-border-light hover:bg-triagen-light-bg/50'
     } ${className}`}>
       <div className={`w-20 h-20 rounded-3xl bg-gradient-to-r ${iconColor} flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300`}>
         <Icon className="h-10 w-10 text-white" />
       </div>
-      <h3 className={`font-heading text-xl font-semibold mb-4 transition-colors duration-300 ${darkMode ? 'text-white' : 'text-triagen-petrol'}`}>
+      <h3 className={`font-heading text-xl font-semibold mb-4 transition-colors duration-300 ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
         {title}
       </h3>
-      <p className={`font-sans transition-colors duration-300 leading-relaxed ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+      <p className={`font-sans transition-colors duration-300 leading-relaxed ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
         {description}
       </p>
     </div>

@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 export interface CardProps {
@@ -22,14 +21,14 @@ function Card({
   
   const variantClasses = {
     default: darkMode
-      ? 'bg-gray-800/30 border-gray-700/50'
-      : 'bg-white/30 border-gray-200/50',
+      ? 'bg-gray-800/30 border-triagen-border-dark'
+      : 'bg-triagen-light-bg/30 border-triagen-border-light',
     glass: darkMode
-      ? 'backdrop-blur-xl bg-gray-800/40 border-gray-700/50'
-      : 'backdrop-blur-xl bg-white/40 border-gray-200/50',
+      ? 'backdrop-blur-xl bg-gray-800/40 border-triagen-border-dark'
+      : 'backdrop-blur-xl bg-triagen-light-bg/50 border-triagen-border-light',
     solid: darkMode
-      ? 'bg-gray-800 border-gray-700'
-      : 'bg-white border-gray-200'
+      ? 'bg-gray-800 border-triagen-border-dark'
+      : 'bg-triagen-light-bg border-triagen-border-light'
   };
   
   const paddingClasses = {

@@ -70,11 +70,11 @@ async function sendConfirmationEmail(email: string, name: string): Promise<boole
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
             <div style="text-align: center; margin-bottom: 30px;">
-              <h1 style="color: #3B82F6; margin: 0;">TriaGen</h1>
+              <h1 style="color: #1B2A41; margin: 0;">TriaGen</h1>
               <p style="color: #6B7280; margin: 5px 0;">Sua IA entrevista enquanto você foca no que importa</p>
             </div>
             
-            <div style="background: linear-gradient(135deg, #3B82F6, #8B5CF6); padding: 30px; border-radius: 16px; color: white; text-align: center; margin-bottom: 30px;">
+            <div style="background: linear-gradient(135deg, #1B2A41, #4A90E2); padding: 30px; border-radius: 16px; color: white; text-align: center; margin-bottom: 30px;">
               <h2 style="margin: 0 0 15px 0;">Obrigado por se juntar à nossa lista de espera!</h2>
               <p style="margin: 0; opacity: 0.9;">Olá ${name}, você está entre os primeiros a conhecer o futuro do recrutamento com IA.</p>
             </div>
@@ -91,7 +91,7 @@ async function sendConfirmationEmail(email: string, name: string): Promise<boole
             
             <div style="text-align: center; margin-bottom: 25px;">
               <p style="color: #6B7280; margin: 0 0 15px 0;">Enquanto isso, que tal conhecer mais sobre como nossa IA pode transformar seu recrutamento?</p>
-              <a href="https://triagen.com.br" style="display: inline-block; background: linear-gradient(135deg, #3B82F6, #8B5CF6); color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold;">Visitar Site</a>
+              <a href="https://triagen.com.br" style="display: inline-block; background: linear-gradient(135deg, #1B2A41, #4A90E2); color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold;">Visitar Site</a>
             </div>
             
             <div style="border-top: 1px solid #E5E7EB; padding-top: 20px; text-align: center;">
