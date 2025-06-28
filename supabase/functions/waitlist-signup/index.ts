@@ -15,11 +15,84 @@ interface RecaptchaResponse {
   'error-codes'?: string[];
 }
 
+interface RateLimitStore {
+  [key: string]: {
+    count: number;
+    resetTime: number;
+  };
+}
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Client-ID, X-Timestamp, X-CSRF-Token',
+  'X-Content-Type-Options': 'nosniff',
+  'X-Frame-Options': 'DENY',
+  'X-XSS-Protection': '1; mode=block',
 };
+
+// In-memory rate limiting (in production, use Redis or similar)
+const rateLimitStore: RateLimitStore = {};
+
+function cleanupRateLimit() {
+  const now = Date.now();
+  Object.keys(rateLimitStore).forEach(key => {
+    if (rateLimitStore[key].resetTime < now) {
+      delete rateLimitStore[key];
+    }
+  });
+}
+
+function checkRateLimit(clientId: string, maxRequests: number = 3, windowMs: number = 60 * 60 * 1000): boolean {
+  cleanupRateLimit();
+  
+  const now = Date.now();
+  
+  if (!rateLimitStore[clientId] || rateLimitStore[clientId].resetTime < now) {
+    rateLimitStore[clientId] = {
+      count: 1,
+      resetTime: now + windowMs
+    };
+    return true;
+  }
+  
+  if (rateLimitStore[clientId].count >= maxRequests) {
+    return false;
+  }
+  
+  rateLimitStore[clientId].count++;
+  return true;
+}
+
+function validateSecurityHeaders(request: Request): { valid: boolean; clientId?: string; error?: string } {
+  const clientId = request.headers.get('X-Client-ID');
+  const timestamp = request.headers.get('X-Timestamp');
+  const csrfToken = request.headers.get('X-CSRF-Token');
+  
+  if (!clientId) {
+    return { valid: false, error: 'Missing client identification' };
+  }
+  
+  if (!timestamp) {
+    return { valid: false, error: 'Missing timestamp' };
+  }
+  
+  // Check timestamp is within reasonable range (5 minutes)
+  const requestTime = parseInt(timestamp);
+  const now = Date.now();
+  const timeDiff = Math.abs(now - requestTime);
+  
+  if (timeDiff > 5 * 60 * 1000) {
+    return { valid: false, error: 'Request timestamp too old' };
+  }
+  
+  // CSRF token validation for state-changing operations
+  if (!csrfToken) {
+    return { valid: false, error: 'Missing CSRF token' };
+  }
+  
+  return { valid: true, clientId };
+}
 
 async function verifyRecaptcha(token: string): Promise<boolean> {
   const secretKey = Deno.env.get('RECAPTCHA_SECRET_KEY');
@@ -138,6 +211,33 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
+    // Validate security headers
+    const securityCheck = validateSecurityHeaders(req);
+    if (!securityCheck.valid) {
+      return new Response(
+        JSON.stringify({ error: securityCheck.error }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
+    }
+
+    // Check rate limiting
+    if (!checkRateLimit(securityCheck.clientId!)) {
+      return new Response(
+        JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }),
+        {
+          status: 429,
+          headers: { 
+            ...corsHeaders, 
+            'Content-Type': 'application/json',
+            'X-RateLimit-Reset': (Date.now() + 60 * 60 * 1000).toString()
+          },
+        }
+      );
+    }
+
     const data: WaitlistData = await req.json();
 
     // Validate required fields
@@ -260,7 +360,11 @@ Deno.serve(async (req: Request) => {
       }),
       {
         status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { 
+          ...corsHeaders, 
+          'Content-Type': 'application/json',
+          'X-RateLimit-Remaining': (3 - (rateLimitStore[securityCheck.clientId!]?.count || 0)).toString()
+        },
       }
     );
 
