@@ -73,6 +73,30 @@ function JobApplicationPage() {
     }));
   };
 
+  const generateSecureInterviewToken = async (candidateId: string): Promise<string> => {
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+    const response = await fetch(`${supabaseUrl}/functions/v1/generate-interview-token`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${supabaseAnonKey}`,
+      },
+      body: JSON.stringify({
+        candidate_id: candidateId
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to generate interview token');
+    }
+
+    const data = await response.json();
+    return data.interview_token;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -96,11 +120,7 @@ function JobApplicationPage() {
     setError('');
 
     try {
-      // Generate interview token
-      const interviewToken = Math.random().toString(36).substring(2, 15) + 
-                           Math.random().toString(36).substring(2, 15);
-
-      // Create candidate
+      // Create candidate first without token
       const { data: candidate, error: candidateError } = await supabase
         .from('candidates')
         .insert({
@@ -109,7 +129,6 @@ function JobApplicationPage() {
           email: formData.email,
           phone: formData.phone || null,
           resume_url: formData.resume_url || null,
-          interview_token: interviewToken,
           status: 'pending'
         })
         .select()
@@ -118,6 +137,9 @@ function JobApplicationPage() {
       if (candidateError) {
         throw candidateError;
       }
+
+      // Generate secure interview token using edge function
+      const interviewToken = await generateSecureInterviewToken(candidate.id);
 
       setSuccess(true);
       
@@ -128,7 +150,11 @@ function JobApplicationPage() {
 
     } catch (err) {
       console.error('Error submitting application:', err);
-      setError('Erro ao enviar candidatura. Tente novamente.');
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('Erro ao enviar candidatura. Tente novamente.');
+      }
     } finally {
       setSubmitting(false);
     }

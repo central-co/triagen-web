@@ -50,6 +50,18 @@ function InterviewRoom({ jwtToken, onLeave }: InterviewRoomProps) {
     setError('');
 
     try {
+      // Get LiveKit URL from environment variables
+      const livekitUrl = import.meta.env.VITE_LIVEKIT_WS_URL || import.meta.env.VITE_LIVEKIT_URL;
+      
+      if (!livekitUrl) {
+        throw new Error('LiveKit server URL not configured. Please set VITE_LIVEKIT_WS_URL in your environment variables.');
+      }
+
+      // Validate that the URL is a WebSocket URL
+      if (!livekitUrl.startsWith('ws://') && !livekitUrl.startsWith('wss://')) {
+        throw new Error('LiveKit URL must be a WebSocket URL (starting with ws:// or wss://)');
+      }
+
       const roomInstance = new Room();
       
       // Event listeners
@@ -61,8 +73,8 @@ function InterviewRoom({ jwtToken, onLeave }: InterviewRoomProps) {
       roomInstance.on(RoomEvent.TrackUnsubscribed, handleTrackUnsubscribed);
       roomInstance.on(RoomEvent.LocalTrackPublished, handleLocalTrackPublished);
 
-      // Connect to room
-      await roomInstance.connect('wss://your-livekit-server.com', jwtToken, {
+      // Connect to room using environment variable
+      await roomInstance.connect(livekitUrl, jwtToken, {
         autoSubscribe: true,
       });
       
@@ -78,7 +90,11 @@ function InterviewRoom({ jwtToken, onLeave }: InterviewRoomProps) {
       setRoom(roomInstance);
     } catch (err) {
       console.error('Failed to connect to room:', err);
-      setError(err instanceof Error ? err.message : 'Falha ao conectar na sala');
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('Falha ao conectar na sala de entrevista');
+      }
     } finally {
       setIsConnecting(false);
     }
@@ -168,7 +184,7 @@ function InterviewRoom({ jwtToken, onLeave }: InterviewRoomProps) {
             <StatusMessage
               type="error"
               title="Conexão perdida"
-              message="A conexão com a sala foi perdida. Tente novamente."
+              message={error || "A conexão com a sala foi perdida. Tente novamente."}
               darkMode={darkMode}
             />
             <Button
