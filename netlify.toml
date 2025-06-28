@@ -1,0 +1,8 @@
+[build]
+  command = "npm run build"    # roda o vite build
+  publish = "dist"             # output padrão do Vite
+
+[[redirects]]
+  from   = "/*"
+  to     = "/index.html"
+  status = 200
