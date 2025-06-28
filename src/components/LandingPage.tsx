@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -9,7 +10,11 @@ import {
   Sparkles,
   Building,
   Target,
-  Brain
+  Brain,
+  Mail,
+  User,
+  MessageSquare,
+  X
 } from 'lucide-react';
 import useDarkMode from '../hooks/useDarkMode';
 import AnimatedBackground from './ui/AnimatedBackground';
@@ -19,9 +24,21 @@ import SectionHeader from './ui/SectionHeader';
 import FeatureCard from './ui/FeatureCard';
 import StatCard from './ui/StatCard';
 import Footer from './ui/Footer';
+import Card from './ui/card';
+import StatusMessage from './ui/StatusMessage';
 
 function LandingPage() {
   const [scrollY, setScrollY] = useState(0);
+  const [showWaitlistForm, setShowWaitlistForm] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    company: '',
+    job_title: ''
+  });
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [error, setError] = useState('');
   const { darkMode, toggleDarkMode } = useDarkMode();
   const navigate = useNavigate();
 
@@ -36,8 +53,51 @@ function LandingPage() {
   };
 
   const handleWaitlistClick = () => {
-    // Temporarily disabled - do nothing
-    console.log('Waitlist functionality temporarily disabled');
+    setShowWaitlistForm(true);
+    setIsSubmitted(false);
+    setError('');
+    // Scroll to the form area
+    setTimeout(() => {
+      const formElement = document.getElementById('waitlist-form');
+      if (formElement) {
+        formElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 100);
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formData.name || !formData.email) {
+      setError('Por favor, preencha todos os campos obrigatórios');
+      return;
+    }
+
+    setIsLoading(true);
+    setError('');
+
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      setIsSubmitted(true);
+      setFormData({ name: '', email: '', company: '', job_title: '' });
+    } catch (err) {
+      setError('Erro ao enviar formulário. Tente novamente.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCloseForm = () => {
+    setShowWaitlistForm(false);
+    setIsSubmitted(false);
+    setError('');
+    setFormData({ name: '', email: '', company: '', job_title: '' });
   };
 
   const stats = [
@@ -132,6 +192,196 @@ function LandingPage() {
                 Junte-se à lista de espera
               </Button>
             </div>
+
+            {/* Waitlist Form */}
+            {showWaitlistForm && (
+              <div id="waitlist-form" className="mt-16 max-w-md mx-auto">
+                <Card darkMode={darkMode} hoverEffect>
+                  {isSubmitted ? (
+                    <div className="text-center">
+                      <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-r from-green-500 to-green-600 flex items-center justify-center">
+                        <Mail className="h-8 w-8 text-white" />
+                      </div>
+                      
+                      <h3 className={`text-xl font-bold mb-4 transition-colors duration-300 ${
+                        darkMode ? 'text-white' : 'text-gray-900'
+                      }`}>
+                        Obrigado por se inscrever!
+                      </h3>
+                      
+                      <p className={`mb-6 transition-colors duration-300 ${
+                        darkMode ? 'text-gray-400' : 'text-gray-600'
+                      }`}>
+                        Você foi adicionado à nossa lista de espera. Em breve entraremos em contato.
+                      </p>
+                      
+                      <Button
+                        variant="primary"
+                        size="md"
+                        onClick={handleCloseForm}
+                        className="w-full"
+                      >
+                        Fechar
+                      </Button>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="flex justify-between items-center mb-6">
+                        <div className="text-center flex-1">
+                          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 flex items-center justify-center">
+                            <User className="h-8 w-8 text-white" />
+                          </div>
+                          
+                          <h3 className={`text-xl font-bold mb-2 transition-colors duration-300 ${
+                            darkMode ? 'text-white' : 'text-gray-900'
+                          }`}>
+                            Entre na Lista de Espera
+                          </h3>
+                          
+                          <p className={`text-sm transition-colors duration-300 ${
+                            darkMode ? 'text-gray-400' : 'text-gray-600'
+                          }`}>
+                            Seja um dos primeiros a testar nossa IA
+                          </p>
+                        </div>
+                        
+                        <button
+                          onClick={handleCloseForm}
+                          className={`p-2 rounded-full transition-colors ${
+                            darkMode 
+                              ? 'hover:bg-gray-700 text-gray-400 hover:text-gray-300' 
+                              : 'hover:bg-gray-100 text-gray-500 hover:text-gray-700'
+                          }`}
+                        >
+                          <X className="h-5 w-5" />
+                        </button>
+                      </div>
+
+                      <form onSubmit={handleFormSubmit} className="space-y-4">
+                        <div>
+                          <label htmlFor="name" className={`block text-sm font-medium mb-2 transition-colors duration-300 ${
+                            darkMode ? 'text-gray-300' : 'text-gray-700'
+                          }`}>
+                            Nome completo *
+                          </label>
+                          <input
+                            type="text"
+                            id="name"
+                            name="name"
+                            value={formData.name}
+                            onChange={handleInputChange}
+                            placeholder="Seu nome completo"
+                            className={`w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 ${
+                              darkMode
+                                ? 'bg-gray-800/50 border-gray-600/50 text-white placeholder-gray-400'
+                                : 'bg-white/50 border-gray-300/50 text-gray-900 placeholder-gray-500'
+                            }`}
+                            disabled={isLoading}
+                            required
+                          />
+                        </div>
+
+                        <div>
+                          <label htmlFor="email" className={`block text-sm font-medium mb-2 transition-colors duration-300 ${
+                            darkMode ? 'text-gray-300' : 'text-gray-700'
+                          }`}>
+                            Email *
+                          </label>
+                          <input
+                            type="email"
+                            id="email"
+                            name="email"
+                            value={formData.email}
+                            onChange={handleInputChange}
+                            placeholder="seu@email.com"
+                            className={`w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 ${
+                              darkMode
+                                ? 'bg-gray-800/50 border-gray-600/50 text-white placeholder-gray-400'
+                                : 'bg-white/50 border-gray-300/50 text-gray-900 placeholder-gray-500'
+                            }`}
+                            disabled={isLoading}
+                            required
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label htmlFor="company" className={`block text-sm font-medium mb-2 transition-colors duration-300 ${
+                              darkMode ? 'text-gray-300' : 'text-gray-700'
+                            }`}>
+                              Empresa
+                            </label>
+                            <input
+                              type="text"
+                              id="company"
+                              name="company"
+                              value={formData.company}
+                              onChange={handleInputChange}
+                              placeholder="Sua empresa"
+                              className={`w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 ${
+                                darkMode
+                                  ? 'bg-gray-800/50 border-gray-600/50 text-white placeholder-gray-400'
+                                  : 'bg-white/50 border-gray-300/50 text-gray-900 placeholder-gray-500'
+                              }`}
+                              disabled={isLoading}
+                            />
+                          </div>
+
+                          <div>
+                            <label htmlFor="job_title" className={`block text-sm font-medium mb-2 transition-colors duration-300 ${
+                              darkMode ? 'text-gray-300' : 'text-gray-700'
+                            }`}>
+                              Cargo
+                            </label>
+                            <input
+                              type="text"
+                              id="job_title"
+                              name="job_title"
+                              value={formData.job_title}
+                              onChange={handleInputChange}
+                              placeholder="Seu cargo"
+                              className={`w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 ${
+                                darkMode
+                                  ? 'bg-gray-800/50 border-gray-600/50 text-white placeholder-gray-400'
+                                  : 'bg-white/50 border-gray-300/50 text-gray-900 placeholder-gray-500'
+                              }`}
+                              disabled={isLoading}
+                            />
+                          </div>
+                        </div>
+
+                        {error && (
+                          <StatusMessage
+                            type="error"
+                            message={error}
+                            darkMode={darkMode}
+                          />
+                        )}
+
+                        <Button
+                          type="submit"
+                          variant="primary"
+                          size="lg"
+                          fullWidth
+                          isLoading={isLoading}
+                          disabled={!formData.name || !formData.email}
+                          icon={MessageSquare}
+                        >
+                          {isLoading ? 'Enviando...' : 'Entrar na Lista'}
+                        </Button>
+                      </form>
+
+                      <StatusMessage
+                        type="info"
+                        message="Prometemos não enviar spam. Você receberá apenas atualizações importantes."
+                        darkMode={darkMode}
+                        className="mt-4"
+                      />
+                    </>
+                  )}
+                </Card>
+              </div>
+            )}
           </div>
         </div>
       </section>
