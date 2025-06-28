@@ -33,7 +33,7 @@ function Button({
   };
   
   const variantClasses = {
-    primary: 'bg-gradient-to-r from-triagen-dark-bg to-triagen-primary-accent text-white hover:shadow-xl',
+    primary: 'bg-triagen-dark-bg text-white hover:bg-triagen-primary-accent hover:shadow-xl',
     secondary: darkMode 
       ? 'bg-gray-800/50 text-gray-300 border border-triagen-border-dark hover:bg-gray-700/50 hover:border-gray-500/50' 
       : 'bg-white/70 text-triagen-dark-bg border border-triagen-border-light hover:bg-white/90 hover:border-triagen-text-light/50',
@@ -55,9 +55,6 @@ function Button({
       disabled={disabled || isLoading}
       {...props}
     >
-      {variant === 'primary' && (
-        <div className="absolute inset-0 bg-gradient-to-r from-triagen-secondary-accent to-triagen-primary-accent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-      )}
       <div className="relative flex items-center justify-center space-x-2">
         {isLoading ? (
           <>

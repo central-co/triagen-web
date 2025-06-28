@@ -15,8 +15,19 @@ function StatCard({
   label,
   darkMode = false,
   className = '',
-  iconColor = 'from-triagen-dark-bg to-triagen-primary-accent'
+  iconColor = 'bg-triagen-dark-bg'
 }: StatCardProps) {
+  // Extract color name for text color
+  const getTextColor = (bgColor: string) => {
+    if (bgColor.includes('dark-bg')) return 'text-triagen-dark-bg';
+    if (bgColor.includes('primary-accent')) return 'text-triagen-primary-accent';
+    if (bgColor.includes('secondary-accent')) return 'text-triagen-secondary-accent';
+    if (bgColor.includes('highlight-warm')) return 'text-triagen-highlight-warm';
+    return 'text-triagen-dark-bg';
+  };
+
+  const textColor = getTextColor(iconColor);
+
   return (
     <div className={`group relative p-8 rounded-3xl backdrop-blur-xl border transition-all duration-500 hover:scale-105 hover:shadow-2xl ${
       darkMode 
@@ -24,10 +35,10 @@ function StatCard({
         : 'bg-triagen-light-bg/30 border-triagen-border-light hover:bg-triagen-light-bg/50'
     } ${className}`}>
       <div className="text-center">
-        <div className={`w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-r ${iconColor} flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
+        <div className={`w-16 h-16 mx-auto mb-4 rounded-2xl ${iconColor} flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
           <Icon className="h-8 w-8 text-white" />
         </div>
-        <div className={`font-heading text-4xl font-bold mb-2 bg-gradient-to-r ${iconColor} bg-clip-text text-transparent`}>
+        <div className={`font-heading text-4xl font-bold mb-2 ${textColor}`}>
           {value}
         </div>
         <div className={`font-sans transition-colors duration-300 ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>

@@ -154,10 +154,10 @@ function LandingPage() {
   };
 
   const stats = [
-    { icon: Users, value: '2.5K+', label: 'Candidatos ouvidos', iconColor: 'from-triagen-dark-bg to-triagen-primary-accent' },
-    { icon: Building, value: '50+', label: 'Empresas parceiras', iconColor: 'from-triagen-secondary-accent to-green-500' },
-    { icon: Clock, value: '80%', label: 'Redução no tempo de triagem', iconColor: 'from-triagen-secondary-accent to-triagen-highlight-warm' },
-    { icon: Heart, value: '95%', label: 'Satisfação dos candidatos', iconColor: 'from-purple-500 to-pink-500' }
+    { icon: Users, value: '2.5K+', label: 'Candidatos ouvidos', iconColor: 'bg-triagen-dark-bg' },
+    { icon: Building, value: '50+', label: 'Empresas parceiras', iconColor: 'bg-triagen-secondary-accent' },
+    { icon: Clock, value: '80%', label: 'Redução no tempo de triagem', iconColor: 'bg-triagen-primary-accent' },
+    { icon: Heart, value: '95%', label: 'Satisfação dos candidatos', iconColor: 'bg-triagen-highlight-warm' }
   ];
 
   const features = [
@@ -165,19 +165,19 @@ function LandingPage() {
       icon: Mic,
       title: 'Escuta Empática e Inclusiva',
       description: 'Nossa IA conversa com cada candidato de forma natural e acessível, garantindo que todas as vozes sejam ouvidas, independente do perfil ou background.',
-      iconColor: 'from-triagen-dark-bg to-triagen-primary-accent'
+      iconColor: 'bg-triagen-dark-bg'
     },
     {
       icon: Brain,
       title: 'Contexto Primeiro, Não Apenas Palavras-chave',
       description: 'Análise profunda que vai além do currículo, entendendo a compatibilidade real entre candidato e vaga através de conversas estruturadas.',
-      iconColor: 'from-triagen-secondary-accent to-green-500'
+      iconColor: 'bg-triagen-secondary-accent'
     },
     {
       icon: UserCheck,
       title: 'Etapa Adicional, Não Substituta',
       description: 'Amplificamos seu funil de candidatos e entregamos apenas os perfis com maior fit, poupando horas de trabalho manual sem substituir o toque humano.',
-      iconColor: 'from-triagen-secondary-accent to-triagen-highlight-warm'
+      iconColor: 'bg-triagen-primary-accent'
     }
   ];
 
@@ -212,11 +212,11 @@ function LandingPage() {
               darkMode ? 'text-white' : 'text-triagen-dark-bg'
             }`}>
               Mais{' '}
-              <span className="bg-gradient-to-r from-triagen-secondary-accent to-triagen-primary-accent bg-clip-text text-transparent">
+              <span className="text-triagen-primary-accent">
                 alcance
               </span>
               , mais{' '}
-              <span className="bg-gradient-to-r from-triagen-primary-accent to-triagen-highlight-warm bg-clip-text text-transparent">
+              <span className="text-triagen-secondary-accent">
                 precisão
               </span>
             </h1>
@@ -234,7 +234,7 @@ function LandingPage() {
                 size="lg"
                 onClick={handleWaitlistClick}
                 icon={ArrowRight}
-                className="text-lg px-8 py-4 bg-gradient-to-r from-triagen-dark-bg to-triagen-primary-accent hover:from-triagen-dark-bg/90 hover:to-triagen-primary-accent/90"
+                className="text-lg px-8 py-4 bg-triagen-dark-bg hover:bg-triagen-primary-accent"
               >
                 Teste Grátis (5 Candidatos)
               </Button>
@@ -260,7 +260,7 @@ function LandingPage() {
                 <Card darkMode={darkMode} hoverEffect>
                   {isSubmitted ? (
                     <div className="text-center">
-                      <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-r from-triagen-secondary-accent to-green-500 flex items-center justify-center">
+                      <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-triagen-secondary-accent flex items-center justify-center">
                         <Mail className="h-8 w-8 text-white" />
                       </div>
                       
@@ -280,7 +280,7 @@ function LandingPage() {
                         variant="primary"
                         size="md"
                         onClick={handleCloseForm}
-                        className="w-full bg-gradient-to-r from-triagen-dark-bg to-triagen-primary-accent"
+                        className="w-full bg-triagen-dark-bg hover:bg-triagen-primary-accent"
                       >
                         Fechar
                       </Button>
@@ -289,7 +289,7 @@ function LandingPage() {
                     <>
                       <div className="flex justify-between items-center mb-6">
                         <div className="text-center flex-1">
-                          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-r from-triagen-dark-bg to-triagen-primary-accent flex items-center justify-center">
+                          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-triagen-dark-bg flex items-center justify-center">
                             <User className="h-8 w-8 text-white" />
                           </div>
                           
@@ -488,7 +488,7 @@ function LandingPage() {
                           isLoading={isLoading}
                           disabled={!formData.name || !formData.email || !newsletterConsent}
                           icon={MessageSquare}
-                          className="bg-gradient-to-r from-triagen-dark-bg to-triagen-primary-accent"
+                          className="bg-triagen-dark-bg hover:bg-triagen-primary-accent"
                         >
                           {isLoading ? 'Enviando...' : 'Começar Agora'}
                         </Button>
@@ -576,7 +576,7 @@ function LandingPage() {
                       Análise do Candidato
                     </h3>
                     <div className="flex items-center space-x-2">
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-r from-triagen-secondary-accent to-green-500 flex items-center justify-center">
+                      <div className="w-8 h-8 rounded-full bg-triagen-secondary-accent flex items-center justify-center">
                         <span className="text-white text-sm font-bold">8.7</span>
                       </div>
                       <span className={`font-sans text-sm ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
@@ -595,7 +595,7 @@ function LandingPage() {
                         <span className="text-triagen-secondary-accent text-sm font-bold">Excelente</span>
                       </div>
                       <div className={`h-2 rounded-full ${darkMode ? 'bg-gray-700' : 'bg-triagen-border-light'}`}>
-                        <div className="h-full bg-gradient-to-r from-triagen-secondary-accent to-green-500 rounded-full" style={{ width: '90%' }}></div>
+                        <div className="h-full bg-triagen-secondary-accent rounded-full" style={{ width: '90%' }}></div>
                       </div>
                     </div>
 
@@ -607,7 +607,7 @@ function LandingPage() {
                         <span className="text-triagen-primary-accent text-sm font-bold">Muito Bom</span>
                       </div>
                       <div className={`h-2 rounded-full ${darkMode ? 'bg-gray-700' : 'bg-triagen-border-light'}`}>
-                        <div className="h-full bg-gradient-to-r from-triagen-primary-accent to-triagen-highlight-warm rounded-full" style={{ width: '75%' }}></div>
+                        <div className="h-full bg-triagen-primary-accent rounded-full" style={{ width: '75%' }}></div>
                       </div>
                     </div>
 
@@ -619,7 +619,7 @@ function LandingPage() {
                         <span className="text-triagen-primary-accent text-sm font-bold">Excelente</span>
                       </div>
                       <div className={`h-2 rounded-full ${darkMode ? 'bg-gray-700' : 'bg-triagen-border-light'}`}>
-                        <div className="h-full bg-gradient-to-r from-triagen-dark-bg to-triagen-primary-accent rounded-full" style={{ width: '95%' }}></div>
+                        <div className="h-full bg-triagen-dark-bg rounded-full" style={{ width: '95%' }}></div>
                       </div>
                     </div>
                   </div>
@@ -630,7 +630,7 @@ function LandingPage() {
                       variant="primary"
                       size="sm"
                       icon={Download}
-                      className="bg-gradient-to-r from-triagen-dark-bg to-triagen-primary-accent"
+                      className="bg-triagen-dark-bg hover:bg-triagen-primary-accent"
                     >
                       Baixar PDF
                     </Button>
