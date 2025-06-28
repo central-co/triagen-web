@@ -33,12 +33,19 @@ function JobsPage() {
       const { data: companies, error: companyError } = await supabase
         .from('companies')
         .select('id')
-        .eq('user_id', user?.id)
-        .single();
+        .eq('user_id', user?.id);
 
       if (companyError) {
         throw companyError;
       }
+
+      // If no company exists, set empty jobs and return
+      if (!companies || companies.length === 0) {
+        setJobs([]);
+        return;
+      }
+
+      const company = companies[0];
 
       // Then get jobs for that company
       const { data: jobsData, error: jobsError } = await supabase
@@ -47,7 +54,7 @@ function JobsPage() {
           *,
           candidates(count)
         `)
-        .eq('company_id', companies.id)
+        .eq('company_id', company.id)
         .order('created_at', { ascending: false });
 
       if (jobsError) {

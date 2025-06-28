@@ -40,18 +40,26 @@ function CandidatesPage() {
       const { data: companies, error: companyError } = await supabase
         .from('companies')
         .select('id')
-        .eq('user_id', user?.id)
-        .single();
+        .eq('user_id', user?.id);
 
       if (companyError) {
         throw companyError;
       }
 
+      // If no company exists, set empty data and return
+      if (!companies || companies.length === 0) {
+        setCandidates([]);
+        setJobs([]);
+        return;
+      }
+
+      const company = companies[0];
+
       // Get jobs for dropdown filter
       const { data: jobsData, error: jobsError } = await supabase
         .from('jobs')
         .select('id, title')
-        .eq('company_id', companies.id)
+        .eq('company_id', company.id)
         .order('title');
 
       if (jobsError) {

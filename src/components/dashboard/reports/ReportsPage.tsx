@@ -42,11 +42,70 @@ function ReportsPage() {
       const { data: companies, error: companyError } = await supabase
         .from('companies')
         .select('id')
-        .eq('user_id', user?.id)
-        .single();
+        .eq('user_id', user?.id);
 
       if (companyError) {
         throw companyError;
+      }
+
+      // If no company exists, set empty data and return
+      if (!companies || companies.length === 0) {
+        setReports([]);
+        setStats({
+          totalReports: 0,
+          averageScore: 0,
+          topPerformers: 0,
+          completionRate: 0
+        });
+        return;
+      }
+
+      const company = companies[0];
+
+      // Get all job IDs for this company
+      const { data: jobsData, error: jobsError } = await supabase
+        .from('jobs')
+        .select('id')
+        .eq('company_id', company.id);
+
+      if (jobsError) {
+        throw jobsError;
+      }
+
+      const jobIds = (jobsData || []).map(job => job.id);
+
+      if (jobIds.length === 0) {
+        setReports([]);
+        setStats({
+          totalReports: 0,
+          averageScore: 0,
+          topPerformers: 0,
+          completionRate: 0
+        });
+        return;
+      }
+
+      // Get all candidate IDs for these jobs
+      const { data: candidatesData, error: candidatesError } = await supabase
+        .from('candidates')
+        .select('id')
+        .in('job_id', jobIds);
+
+      if (candidatesError) {
+        throw candidatesError;
+      }
+
+      const candidateIds = (candidatesData || []).map(candidate => candidate.id);
+
+      if (candidateIds.length === 0) {
+        setReports([]);
+        setStats({
+          totalReports: 0,
+          averageScore: 0,
+          topPerformers: 0,
+          completionRate: 0
+        });
+        return;
       }
 
       // Get reports with candidate and job information
@@ -59,19 +118,7 @@ function ReportsPage() {
             job:jobs(*)
           )
         `)
-        .in('candidate_id', 
-          await supabase
-            .from('candidates')
-            .select('id')
-            .in('job_id', 
-              await supabase
-                .from('jobs')
-                .select('id')
-                .eq('company_id', companies.id)
-                .then(({ data }) => (data || []).map(job => job.id))
-            )
-            .then(({ data }) => (data || []).map(candidate => candidate.id))
-        )
+        .in('candidate_id', candidateIds)
         .order('created_at', { ascending: false });
 
       if (reportsError) {
@@ -89,18 +136,6 @@ function ReportsPage() {
         : 0;
       const topPerformers = scoresWithValues.filter(r => (r.overall_score || 0) >= 8).length;
       
-      // Get total candidates to calculate completion rate
-      const { data: candidatesData } = await supabase
-        .from('candidates')
-        .select('id')
-        .in('job_id', 
-          await supabase
-            .from('jobs')
-            .select('id')
-            .eq('company_id', companies.id)
-            .then(({ data }) => (data || []).map(job => job.id))
-        );
-
       const totalCandidates = candidatesData?.length || 0;
       const completionRate = totalCandidates > 0 ? (totalReports / totalCandidates) * 100 : 0;
 

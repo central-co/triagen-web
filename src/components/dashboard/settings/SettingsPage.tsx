@@ -42,21 +42,21 @@ function SettingsPage() {
       const { data: companyData, error: companyError } = await supabase
         .from('companies')
         .select('*')
-        .eq('user_id', user?.id)
-        .single();
+        .eq('user_id', user?.id);
 
-      if (companyError && companyError.code !== 'PGRST116') {
+      if (companyError) {
         throw companyError;
       }
 
-      if (companyData) {
-        setCompany(companyData);
+      if (companyData && companyData.length > 0) {
+        const company = companyData[0];
+        setCompany(company);
         setCompanyForm({
-          name: companyData.name || '',
-          cnpj: companyData.cnpj || '',
-          contact_email: companyData.contact_email || '',
-          contact_phone: companyData.contact_phone || '',
-          address: companyData.address || ''
+          name: company.name || '',
+          cnpj: company.cnpj || '',
+          contact_email: company.contact_email || '',
+          contact_phone: company.contact_phone || '',
+          address: company.address || ''
         });
 
         // Get subscription data
@@ -66,7 +66,7 @@ function SettingsPage() {
             *,
             plan:plans(*)
           `)
-          .eq('company_id', companyData.id)
+          .eq('company_id', company.id)
           .eq('status', 'active')
           .single();
 
