@@ -74,18 +74,23 @@ function NewJobPage() {
       const { data: companies, error: companyError } = await supabase
         .from('companies')
         .select('id')
-        .eq('user_id', user?.id)
-        .single();
+        .eq('user_id', user?.id);
 
       if (companyError) {
         throw companyError;
+      }
+
+      // Check if any company was found
+      if (!companies || companies.length === 0) {
+        setError('Nenhuma empresa encontrada para o usuário. Por favor, configure sua empresa nas configurações.');
+        return;
       }
 
       // Create the job
       const { data: job, error: jobError } = await supabase
         .from('jobs')
         .insert({
-          company_id: companies.id,
+          company_id: companies[0].id,
           title: formData.title,
           description: formData.description,
           location: formData.location || null,
