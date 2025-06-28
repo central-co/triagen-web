@@ -31,8 +31,8 @@ function StatusMessage({
       ? 'bg-triagen-secondary-accent/10 border-triagen-secondary-accent/20 text-triagen-secondary-accent'
       : 'bg-triagen-secondary-accent/10 border-triagen-secondary-accent/30 text-green-700',
     error: darkMode
-      ? 'bg-triagen-highlight-warm/10 border-triagen-highlight-warm/20 text-triagen-highlight-warm'
-      : 'bg-triagen-highlight-warm/10 border-triagen-highlight-warm/30 text-red-700',
+      ? 'bg-triagen-error/10 border-triagen-error/20 text-triagen-error'
+      : 'bg-triagen-error/10 border-triagen-error/30 text-red-700',
     warning: darkMode
       ? 'bg-orange-500/10 border-orange-500/20 text-orange-400'
       : 'bg-orange-50/50 border-orange-200/50 text-orange-600',
@@ -43,7 +43,7 @@ function StatusMessage({
 
   const iconColors = {
     success: 'text-triagen-secondary-accent',
-    error: 'text-triagen-highlight-warm',
+    error: 'text-triagen-error',
     warning: 'text-orange-500',
     info: 'text-triagen-primary-accent'
   };

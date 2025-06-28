@@ -156,7 +156,7 @@ function LandingPage() {
   const stats = [
     { icon: Users, value: '2.5K+', label: 'Candidatos ouvidos', iconColor: 'from-triagen-dark-bg to-triagen-primary-accent' },
     { icon: Building, value: '50+', label: 'Empresas parceiras', iconColor: 'from-triagen-secondary-accent to-green-500' },
-    { icon: Clock, value: '80%', label: 'Redução no tempo de triagem', iconColor: 'from-triagen-highlight-warm to-orange-500' },
+    { icon: Clock, value: '80%', label: 'Redução no tempo de triagem', iconColor: 'from-triagen-secondary-accent to-triagen-highlight-warm' },
     { icon: Heart, value: '95%', label: 'Satisfação dos candidatos', iconColor: 'from-purple-500 to-pink-500' }
   ];
 
@@ -177,7 +177,7 @@ function LandingPage() {
       icon: UserCheck,
       title: 'Etapa Adicional, Não Substituta',
       description: 'Amplificamos seu funil de candidatos e entregamos apenas os perfis com maior fit, poupando horas de trabalho manual sem substituir o toque humano.',
-      iconColor: 'from-triagen-highlight-warm to-orange-500'
+      iconColor: 'from-triagen-secondary-accent to-triagen-highlight-warm'
     }
   ];
 
@@ -216,7 +216,7 @@ function LandingPage() {
                 alcance
               </span>
               , mais{' '}
-              <span className="bg-gradient-to-r from-triagen-highlight-warm to-orange-500 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-triagen-primary-accent to-triagen-highlight-warm bg-clip-text text-transparent">
                 precisão
               </span>
             </h1>
@@ -604,10 +604,10 @@ function LandingPage() {
                         <span className={`font-sans text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-triagen-dark-bg'}`}>
                           Experiência Técnica
                         </span>
-                        <span className="text-triagen-highlight-warm text-sm font-bold">Muito Bom</span>
+                        <span className="text-triagen-primary-accent text-sm font-bold">Muito Bom</span>
                       </div>
                       <div className={`h-2 rounded-full ${darkMode ? 'bg-gray-700' : 'bg-triagen-border-light'}`}>
-                        <div className="h-full bg-gradient-to-r from-triagen-highlight-warm to-orange-500 rounded-full" style={{ width: '75%' }}></div>
+                        <div className="h-full bg-gradient-to-r from-triagen-primary-accent to-triagen-highlight-warm rounded-full" style={{ width: '75%' }}></div>
                       </div>
                     </div>
 
