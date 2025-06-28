@@ -155,9 +155,9 @@ function LandingPage() {
 
   const stats = [
     { icon: Users, value: '2.5K+', label: 'Candidatos ouvidos', iconColor: 'bg-triagen-dark-bg' },
-    { icon: Building, value: '50+', label: 'Empresas parceiras', iconColor: 'bg-triagen-secondary-accent' },
-    { icon: Clock, value: '80%', label: 'Redução no tempo de triagem', iconColor: 'bg-triagen-primary-accent' },
-    { icon: Heart, value: '95%', label: 'Satisfação dos candidatos', iconColor: 'bg-triagen-highlight-warm' }
+    { icon: Building, value: '50+', label: 'Empresas parceiras', iconColor: 'bg-triagen-secondary-green' },
+    { icon: Clock, value: '80%', label: 'Redução no tempo de triagem', iconColor: 'bg-triagen-primary-blue' },
+    { icon: Heart, value: '95%', label: 'Satisfação dos candidatos', iconColor: 'bg-triagen-highlight-purple' }
   ];
 
   const features = [
@@ -171,13 +171,13 @@ function LandingPage() {
       icon: Brain,
       title: 'Contexto Primeiro, Não Apenas Palavras-chave',
       description: 'Análise profunda que vai além do currículo, entendendo a compatibilidade real entre candidato e vaga através de conversas estruturadas.',
-      iconColor: 'bg-triagen-secondary-accent'
+      iconColor: 'bg-triagen-secondary-green'
     },
     {
       icon: UserCheck,
       title: 'Etapa Adicional, Não Substituta',
       description: 'Amplificamos seu funil de candidatos e entregamos apenas os perfis com maior fit, poupando horas de trabalho manual sem substituir o toque humano.',
-      iconColor: 'bg-triagen-primary-accent'
+      iconColor: 'bg-triagen-primary-blue'
     }
   ];
 
@@ -204,7 +204,7 @@ function LandingPage() {
                 ? 'bg-gray-800/30 border-triagen-border-dark text-gray-300' 
                 : 'bg-white/40 border-triagen-border-light text-triagen-text-dark'
             }`}>
-              <Zap className="h-4 w-4 mr-2 text-triagen-secondary-accent" />
+              <Zap className="h-4 w-4 mr-2 text-triagen-secondary-green" />
               Democratizando a escuta no recrutamento
             </div>
             
@@ -212,11 +212,11 @@ function LandingPage() {
               darkMode ? 'text-white' : 'text-triagen-dark-bg'
             }`}>
               Mais{' '}
-              <span className="text-triagen-primary-accent">
+              <span className="text-triagen-primary-blue">
                 alcance
               </span>
               , mais{' '}
-              <span className="text-triagen-secondary-accent">
+              <span className="text-triagen-secondary-green">
                 precisão
               </span>
             </h1>
@@ -234,7 +234,7 @@ function LandingPage() {
                 size="lg"
                 onClick={handleWaitlistClick}
                 icon={ArrowRight}
-                className="text-lg px-8 py-4 bg-triagen-dark-bg hover:bg-triagen-primary-accent"
+                className="text-lg px-8 py-4 bg-triagen-dark-bg hover:bg-triagen-primary-blue"
               >
                 Teste Grátis (5 Candidatos)
               </Button>
@@ -246,8 +246,8 @@ function LandingPage() {
                 darkMode={darkMode}
                 className={`text-lg px-8 py-4 border-2 ${
                   darkMode 
-                    ? 'border-triagen-secondary-accent/50 text-triagen-secondary-accent hover:bg-triagen-secondary-accent/10' 
-                    : 'border-triagen-highlight-warm/50 text-triagen-highlight-warm hover:bg-triagen-highlight-warm/10'
+                    ? 'border-triagen-secondary-green/50 text-triagen-secondary-green hover:bg-triagen-secondary-green/10' 
+                    : 'border-triagen-highlight-purple/50 text-triagen-highlight-purple hover:bg-triagen-highlight-purple/10'
                 }`}
               >
                 Piloto Acadêmico (R$200)
@@ -260,7 +260,7 @@ function LandingPage() {
                 <Card darkMode={darkMode} hoverEffect>
                   {isSubmitted ? (
                     <div className="text-center">
-                      <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-triagen-secondary-accent flex items-center justify-center">
+                      <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-triagen-secondary-green flex items-center justify-center">
                         <Mail className="h-8 w-8 text-white" />
                       </div>
                       
@@ -280,7 +280,7 @@ function LandingPage() {
                         variant="primary"
                         size="md"
                         onClick={handleCloseForm}
-                        className="w-full bg-triagen-dark-bg hover:bg-triagen-primary-accent"
+                        className="w-full bg-triagen-dark-bg hover:bg-triagen-primary-blue"
                       >
                         Fechar
                       </Button>
@@ -332,7 +332,7 @@ function LandingPage() {
                             value={formData.name}
                             onChange={handleInputChange}
                             placeholder="Seu nome completo"
-                            className={`font-sans w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-triagen-secondary-accent/50 focus:border-triagen-secondary-accent ${
+                            className={`font-sans w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-triagen-secondary-green/50 focus:border-triagen-secondary-green ${
                               darkMode
                                 ? 'bg-gray-800/50 border-triagen-border-dark text-white placeholder-gray-400'
                                 : 'bg-white/70 border-triagen-border-light text-triagen-dark-bg placeholder-triagen-text-light'
@@ -355,7 +355,7 @@ function LandingPage() {
                             value={formData.email}
                             onChange={handleInputChange}
                             placeholder="seu@email.com"
-                            className={`font-sans w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-triagen-secondary-accent/50 focus:border-triagen-secondary-accent ${
+                            className={`font-sans w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-triagen-secondary-green/50 focus:border-triagen-secondary-green ${
                               darkMode
                                 ? 'bg-gray-800/50 border-triagen-border-dark text-white placeholder-gray-400'
                                 : 'bg-white/70 border-triagen-border-light text-triagen-dark-bg placeholder-triagen-text-light'
@@ -379,7 +379,7 @@ function LandingPage() {
                               value={formData.company}
                               onChange={handleInputChange}
                               placeholder="Sua empresa"
-                              className={`font-sans w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-triagen-secondary-accent/50 focus:border-triagen-secondary-accent ${
+                              className={`font-sans w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-triagen-secondary-green/50 focus:border-triagen-secondary-green ${
                                 darkMode
                                   ? 'bg-gray-800/50 border-triagen-border-dark text-white placeholder-gray-400'
                                   : 'bg-white/70 border-triagen-border-light text-triagen-dark-bg placeholder-triagen-text-light'
@@ -401,7 +401,7 @@ function LandingPage() {
                               value={formData.job_title}
                               onChange={handleInputChange}
                               placeholder="Seu cargo"
-                              className={`font-sans w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-triagen-secondary-accent/50 focus:border-triagen-secondary-accent ${
+                              className={`font-sans w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-triagen-secondary-green/50 focus:border-triagen-secondary-green ${
                                 darkMode
                                   ? 'bg-gray-800/50 border-triagen-border-dark text-white placeholder-gray-400'
                                   : 'bg-white/70 border-triagen-border-light text-triagen-dark-bg placeholder-triagen-text-light'
@@ -418,7 +418,7 @@ function LandingPage() {
                             id="newsletter_consent"
                             checked={newsletterConsent}
                             onChange={(e) => setNewsletterConsent(e.target.checked)}
-                            className="mt-1 h-4 w-4 text-triagen-secondary-accent focus:ring-triagen-secondary-accent border-triagen-border-light rounded"
+                            className="mt-1 h-4 w-4 text-triagen-secondary-green focus:ring-triagen-secondary-green border-triagen-border-light rounded"
                             disabled={isLoading}
                             required
                           />
@@ -426,11 +426,11 @@ function LandingPage() {
                             darkMode ? 'text-gray-300' : 'text-triagen-text-light'
                           }`}>
                             Aceito receber comunicações sobre o TriaGen e concordo com os{' '}
-                            <a href="#" className="text-triagen-secondary-accent hover:text-triagen-secondary-accent/80 underline">
+                            <a href="#" className="text-triagen-secondary-green hover:text-triagen-secondary-green/80 underline">
                               termos de uso
                             </a>
                             {' '}e{' '}
-                            <a href="#" className="text-triagen-secondary-accent hover:text-triagen-secondary-accent/80 underline">
+                            <a href="#" className="text-triagen-secondary-green hover:text-triagen-secondary-green/80 underline">
                               política de privacidade
                             </a>
                             . *
@@ -456,7 +456,7 @@ function LandingPage() {
                             href="https://policies.google.com/privacy" 
                             target="_blank" 
                             rel="noopener noreferrer"
-                            className="text-triagen-secondary-accent hover:text-triagen-secondary-accent/80 underline"
+                            className="text-triagen-secondary-green hover:text-triagen-secondary-green/80 underline"
                           >
                             Privacy Policy
                           </a>
@@ -465,7 +465,7 @@ function LandingPage() {
                             href="https://policies.google.com/terms" 
                             target="_blank" 
                             rel="noopener noreferrer"
-                            className="text-triagen-secondary-accent hover:text-triagen-secondary-accent/80 underline"
+                            className="text-triagen-secondary-green hover:text-triagen-secondary-green/80 underline"
                           >
                             Terms of Service
                           </a>
@@ -488,7 +488,7 @@ function LandingPage() {
                           isLoading={isLoading}
                           disabled={!formData.name || !formData.email || !newsletterConsent}
                           icon={MessageSquare}
-                          className="bg-triagen-dark-bg hover:bg-triagen-primary-accent"
+                          className="bg-triagen-dark-bg hover:bg-triagen-primary-blue"
                         >
                           {isLoading ? 'Enviando...' : 'Começar Agora'}
                         </Button>
@@ -576,7 +576,7 @@ function LandingPage() {
                       Análise do Candidato
                     </h3>
                     <div className="flex items-center space-x-2">
-                      <div className="w-8 h-8 rounded-full bg-triagen-secondary-accent flex items-center justify-center">
+                      <div className="w-8 h-8 rounded-full bg-triagen-secondary-green flex items-center justify-center">
                         <span className="text-white text-sm font-bold">8.7</span>
                       </div>
                       <span className={`font-sans text-sm ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
@@ -592,10 +592,10 @@ function LandingPage() {
                         <span className={`font-sans text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-triagen-dark-bg'}`}>
                           Comunicação
                         </span>
-                        <span className="text-triagen-secondary-accent text-sm font-bold">Excelente</span>
+                        <span className="text-triagen-secondary-green text-sm font-bold">Excelente</span>
                       </div>
                       <div className={`h-2 rounded-full ${darkMode ? 'bg-gray-700' : 'bg-triagen-border-light'}`}>
-                        <div className="h-full bg-triagen-secondary-accent rounded-full" style={{ width: '90%' }}></div>
+                        <div className="h-full bg-triagen-secondary-green rounded-full" style={{ width: '90%' }}></div>
                       </div>
                     </div>
 
@@ -604,10 +604,10 @@ function LandingPage() {
                         <span className={`font-sans text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-triagen-dark-bg'}`}>
                           Experiência Técnica
                         </span>
-                        <span className="text-triagen-primary-accent text-sm font-bold">Muito Bom</span>
+                        <span className="text-triagen-primary-blue text-sm font-bold">Muito Bom</span>
                       </div>
                       <div className={`h-2 rounded-full ${darkMode ? 'bg-gray-700' : 'bg-triagen-border-light'}`}>
-                        <div className="h-full bg-triagen-primary-accent rounded-full" style={{ width: '75%' }}></div>
+                        <div className="h-full bg-triagen-primary-blue rounded-full" style={{ width: '75%' }}></div>
                       </div>
                     </div>
 
@@ -616,7 +616,7 @@ function LandingPage() {
                         <span className={`font-sans text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-triagen-dark-bg'}`}>
                           Fit Cultural
                         </span>
-                        <span className="text-triagen-primary-accent text-sm font-bold">Excelente</span>
+                        <span className="text-triagen-primary-blue text-sm font-bold">Excelente</span>
                       </div>
                       <div className={`h-2 rounded-full ${darkMode ? 'bg-gray-700' : 'bg-triagen-border-light'}`}>
                         <div className="h-full bg-triagen-dark-bg rounded-full" style={{ width: '95%' }}></div>
@@ -630,7 +630,7 @@ function LandingPage() {
                       variant="primary"
                       size="sm"
                       icon={Download}
-                      className="bg-triagen-dark-bg hover:bg-triagen-primary-accent"
+                      className="bg-triagen-dark-bg hover:bg-triagen-primary-blue"
                     >
                       Baixar PDF
                     </Button>
@@ -639,7 +639,7 @@ function LandingPage() {
                       size="sm"
                       icon={BarChart3}
                       darkMode={darkMode}
-                      className={darkMode ? 'border-triagen-secondary-accent/50 text-triagen-secondary-accent' : 'border-triagen-highlight-warm/50 text-triagen-highlight-warm'}
+                      className={darkMode ? 'border-triagen-secondary-green/50 text-triagen-secondary-green' : 'border-triagen-highlight-purple/50 text-triagen-highlight-purple'}
                     >
                       Ver Detalhes
                     </Button>
@@ -654,7 +654,7 @@ function LandingPage() {
                   
                   <div className="space-y-4">
                     <div className="flex items-start space-x-3">
-                      <CheckCircle className="h-5 w-5 text-triagen-secondary-accent flex-shrink-0 mt-0.5" />
+                      <CheckCircle className="h-5 w-5 text-triagen-secondary-green flex-shrink-0 mt-0.5" />
                       <div>
                         <p className={`font-sans text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-triagen-dark-bg'}`}>
                           Pontos Fortes
@@ -666,7 +666,7 @@ function LandingPage() {
                     </div>
 
                     <div className="flex items-start space-x-3">
-                      <Target className="h-5 w-5 text-triagen-highlight-warm flex-shrink-0 mt-0.5" />
+                      <Target className="h-5 w-5 text-triagen-highlight-purple flex-shrink-0 mt-0.5" />
                       <div>
                         <p className={`font-sans text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-triagen-dark-bg'}`}>
                           Áreas de Desenvolvimento
@@ -678,7 +678,7 @@ function LandingPage() {
                     </div>
 
                     <div className="flex items-start space-x-3">
-                      <Brain className="h-5 w-5 text-triagen-primary-accent flex-shrink-0 mt-0.5" />
+                      <Brain className="h-5 w-5 text-triagen-primary-blue flex-shrink-0 mt-0.5" />
                       <div>
                         <p className={`font-sans text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-triagen-dark-bg'}`}>
                           Recomendação da IA
@@ -691,7 +691,7 @@ function LandingPage() {
                   </div>
 
                   <div className={`mt-6 p-4 rounded-xl ${
-                    darkMode ? 'bg-triagen-secondary-accent/10 border border-triagen-secondary-accent/20' : 'bg-triagen-secondary-accent/10 border border-triagen-secondary-accent/30'
+                    darkMode ? 'bg-triagen-secondary-green/10 border border-triagen-secondary-green/20' : 'bg-triagen-secondary-green/10 border border-triagen-secondary-green/30'
                   }`}>
                     <p className={`font-sans text-sm ${darkMode ? 'text-gray-300' : 'text-triagen-dark-bg'}`}>
                       <strong>Checklist Automático:</strong> Todos os pontos-chave da vaga foram cobertos durante a conversa, 

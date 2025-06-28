@@ -7,9 +7,9 @@ export default {
         'triagen': {
           'dark-bg': '#1B2A41',
           'light-bg': '#F8FAFC',
-          'primary-accent': '#4A90E2',
-          'secondary-accent': '#2E8B57',
-          'highlight-warm': '#8A2BE2',
+          'primary-blue': '#00AEEF',
+          'secondary-green': '#34D399',
+          'highlight-purple': '#A855F7',
           'error': '#EF4444',
           'text-dark': '#1F2937',
           'text-light': '#6B7280',

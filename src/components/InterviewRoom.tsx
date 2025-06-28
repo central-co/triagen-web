@@ -161,7 +161,7 @@ function InterviewRoom({ jwtToken, onLeave }: InterviewRoomProps) {
 
   if (!isConnected && !isConnecting) {
     return (
-      <div className={`min-h-screen transition-all duration-500 ${darkMode ? 'dark bg-gray-900' : 'bg-white'}`}>
+      <div className={`min-h-screen transition-all duration-500 ${darkMode ? 'dark bg-gray-900' : 'bg-triagen-light-bg'}`}>
         <AnimatedBackground darkMode={darkMode} isRoom />
         <div className="flex items-center justify-center min-h-screen px-4">
           <Card darkMode={darkMode}>
@@ -176,7 +176,7 @@ function InterviewRoom({ jwtToken, onLeave }: InterviewRoomProps) {
               size="lg"
               fullWidth
               onClick={connectToRoom}
-              className="mt-4 bg-gradient-to-r from-triagen-dark-bg to-triagen-primary-accent"
+              className="mt-4 bg-triagen-dark-bg hover:bg-triagen-primary-blue"
             >
               Reconectar
             </Button>
@@ -188,7 +188,7 @@ function InterviewRoom({ jwtToken, onLeave }: InterviewRoomProps) {
 
   if (isConnecting) {
     return (
-      <div className={`min-h-screen transition-all duration-500 ${darkMode ? 'dark bg-gray-900' : 'bg-white'}`}>
+      <div className={`min-h-screen transition-all duration-500 ${darkMode ? 'dark bg-gray-900' : 'bg-triagen-light-bg'}`}>
         <AnimatedBackground darkMode={darkMode} isRoom />
         <div className="flex items-center justify-center min-h-screen px-4">
           <Card darkMode={darkMode}>
@@ -205,7 +205,7 @@ function InterviewRoom({ jwtToken, onLeave }: InterviewRoomProps) {
   }
 
   return (
-    <div className={`min-h-screen transition-all duration-500 ${darkMode ? 'dark bg-gray-900' : 'bg-white'}`}>
+    <div className={`min-h-screen transition-all duration-500 ${darkMode ? 'dark bg-gray-900' : 'bg-triagen-light-bg'}`}>
       <AnimatedBackground darkMode={darkMode} isRoom />
       
       <div className="flex items-center justify-center min-h-screen px-4">
@@ -223,7 +223,7 @@ function InterviewRoom({ jwtToken, onLeave }: InterviewRoomProps) {
           <div className="mb-8">
             <div className={`h-2 rounded-full ${darkMode ? 'bg-gray-700' : 'bg-triagen-border-light'}`}>
               <div
-                className="h-full bg-gradient-to-r from-triagen-secondary-accent to-triagen-primary-accent rounded-full transition-all duration-100"
+                className="h-full bg-gradient-to-r from-triagen-secondary-green to-triagen-primary-blue rounded-full transition-all duration-100"
                 style={{ width: `${Math.min(audioLevel * 100, 100)}%` }}
               />
             </div>
@@ -260,7 +260,7 @@ function InterviewRoom({ jwtToken, onLeave }: InterviewRoomProps) {
               onClick={handleLeave}
               icon={PhoneOff}
               darkMode={darkMode}
-              className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white"
+              className="border-triagen-error text-triagen-error hover:bg-triagen-error hover:text-white"
             >
               Sair
             </Button>

@@ -59,7 +59,7 @@ function PageHeader({
                 onClick={toggleDarkMode}
                 className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 flex-shrink-0 ${
                   darkMode 
-                    ? 'bg-gray-800/50 text-triagen-secondary-accent hover:bg-gray-700/50' 
+                    ? 'bg-gray-800/50 text-triagen-secondary-green hover:bg-gray-700/50' 
                     : 'bg-triagen-light-bg/50 text-triagen-dark-bg hover:bg-triagen-light-bg/70'
                 }`}
                 title={darkMode ? 'Modo claro' : 'Modo escuro'}
@@ -80,8 +80,8 @@ function PageHeader({
                   iconPosition="left"
                   className={`h-10 px-4 text-sm whitespace-nowrap flex-shrink-0 ${
                     darkMode 
-                      ? 'bg-triagen-secondary-accent/10 border-triagen-secondary-accent/30 text-triagen-secondary-accent hover:bg-triagen-secondary-accent/20' 
-                      : 'bg-triagen-highlight-warm/10 border-triagen-highlight-warm/30 text-triagen-highlight-warm hover:bg-triagen-highlight-warm/20'
+                      ? 'bg-triagen-secondary-green/10 border-triagen-secondary-green/30 text-triagen-secondary-green hover:bg-triagen-secondary-green/20' 
+                      : 'bg-triagen-highlight-purple/10 border-triagen-highlight-purple/30 text-triagen-highlight-purple hover:bg-triagen-highlight-purple/20'
                   }`}
                 >
                   Teste Grátis
@@ -91,7 +91,7 @@ function PageHeader({
                   variant="primary"
                   size="sm"
                   onClick={onStartInterview}
-                  className="h-10 px-4 text-sm whitespace-nowrap flex-shrink-0 bg-gradient-to-r from-triagen-dark-bg to-triagen-primary-accent"
+                  className="h-10 px-4 text-sm whitespace-nowrap flex-shrink-0 bg-triagen-dark-bg hover:bg-triagen-primary-blue"
                 >
                   Entrevista Demo
                 </Button>

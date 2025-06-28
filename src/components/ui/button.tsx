@@ -33,9 +33,9 @@ function Button({
   };
   
   const variantClasses = {
-    primary: 'bg-triagen-dark-bg text-white hover:bg-triagen-primary-accent hover:shadow-xl',
+    primary: 'bg-triagen-dark-bg text-white hover:bg-triagen-primary-blue hover:shadow-xl',
     secondary: darkMode 
-      ? 'bg-gray-800/50 text-gray-300 border border-triagen-border-dark hover:bg-gray-700/50 hover:border-gray-500/50' 
+      ? 'bg-gray-800/70 text-gray-100 border border-triagen-border-dark hover:bg-gray-700/80 hover:border-gray-500/50' 
       : 'bg-white/70 text-triagen-dark-bg border border-triagen-border-light hover:bg-white/90 hover:border-triagen-text-light/50',
     outline: darkMode
       ? 'border-2 border-triagen-border-dark text-gray-300 hover:border-gray-500/50 hover:bg-gray-800/30'

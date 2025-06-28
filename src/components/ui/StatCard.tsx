@@ -20,9 +20,9 @@ function StatCard({
   // Extract color name for text color
   const getTextColor = (bgColor: string) => {
     if (bgColor.includes('dark-bg')) return 'text-triagen-dark-bg';
-    if (bgColor.includes('primary-accent')) return 'text-triagen-primary-accent';
-    if (bgColor.includes('secondary-accent')) return 'text-triagen-secondary-accent';
-    if (bgColor.includes('highlight-warm')) return 'text-triagen-highlight-warm';
+    if (bgColor.includes('primary-blue')) return 'text-triagen-primary-blue';
+    if (bgColor.includes('secondary-green')) return 'text-triagen-secondary-green';
+    if (bgColor.includes('highlight-purple')) return 'text-triagen-highlight-purple';
     return 'text-triagen-dark-bg';
   };
 

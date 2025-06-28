@@ -30,7 +30,7 @@ function SectionHeader({
             ? 'bg-gray-800/30 border-triagen-border-dark text-gray-300' 
             : 'bg-triagen-light-bg/30 border-triagen-border-light text-triagen-dark-bg'
         }`}>
-          <Icon className="h-4 w-4 mr-2 text-triagen-highlight-warm" />
+          <Icon className="h-4 w-4 mr-2 text-triagen-highlight-purple" />
           {label}
         </div>
       )}
