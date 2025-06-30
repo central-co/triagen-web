@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { User, Mail, Phone, Upload, Send, ArrowLeft } from 'lucide-react';
 import useDarkMode from '../../../hooks/useDarkMode';
 import { supabase } from '../../../lib/supabase';
+import { planInterviewWithLLM } from '../../../api/interview/plan';
 import Button from '../../ui/button';
 import Card from '../../ui/card';
 import StatusMessage from '../../ui/StatusMessage';
@@ -10,10 +11,19 @@ import AnimatedBackground from '../../ui/AnimatedBackground';
 import PageHeader from '../../ui/PageHeader';
 import { Job } from '../../../types/company';
 
+interface JobWithCompany extends Job {
+  company: {
+    id: string;
+    name: string;
+    contact_email?: string;
+    address?: string;
+  };
+}
+
 function JobApplicationPage() {
   const { jobId } = useParams();
   const navigate = useNavigate();
-  const [job, setJob] = useState<Job | null>(null);
+  const [job, setJob] = useState<JobWithCompany | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -40,7 +50,15 @@ function JobApplicationPage() {
       
       const { data: jobData, error: jobError } = await supabase
         .from('jobs')
-        .select('*')
+        .select(`
+          *,
+          company:companies(
+            id,
+            name,
+            contact_email,
+            address
+          )
+        `)
         .eq('id', jobId)
         .eq('status', 'open')
         .single();
@@ -136,6 +154,55 @@ function JobApplicationPage() {
 
       if (candidateError) {
         throw candidateError;
+      }
+
+      // Plan interview with LLM
+      let interviewPlanId = null;
+      try {
+        const planResponse = await planInterviewWithLLM({
+          candidate: {
+            id: candidate.id,
+            name: formData.name,
+            email: formData.email,
+            phone: formData.phone,
+            resume_url: formData.resume_url,
+            custom_answers: formData.custom_answers
+          },
+          job: {
+            id: job!.id,
+            title: job!.title,
+            description: job!.description,
+            location: job!.location,
+            contract_type: job!.contract_type,
+            evaluation_criteria: job!.evaluation_criteria || {},
+            salary_info: job!.salary_info,
+            benefits: job!.benefits,
+            custom_fields: job!.custom_fields
+          },
+          company: {
+            id: job!.company.id,
+            name: job!.company.name,
+            contact_email: job!.company.contact_email,
+            address: job!.company.address
+          }
+        });
+
+        if (planResponse.success) {
+          interviewPlanId = planResponse.interview_plan_id;
+        } else {
+          console.warn('Interview planning failed:', planResponse.error);
+        }
+      } catch (planError) {
+        console.error('Error planning interview:', planError);
+        // Continue without interview plan - this is not critical for candidate creation
+      }
+
+      // Update candidate with interview plan ID if available
+      if (interviewPlanId) {
+        await supabase
+          .from('candidates')
+          .update({ interview_plan_id: interviewPlanId })
+          .eq('id', candidate.id);
       }
 
       // Generate secure interview token using edge function
@@ -255,10 +322,46 @@ function JobApplicationPage() {
               <span className={`${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
                 💼 {job?.contract_type}
               </span>
+              {job?.company && (
+                <span className={`${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
+                  🏢 {job.company.name}
+                </span>
+              )}
             </div>
-            <p className={`font-sans ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'} leading-relaxed`}>
+            <p className={`font-sans ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'} leading-relaxed mb-6`}>
               {job?.description}
             </p>
+
+            {/* Salary and Benefits */}
+            {(job?.salary_info || job?.benefits) && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                {job.salary_info && (
+                  <div className={`p-4 rounded-xl ${
+                    darkMode ? 'bg-gray-800/30' : 'bg-triagen-light-bg/30'
+                  }`}>
+                    <h3 className={`font-semibold mb-2 ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
+                      💰 Salário
+                    </h3>
+                    <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
+                      {job.salary_info}
+                    </p>
+                  </div>
+                )}
+
+                {job.benefits && (
+                  <div className={`p-4 rounded-xl ${
+                    darkMode ? 'bg-gray-800/30' : 'bg-triagen-light-bg/30'
+                  }`}>
+                    <h3 className={`font-semibold mb-2 ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
+                      🎁 Benefícios
+                    </h3>
+                    <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
+                      {job.benefits}
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </Card>
 

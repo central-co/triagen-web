@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Save, Plus, X } from 'lucide-react';
+import { ArrowLeft, Save, Plus, X, DollarSign, Gift, Target, Trash2 } from 'lucide-react';
 import useDarkMode from '../../../hooks/useDarkMode';
 import { useAuth } from '../../../hooks/useAuth';
 import { supabase } from '../../../lib/supabase';
@@ -16,15 +16,25 @@ interface CustomField {
   required: boolean;
 }
 
+interface EvaluationCriterion {
+  id: string;
+  name: string;
+  description: string;
+  weight: number;
+}
+
 function NewJobPage() {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     location: '',
     contract_type: 'full-time',
-    deadline: ''
+    deadline: '',
+    salary_info: '',
+    benefits: ''
   });
   const [customFields, setCustomFields] = useState<CustomField[]>([]);
+  const [evaluationCriteria, setEvaluationCriteria] = useState<EvaluationCriterion[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -57,11 +67,41 @@ function NewJobPage() {
     setCustomFields(prev => prev.filter(field => field.id !== id));
   };
 
+  const addEvaluationCriterion = () => {
+    const newCriterion: EvaluationCriterion = {
+      id: Date.now().toString(),
+      name: '',
+      description: '',
+      weight: 5
+    };
+    setEvaluationCriteria(prev => [...prev, newCriterion]);
+  };
+
+  const updateEvaluationCriterion = (id: string, updates: Partial<EvaluationCriterion>) => {
+    setEvaluationCriteria(prev => prev.map(criterion => 
+      criterion.id === id ? { ...criterion, ...updates } : criterion
+    ));
+  };
+
+  const removeEvaluationCriterion = (id: string) => {
+    setEvaluationCriteria(prev => prev.filter(criterion => criterion.id !== id));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!formData.title || !formData.description) {
       setError('Título e descrição são obrigatórios');
+      return;
+    }
+
+    // Validate evaluation criteria
+    const invalidCriteria = evaluationCriteria.some(criterion => 
+      !criterion.name.trim() || criterion.weight < 1 || criterion.weight > 10
+    );
+
+    if (invalidCriteria) {
+      setError('Todos os critérios de avaliação devem ter nome e peso entre 1 e 10');
       return;
     }
 
@@ -86,6 +126,16 @@ function NewJobPage() {
         return;
       }
 
+      // Prepare evaluation criteria object
+      const evaluationCriteriaObject = evaluationCriteria.reduce((acc, criterion) => {
+        acc[criterion.id] = {
+          name: criterion.name,
+          description: criterion.description,
+          weight: criterion.weight
+        };
+        return acc;
+      }, {} as Record<string, any>);
+
       // Create the job
       const { data: job, error: jobError } = await supabase
         .from('jobs')
@@ -96,6 +146,9 @@ function NewJobPage() {
           location: formData.location || null,
           contract_type: formData.contract_type,
           deadline: formData.deadline || null,
+          salary_info: formData.salary_info || null,
+          benefits: formData.benefits || null,
+          evaluation_criteria: evaluationCriteriaObject,
           custom_fields: customFields.reduce((acc, field) => {
             acc[field.id] = {
               label: field.label,
@@ -266,6 +319,157 @@ function NewJobPage() {
               />
             </div>
           </div>
+        </Card>
+
+        {/* Salary and Benefits */}
+        <Card darkMode={darkMode}>
+          <h2 className={`font-heading text-xl font-semibold mb-6 ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
+            <DollarSign className="h-6 w-6 inline mr-2" />
+            Salário e Benefícios
+          </h2>
+          
+          <div className="space-y-6">
+            <div>
+              <label htmlFor="salary_info" className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-triagen-dark-bg'}`}>
+                Informações de Salário
+              </label>
+              <input
+                type="text"
+                id="salary_info"
+                name="salary_info"
+                value={formData.salary_info}
+                onChange={handleInputChange}
+                placeholder="Ex: R$ 5.000 - R$ 8.000 ou A combinar"
+                className={`font-sans w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-triagen-secondary-green/50 focus:border-triagen-secondary-green ${
+                  darkMode
+                    ? 'bg-gray-800/50 border-triagen-border-dark text-white placeholder-gray-400'
+                    : 'bg-white/70 border-triagen-border-light text-triagen-dark-bg placeholder-triagen-text-light'
+                }`}
+                disabled={isLoading}
+              />
+            </div>
+
+            <div>
+              <label htmlFor="benefits" className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-triagen-dark-bg'}`}>
+                <Gift className="h-4 w-4 inline mr-1" />
+                Benefícios
+              </label>
+              <textarea
+                id="benefits"
+                name="benefits"
+                value={formData.benefits}
+                onChange={handleInputChange}
+                placeholder="Ex: Vale refeição, plano de saúde, home office, horário flexível..."
+                rows={4}
+                className={`font-sans w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-triagen-secondary-green/50 focus:border-triagen-secondary-green resize-none ${
+                  darkMode
+                    ? 'bg-gray-800/50 border-triagen-border-dark text-white placeholder-gray-400'
+                    : 'bg-white/70 border-triagen-border-light text-triagen-dark-bg placeholder-triagen-text-light'
+                }`}
+                disabled={isLoading}
+              />
+            </div>
+          </div>
+        </Card>
+
+        {/* Evaluation Criteria */}
+        <Card darkMode={darkMode}>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className={`font-heading text-xl font-semibold ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
+              <Target className="h-6 w-6 inline mr-2" />
+              Critérios de Avaliação
+            </h2>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={addEvaluationCriterion}
+              icon={Plus}
+              iconPosition="left"
+              darkMode={darkMode}
+            >
+              Adicionar Critério
+            </Button>
+          </div>
+
+          {evaluationCriteria.length === 0 ? (
+            <div className={`text-center py-8 ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
+              <p className="font-sans">
+                Adicione critérios que serão avaliados pela IA durante a entrevista. 
+                Cada critério terá um peso de 1 a 10 para calcular a compatibilidade do candidato.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {evaluationCriteria.map((criterion) => (
+                <div key={criterion.id} className={`p-4 rounded-xl border ${
+                  darkMode ? 'border-triagen-border-dark' : 'border-triagen-border-light'
+                }`}>
+                  <div className="flex items-center justify-between mb-4">
+                    <input
+                      type="text"
+                      placeholder="Nome do critério (ex: Experiência Técnica)"
+                      value={criterion.name}
+                      onChange={(e) => updateEvaluationCriterion(criterion.id, { name: e.target.value })}
+                      className={`font-sans flex-1 px-3 py-2 rounded-lg border transition-all duration-300 focus:ring-2 focus:ring-triagen-secondary-green/50 focus:border-triagen-secondary-green ${
+                        darkMode
+                          ? 'bg-gray-800/50 border-triagen-border-dark text-white placeholder-gray-400'
+                          : 'bg-white/70 border-triagen-border-light text-triagen-dark-bg placeholder-triagen-text-light'
+                      }`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeEvaluationCriterion(criterion.id)}
+                      className={`ml-3 p-2 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/20 text-red-600`}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                    <div className="md:col-span-3">
+                      <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-triagen-dark-bg'}`}>
+                        Descrição
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="Descreva o que será avaliado neste critério"
+                        value={criterion.description}
+                        onChange={(e) => updateEvaluationCriterion(criterion.id, { description: e.target.value })}
+                        className={`font-sans w-full px-3 py-2 rounded-lg border transition-all duration-300 focus:ring-2 focus:ring-triagen-secondary-green/50 focus:border-triagen-secondary-green ${
+                          darkMode
+                            ? 'bg-gray-800/50 border-triagen-border-dark text-white placeholder-gray-400'
+                            : 'bg-white/70 border-triagen-border-light text-triagen-dark-bg placeholder-triagen-text-light'
+                        }`}
+                      />
+                    </div>
+
+                    <div>
+                      <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-triagen-dark-bg'}`}>
+                        Peso (1-10)
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="10"
+                        value={criterion.weight}
+                        onChange={(e) => updateEvaluationCriterion(criterion.id, { weight: parseInt(e.target.value) || 1 })}
+                        className={`font-sans w-full px-3 py-2 rounded-lg border transition-all duration-300 focus:ring-2 focus:ring-triagen-secondary-green/50 focus:border-triagen-secondary-green ${
+                          darkMode
+                            ? 'bg-gray-800/50 border-triagen-border-dark text-white'
+                            : 'bg-white/70 border-triagen-border-light text-triagen-dark-bg'
+                        }`}
+                      />
+                    </div>
+                  </div>
+
+                  <div className={`text-xs ${darkMode ? 'text-gray-500' : 'text-triagen-text-light'}`}>
+                    Peso {criterion.weight}/10 - {criterion.weight <= 3 ? 'Baixa importância' : criterion.weight <= 7 ? 'Importância média' : 'Alta importância'}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </Card>
 
         {/* Custom Fields */}
