@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Save, Plus, X, DollarSign, Gift, Target, Trash2 } from 'lucide-react';
+import { ArrowLeft, Save, Plus, X, DollarSign, Gift, Target, Trash2, Users, MapPin, Briefcase } from 'lucide-react';
 import useDarkMode from '../../../hooks/useDarkMode';
 import { useAuth } from '../../../hooks/useAuth';
 import { supabase } from '../../../lib/supabase';
@@ -8,19 +8,17 @@ import Button from '../../ui/button';
 import Card from '../../ui/card';
 import StatusMessage from '../../ui/StatusMessage';
 
-interface CustomField {
+interface RequirementItem {
   id: string;
-  label: string;
+  text: string;
+}
+
+interface CustomQuestion {
+  id: string;
+  question: string;
   type: 'text' | 'select' | 'multiselect';
   options?: string[];
   required: boolean;
-}
-
-interface EvaluationCriterion {
-  id: string;
-  name: string;
-  description: string;
-  weight: number;
 }
 
 function NewJobPage() {
@@ -28,14 +26,17 @@ function NewJobPage() {
     title: '',
     description: '',
     location: '',
-    contract_type: 'full-time',
-    deadline: '',
-    salary_info: '',
-    benefits: ''
+    work_model: 'remoto',
+    salary_range: '',
+    benefits: '',
+    deadline: ''
   });
-  const [customFields, setCustomFields] = useState<CustomField[]>([]);
-  const [evaluationCriteria, setEvaluationCriteria] = useState<EvaluationCriterion[]>([]);
+  
+  const [requirements, setRequirements] = useState<RequirementItem[]>([]);
+  const [differentials, setDifferentials] = useState<RequirementItem[]>([]);
+  const [customQuestions, setCustomQuestions] = useState<CustomQuestion[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isGeneratingCriteria, setIsGeneratingCriteria] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const { darkMode } = useDarkMode(true);
@@ -47,44 +48,104 @@ function NewJobPage() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const addCustomField = () => {
-    const newField: CustomField = {
+  // Funções para gerenciar requisitos
+  const addRequirement = () => {
+    const newRequirement: RequirementItem = {
       id: Date.now().toString(),
-      label: '',
+      text: ''
+    };
+    setRequirements(prev => [...prev, newRequirement]);
+  };
+
+  const updateRequirement = (id: string, text: string) => {
+    setRequirements(prev => prev.map(req => 
+      req.id === id ? { ...req, text } : req
+    ));
+  };
+
+  const removeRequirement = (id: string) => {
+    setRequirements(prev => prev.filter(req => req.id !== id));
+  };
+
+  // Funções para gerenciar diferenciais
+  const addDifferential = () => {
+    const newDifferential: RequirementItem = {
+      id: Date.now().toString(),
+      text: ''
+    };
+    setDifferentials(prev => [...prev, newDifferential]);
+  };
+
+  const updateDifferential = (id: string, text: string) => {
+    setDifferentials(prev => prev.map(diff => 
+      diff.id === id ? { ...diff, text } : diff
+    ));
+  };
+
+  const removeDifferential = (id: string) => {
+    setDifferentials(prev => prev.filter(diff => diff.id !== id));
+  };
+
+  // Funções para gerenciar perguntas customizadas
+  const addCustomQuestion = () => {
+    const newQuestion: CustomQuestion = {
+      id: Date.now().toString(),
+      question: '',
       type: 'text',
       required: false
     };
-    setCustomFields(prev => [...prev, newField]);
+    setCustomQuestions(prev => [...prev, newQuestion]);
   };
 
-  const updateCustomField = (id: string, updates: Partial<CustomField>) => {
-    setCustomFields(prev => prev.map(field => 
-      field.id === id ? { ...field, ...updates } : field
+  const updateCustomQuestion = (id: string, updates: Partial<CustomQuestion>) => {
+    setCustomQuestions(prev => prev.map(q => 
+      q.id === id ? { ...q, ...updates } : q
     ));
   };
 
-  const removeCustomField = (id: string) => {
-    setCustomFields(prev => prev.filter(field => field.id !== id));
+  const removeCustomQuestion = (id: string) => {
+    setCustomQuestions(prev => prev.filter(q => q.id !== id));
   };
 
-  const addEvaluationCriterion = () => {
-    const newCriterion: EvaluationCriterion = {
-      id: Date.now().toString(),
-      name: '',
-      description: '',
-      weight: 5
-    };
-    setEvaluationCriteria(prev => [...prev, newCriterion]);
-  };
+  // Função para gerar critérios de avaliação com LLM 1
+  const generateEvaluationCriteria = async (jobData: any) => {
+    setIsGeneratingCriteria(true);
+    
+    try {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-  const updateEvaluationCriterion = (id: string, updates: Partial<EvaluationCriterion>) => {
-    setEvaluationCriteria(prev => prev.map(criterion => 
-      criterion.id === id ? { ...criterion, ...updates } : criterion
-    ));
-  };
+      const response = await fetch(`${supabaseUrl}/functions/v1/generate-evaluation-criteria`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${supabaseAnonKey}`,
+        },
+        body: JSON.stringify({
+          job: {
+            title: jobData.title,
+            description: jobData.description,
+            work_model: jobData.work_model,
+            requirements: requirements.filter(r => r.text.trim()).map(r => r.text),
+            differentials: differentials.filter(d => d.text.trim()).map(d => d.text),
+            salary_range: jobData.salary_range,
+            benefits: jobData.benefits
+          }
+        }),
+      });
 
-  const removeEvaluationCriterion = (id: string) => {
-    setEvaluationCriteria(prev => prev.filter(criterion => criterion.id !== id));
+      if (!response.ok) {
+        throw new Error('Falha ao gerar critérios de avaliação');
+      }
+
+      const result = await response.json();
+      return result.evaluation_criteria || [];
+    } catch (error) {
+      console.error('Erro ao gerar critérios:', error);
+      return [];
+    } finally {
+      setIsGeneratingCriteria(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -95,13 +156,8 @@ function NewJobPage() {
       return;
     }
 
-    // Validate evaluation criteria
-    const invalidCriteria = evaluationCriteria.some(criterion => 
-      !criterion.name.trim() || criterion.weight < 1 || criterion.weight > 10
-    );
-
-    if (invalidCriteria) {
-      setError('Todos os critérios de avaliação devem ter nome e peso entre 1 e 10');
+    if (requirements.length === 0) {
+      setError('Adicione pelo menos um requisito obrigatório');
       return;
     }
 
@@ -120,45 +176,39 @@ function NewJobPage() {
         throw companyError;
       }
 
-      // Check if any company was found
       if (!companies || companies.length === 0) {
         setError('Nenhuma empresa encontrada para o usuário. Por favor, configure sua empresa nas configurações.');
         return;
       }
 
-      // Prepare evaluation criteria object
-      const evaluationCriteriaObject = evaluationCriteria.reduce((acc, criterion) => {
-        acc[criterion.id] = {
-          name: criterion.name,
-          description: criterion.description,
-          weight: criterion.weight
-        };
-        return acc;
-      }, {} as Record<string, any>);
+      // Gerar critérios de avaliação com LLM 1
+      const evaluationCriteria = await generateEvaluationCriteria(formData);
+
+      // Preparar dados para inserção
+      const jobData = {
+        company_id: companies[0].id,
+        title: formData.title,
+        description: formData.description,
+        location: formData.location || null,
+        work_model: formData.work_model,
+        salary_range: formData.salary_range || null,
+        benefits: formData.benefits || null,
+        deadline: formData.deadline || null,
+        requirements: requirements.filter(r => r.text.trim()).map(r => r.text),
+        differentials: differentials.filter(d => d.text.trim()).map(d => d.text),
+        evaluation_criteria: evaluationCriteria,
+        custom_questions: customQuestions.filter(q => q.question.trim()).map(q => ({
+          question: q.question,
+          type: q.type,
+          options: q.options,
+          required: q.required
+        }))
+      };
 
       // Create the job
       const { data: job, error: jobError } = await supabase
         .from('jobs')
-        .insert({
-          company_id: companies[0].id,
-          title: formData.title,
-          description: formData.description,
-          location: formData.location || null,
-          contract_type: formData.contract_type,
-          deadline: formData.deadline || null,
-          salary_info: formData.salary_info || null,
-          benefits: formData.benefits || null,
-          evaluation_criteria: evaluationCriteriaObject,
-          custom_fields: customFields.reduce((acc, field) => {
-            acc[field.id] = {
-              label: field.label,
-              type: field.type,
-              options: field.options,
-              required: field.required
-            };
-            return acc;
-          }, {} as Record<string, any>)
-        })
+        .insert(jobData)
         .select()
         .single();
 
@@ -166,7 +216,7 @@ function NewJobPage() {
         throw jobError;
       }
 
-      setSuccess('Vaga criada com sucesso!');
+      setSuccess('Vaga criada com sucesso! Critérios de avaliação foram gerados automaticamente.');
       setTimeout(() => {
         navigate('/dashboard/jobs');
       }, 2000);
@@ -199,15 +249,16 @@ function NewJobPage() {
             Nova Vaga
           </h1>
           <p className={`font-sans mt-2 ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
-            Crie uma nova vaga e comece a receber candidatos
+            Crie uma nova vaga e nossa IA gerará automaticamente os critérios de avaliação
           </p>
         </div>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-8">
-        {/* Basic Information */}
+        {/* Informações Básicas */}
         <Card darkMode={darkMode}>
           <h2 className={`font-heading text-xl font-semibold mb-6 ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
+            <Briefcase className="h-6 w-6 inline mr-2" />
             Informações Básicas
           </h2>
           
@@ -242,7 +293,7 @@ function NewJobPage() {
                 name="description"
                 value={formData.description}
                 onChange={handleInputChange}
-                placeholder="Descreva as responsabilidades, requisitos e benefícios da vaga..."
+                placeholder="Descreva as responsabilidades, o que a pessoa fará no dia a dia, contexto da empresa..."
                 rows={6}
                 className={`font-sans w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-triagen-secondary-green/50 focus:border-triagen-secondary-green resize-none ${
                   darkMode
@@ -256,6 +307,29 @@ function NewJobPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
+                <label htmlFor="work_model" className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-triagen-dark-bg'}`}>
+                  <MapPin className="h-4 w-4 inline mr-1" />
+                  Modelo de Trabalho
+                </label>
+                <select
+                  id="work_model"
+                  name="work_model"
+                  value={formData.work_model}
+                  onChange={handleInputChange}
+                  className={`font-sans w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-triagen-secondary-green/50 focus:border-triagen-secondary-green ${
+                    darkMode
+                      ? 'bg-gray-800/50 border-triagen-border-dark text-white'
+                      : 'bg-white/70 border-triagen-border-light text-triagen-dark-bg'
+                  }`}
+                  disabled={isLoading}
+                >
+                  <option value="remoto">Remoto</option>
+                  <option value="hibrido">Híbrido</option>
+                  <option value="presencial">Presencial</option>
+                </select>
+              </div>
+
+              <div>
                 <label htmlFor="location" className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-triagen-dark-bg'}`}>
                   Localização
                 </label>
@@ -265,7 +339,7 @@ function NewJobPage() {
                   name="location"
                   value={formData.location}
                   onChange={handleInputChange}
-                  placeholder="Ex: São Paulo, SP ou Remoto"
+                  placeholder="Ex: São Paulo, SP"
                   className={`font-sans w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-triagen-secondary-green/50 focus:border-triagen-secondary-green ${
                     darkMode
                       ? 'bg-gray-800/50 border-triagen-border-dark text-white placeholder-gray-400'
@@ -273,30 +347,6 @@ function NewJobPage() {
                   }`}
                   disabled={isLoading}
                 />
-              </div>
-
-              <div>
-                <label htmlFor="contract_type" className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-triagen-dark-bg'}`}>
-                  Tipo de Contrato
-                </label>
-                <select
-                  id="contract_type"
-                  name="contract_type"
-                  value={formData.contract_type}
-                  onChange={handleInputChange}
-                  className={`font-sans w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-triagen-secondary-green/50 focus:border-triagen-secondary-green ${
-                    darkMode
-                      ? 'bg-gray-800/50 border-triagen-border-dark text-white'
-                      : 'bg-white/70 border-triagen-border-light text-triagen-dark-bg'
-                  }`}
-                  disabled={isLoading}
-                >
-                  <option value="full-time">Tempo Integral</option>
-                  <option value="part-time">Meio Período</option>
-                  <option value="contract">Contrato</option>
-                  <option value="freelance">Freelance</option>
-                  <option value="internship">Estágio</option>
-                </select>
               </div>
             </div>
 
@@ -321,7 +371,119 @@ function NewJobPage() {
           </div>
         </Card>
 
-        {/* Salary and Benefits */}
+        {/* Requisitos Obrigatórios */}
+        <Card darkMode={darkMode}>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className={`font-heading text-xl font-semibold ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
+              <Target className="h-6 w-6 inline mr-2" />
+              Requisitos Obrigatórios
+            </h2>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={addRequirement}
+              icon={Plus}
+              iconPosition="left"
+              darkMode={darkMode}
+            >
+              Adicionar Requisito
+            </Button>
+          </div>
+
+          {requirements.length === 0 ? (
+            <div className={`text-center py-8 ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
+              <p className="font-sans">
+                Adicione os requisitos obrigatórios para a vaga. Ex: "Experiência com React", "Inglês intermediário"
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {requirements.map((requirement) => (
+                <div key={requirement.id} className={`flex items-center space-x-3 p-4 rounded-xl border ${
+                  darkMode ? 'border-triagen-border-dark' : 'border-triagen-border-light'
+                }`}>
+                  <input
+                    type="text"
+                    placeholder="Ex: Experiência com React"
+                    value={requirement.text}
+                    onChange={(e) => updateRequirement(requirement.id, e.target.value)}
+                    className={`font-sans flex-1 px-3 py-2 rounded-lg border transition-all duration-300 focus:ring-2 focus:ring-triagen-secondary-green/50 focus:border-triagen-secondary-green ${
+                      darkMode
+                        ? 'bg-gray-800/50 border-triagen-border-dark text-white placeholder-gray-400'
+                        : 'bg-white/70 border-triagen-border-light text-triagen-dark-bg placeholder-triagen-text-light'
+                    }`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeRequirement(requirement.id)}
+                    className={`p-2 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/20 text-red-600`}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </Card>
+
+        {/* Diferenciais Desejáveis */}
+        <Card darkMode={darkMode}>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className={`font-heading text-xl font-semibold ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
+              <Plus className="h-6 w-6 inline mr-2" />
+              Diferenciais Desejáveis
+            </h2>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={addDifferential}
+              icon={Plus}
+              iconPosition="left"
+              darkMode={darkMode}
+            >
+              Adicionar Diferencial
+            </Button>
+          </div>
+
+          {differentials.length === 0 ? (
+            <div className={`text-center py-8 ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
+              <p className="font-sans">
+                Adicione diferenciais que seriam interessantes mas não obrigatórios. Ex: "Conhecimento em acessibilidade", "Experiência com testes"
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {differentials.map((differential) => (
+                <div key={differential.id} className={`flex items-center space-x-3 p-4 rounded-xl border ${
+                  darkMode ? 'border-triagen-border-dark' : 'border-triagen-border-light'
+                }`}>
+                  <input
+                    type="text"
+                    placeholder="Ex: Conhecimento em acessibilidade"
+                    value={differential.text}
+                    onChange={(e) => updateDifferential(differential.id, e.target.value)}
+                    className={`font-sans flex-1 px-3 py-2 rounded-lg border transition-all duration-300 focus:ring-2 focus:ring-triagen-secondary-green/50 focus:border-triagen-secondary-green ${
+                      darkMode
+                        ? 'bg-gray-800/50 border-triagen-border-dark text-white placeholder-gray-400'
+                        : 'bg-white/70 border-triagen-border-light text-triagen-dark-bg placeholder-triagen-text-light'
+                    }`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeDifferential(differential.id)}
+                    className={`p-2 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/20 text-red-600`}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </Card>
+
+        {/* Salário e Benefícios */}
         <Card darkMode={darkMode}>
           <h2 className={`font-heading text-xl font-semibold mb-6 ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
             <DollarSign className="h-6 w-6 inline mr-2" />
@@ -330,14 +492,14 @@ function NewJobPage() {
           
           <div className="space-y-6">
             <div>
-              <label htmlFor="salary_info" className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-triagen-dark-bg'}`}>
-                Informações de Salário
+              <label htmlFor="salary_range" className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-triagen-dark-bg'}`}>
+                Faixa Salarial
               </label>
               <input
                 type="text"
-                id="salary_info"
-                name="salary_info"
-                value={formData.salary_info}
+                id="salary_range"
+                name="salary_range"
+                value={formData.salary_range}
                 onChange={handleInputChange}
                 placeholder="Ex: R$ 5.000 - R$ 8.000 ou A combinar"
                 className={`font-sans w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-triagen-secondary-green/50 focus:border-triagen-secondary-green ${
@@ -372,45 +534,44 @@ function NewJobPage() {
           </div>
         </Card>
 
-        {/* Evaluation Criteria */}
+        {/* Perguntas Customizadas */}
         <Card darkMode={darkMode}>
           <div className="flex items-center justify-between mb-6">
             <h2 className={`font-heading text-xl font-semibold ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
-              <Target className="h-6 w-6 inline mr-2" />
-              Critérios de Avaliação
+              <Users className="h-6 w-6 inline mr-2" />
+              Perguntas Customizadas
             </h2>
             <Button
               type="button"
               variant="outline"
               size="sm"
-              onClick={addEvaluationCriterion}
+              onClick={addCustomQuestion}
               icon={Plus}
               iconPosition="left"
               darkMode={darkMode}
             >
-              Adicionar Critério
+              Adicionar Pergunta
             </Button>
           </div>
 
-          {evaluationCriteria.length === 0 ? (
+          {customQuestions.length === 0 ? (
             <div className={`text-center py-8 ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
               <p className="font-sans">
-                Adicione critérios que serão avaliados pela IA durante a entrevista. 
-                Cada critério terá um peso de 1 a 10 para calcular a compatibilidade do candidato.
+                Adicione perguntas específicas que os candidatos devem responder no formulário de inscrição
               </p>
             </div>
           ) : (
             <div className="space-y-4">
-              {evaluationCriteria.map((criterion) => (
-                <div key={criterion.id} className={`p-4 rounded-xl border ${
+              {customQuestions.map((question) => (
+                <div key={question.id} className={`p-4 rounded-xl border ${
                   darkMode ? 'border-triagen-border-dark' : 'border-triagen-border-light'
                 }`}>
                   <div className="flex items-center justify-between mb-4">
                     <input
                       type="text"
-                      placeholder="Nome do critério (ex: Experiência Técnica)"
-                      value={criterion.name}
-                      onChange={(e) => updateEvaluationCriterion(criterion.id, { name: e.target.value })}
+                      placeholder="Pergunta para o candidato"
+                      value={question.question}
+                      onChange={(e) => updateCustomQuestion(question.id, { question: e.target.value })}
                       className={`font-sans flex-1 px-3 py-2 rounded-lg border transition-all duration-300 focus:ring-2 focus:ring-triagen-secondary-green/50 focus:border-triagen-secondary-green ${
                         darkMode
                           ? 'bg-gray-800/50 border-triagen-border-dark text-white placeholder-gray-400'
@@ -419,105 +580,7 @@ function NewJobPage() {
                     />
                     <button
                       type="button"
-                      onClick={() => removeEvaluationCriterion(criterion.id)}
-                      className={`ml-3 p-2 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/20 text-red-600`}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-                    <div className="md:col-span-3">
-                      <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-triagen-dark-bg'}`}>
-                        Descrição
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="Descreva o que será avaliado neste critério"
-                        value={criterion.description}
-                        onChange={(e) => updateEvaluationCriterion(criterion.id, { description: e.target.value })}
-                        className={`font-sans w-full px-3 py-2 rounded-lg border transition-all duration-300 focus:ring-2 focus:ring-triagen-secondary-green/50 focus:border-triagen-secondary-green ${
-                          darkMode
-                            ? 'bg-gray-800/50 border-triagen-border-dark text-white placeholder-gray-400'
-                            : 'bg-white/70 border-triagen-border-light text-triagen-dark-bg placeholder-triagen-text-light'
-                        }`}
-                      />
-                    </div>
-
-                    <div>
-                      <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-triagen-dark-bg'}`}>
-                        Peso (1-10)
-                      </label>
-                      <input
-                        type="number"
-                        min="1"
-                        max="10"
-                        value={criterion.weight}
-                        onChange={(e) => updateEvaluationCriterion(criterion.id, { weight: parseInt(e.target.value) || 1 })}
-                        className={`font-sans w-full px-3 py-2 rounded-lg border transition-all duration-300 focus:ring-2 focus:ring-triagen-secondary-green/50 focus:border-triagen-secondary-green ${
-                          darkMode
-                            ? 'bg-gray-800/50 border-triagen-border-dark text-white'
-                            : 'bg-white/70 border-triagen-border-light text-triagen-dark-bg'
-                        }`}
-                      />
-                    </div>
-                  </div>
-
-                  <div className={`text-xs ${darkMode ? 'text-gray-500' : 'text-triagen-text-light'}`}>
-                    Peso {criterion.weight}/10 - {criterion.weight <= 3 ? 'Baixa importância' : criterion.weight <= 7 ? 'Importância média' : 'Alta importância'}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </Card>
-
-        {/* Custom Fields */}
-        <Card darkMode={darkMode}>
-          <div className="flex items-center justify-between mb-6">
-            <h2 className={`font-heading text-xl font-semibold ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
-              Campos Personalizados
-            </h2>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={addCustomField}
-              icon={Plus}
-              iconPosition="left"
-              darkMode={darkMode}
-            >
-              Adicionar Campo
-            </Button>
-          </div>
-
-          {customFields.length === 0 ? (
-            <div className={`text-center py-8 ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
-              <p className="font-sans">
-                Adicione campos personalizados para coletar informações específicas dos candidatos
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {customFields.map((field) => (
-                <div key={field.id} className={`p-4 rounded-xl border ${
-                  darkMode ? 'border-triagen-border-dark' : 'border-triagen-border-light'
-                }`}>
-                  <div className="flex items-center justify-between mb-4">
-                    <input
-                      type="text"
-                      placeholder="Nome do campo"
-                      value={field.label}
-                      onChange={(e) => updateCustomField(field.id, { label: e.target.value })}
-                      className={`font-sans flex-1 px-3 py-2 rounded-lg border transition-all duration-300 focus:ring-2 focus:ring-triagen-secondary-green/50 focus:border-triagen-secondary-green ${
-                        darkMode
-                          ? 'bg-gray-800/50 border-triagen-border-dark text-white placeholder-gray-400'
-                          : 'bg-white/70 border-triagen-border-light text-triagen-dark-bg placeholder-triagen-text-light'
-                      }`}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removeCustomField(field.id)}
+                      onClick={() => removeCustomQuestion(question.id)}
                       className={`ml-3 p-2 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/20 text-red-600`}
                     >
                       <X className="h-4 w-4" />
@@ -526,8 +589,8 @@ function NewJobPage() {
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <select
-                      value={field.type}
-                      onChange={(e) => updateCustomField(field.id, { type: e.target.value as any })}
+                      value={question.type}
+                      onChange={(e) => updateCustomQuestion(question.id, { type: e.target.value as any })}
                       className={`font-sans px-3 py-2 rounded-lg border transition-all duration-300 focus:ring-2 focus:ring-triagen-secondary-green/50 focus:border-triagen-secondary-green ${
                         darkMode
                           ? 'bg-gray-800/50 border-triagen-border-dark text-white'
@@ -542,8 +605,8 @@ function NewJobPage() {
                     <label className="flex items-center space-x-2">
                       <input
                         type="checkbox"
-                        checked={field.required}
-                        onChange={(e) => updateCustomField(field.id, { required: e.target.checked })}
+                        checked={question.required}
+                        onChange={(e) => updateCustomQuestion(question.id, { required: e.target.checked })}
                         className="h-4 w-4 text-triagen-secondary-green focus:ring-triagen-secondary-green border-triagen-border-light rounded"
                       />
                       <span className={`font-sans text-sm ${darkMode ? 'text-gray-300' : 'text-triagen-dark-bg'}`}>
@@ -552,13 +615,13 @@ function NewJobPage() {
                     </label>
                   </div>
 
-                  {(field.type === 'select' || field.type === 'multiselect') && (
+                  {(question.type === 'select' || question.type === 'multiselect') && (
                     <div className="mt-4">
                       <input
                         type="text"
                         placeholder="Opções separadas por vírgula (ex: Júnior, Pleno, Sênior)"
-                        value={field.options?.join(', ') || ''}
-                        onChange={(e) => updateCustomField(field.id, { 
+                        value={question.options?.join(', ') || ''}
+                        onChange={(e) => updateCustomQuestion(question.id, { 
                           options: e.target.value.split(',').map(opt => opt.trim()).filter(Boolean)
                         })}
                         className={`font-sans w-full px-3 py-2 rounded-lg border transition-all duration-300 focus:ring-2 focus:ring-triagen-secondary-green/50 focus:border-triagen-secondary-green ${
@@ -592,6 +655,15 @@ function NewJobPage() {
           />
         )}
 
+        {isGeneratingCriteria && (
+          <StatusMessage
+            type="info"
+            title="Gerando critérios de avaliação..."
+            message="Nossa IA está analisando a vaga e criando critérios personalizados para a entrevista."
+            darkMode={darkMode}
+          />
+        )}
+
         {/* Actions */}
         <div className="flex justify-end space-x-4">
           <Button
@@ -610,7 +682,7 @@ function NewJobPage() {
             variant="primary"
             size="md"
             isLoading={isLoading}
-            disabled={!formData.title || !formData.description}
+            disabled={!formData.title || !formData.description || requirements.length === 0}
             icon={Save}
             iconPosition="left"
             className="bg-triagen-dark-bg hover:bg-triagen-primary-blue"

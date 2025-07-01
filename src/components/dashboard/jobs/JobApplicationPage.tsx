@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { User, Mail, Phone, Upload, Send, ArrowLeft } from 'lucide-react';
+import { User, Mail, Phone, Upload, Send, ArrowLeft, FileText } from 'lucide-react';
 import useDarkMode from '../../../hooks/useDarkMode';
 import { supabase } from '../../../lib/supabase';
-import { planInterviewWithLLM } from '../../../api/interview/plan';
 import Button from '../../ui/button';
 import Card from '../../ui/card';
 import StatusMessage from '../../ui/StatusMessage';
@@ -35,6 +34,7 @@ function JobApplicationPage() {
     email: '',
     phone: '',
     resume_url: '',
+    resume_text: '',
     custom_answers: {} as Record<string, any>
   });
 
@@ -81,12 +81,12 @@ function JobApplicationPage() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleCustomFieldChange = (fieldId: string, value: any) => {
+  const handleCustomAnswerChange = (questionId: string, value: any) => {
     setFormData(prev => ({
       ...prev,
       custom_answers: {
         ...prev.custom_answers,
-        [fieldId]: value
+        [questionId]: value
       }
     }));
   };
@@ -115,6 +115,61 @@ function JobApplicationPage() {
     return data.interview_token;
   };
 
+  const generateContextualCriteria = async (candidateId: string, candidateData: any) => {
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+    try {
+      const response = await fetch(`${supabaseUrl}/functions/v1/generate-contextual-criteria`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${supabaseAnonKey}`,
+        },
+        body: JSON.stringify({
+          candidate: {
+            id: candidateId,
+            name: candidateData.name,
+            email: candidateData.email,
+            phone: candidateData.phone,
+            resume_url: candidateData.resume_url,
+            resume_text: candidateData.resume_text,
+            custom_answers: candidateData.custom_answers
+          },
+          job: {
+            id: job!.id,
+            title: job!.title,
+            description: job!.description,
+            work_model: job!.work_model,
+            requirements: job!.requirements || [],
+            differentials: job!.differentials || [],
+            evaluation_criteria: job!.evaluation_criteria || [],
+            salary_range: job!.salary_range,
+            benefits: job!.benefits
+          },
+          company: {
+            id: job!.company.id,
+            name: job!.company.name,
+            contact_email: job!.company.contact_email,
+            address: job!.company.address
+          }
+        }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('Critérios contextuais gerados:', result);
+        return result.context_id;
+      } else {
+        console.warn('Falha ao gerar critérios contextuais');
+        return null;
+      }
+    } catch (error) {
+      console.error('Erro ao gerar critérios contextuais:', error);
+      return null;
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -123,12 +178,12 @@ function JobApplicationPage() {
       return;
     }
 
-    // Validate required custom fields
-    if (job?.custom_fields) {
-      const customFields = Object.entries(job.custom_fields);
-      for (const [fieldId, field] of customFields) {
-        if ((field as any).required && !formData.custom_answers[fieldId]) {
-          setError(`O campo "${(field as any).label}" é obrigatório`);
+    // Validate required custom questions
+    if (job?.custom_questions) {
+      const customQuestions = job.custom_questions as any[];
+      for (const question of customQuestions) {
+        if (question.required && !formData.custom_answers[question.question]) {
+          setError(`A pergunta "${question.question}" é obrigatória`);
           return;
         }
       }
@@ -138,7 +193,7 @@ function JobApplicationPage() {
     setError('');
 
     try {
-      // Create candidate first without token
+      // Create candidate first
       const { data: candidate, error: candidateError } = await supabase
         .from('candidates')
         .insert({
@@ -147,6 +202,8 @@ function JobApplicationPage() {
           email: formData.email,
           phone: formData.phone || null,
           resume_url: formData.resume_url || null,
+          resume_text: formData.resume_text || null,
+          custom_answers: formData.custom_answers,
           status: 'pending'
         })
         .select()
@@ -156,56 +213,10 @@ function JobApplicationPage() {
         throw candidateError;
       }
 
-      // Plan interview with LLM
-      let interviewPlanId = null;
-      try {
-        const planResponse = await planInterviewWithLLM({
-          candidate: {
-            id: candidate.id,
-            name: formData.name,
-            email: formData.email,
-            phone: formData.phone,
-            resume_url: formData.resume_url,
-            custom_answers: formData.custom_answers
-          },
-          job: {
-            id: job!.id,
-            title: job!.title,
-            description: job!.description,
-            location: job!.location,
-            contract_type: job!.contract_type,
-            evaluation_criteria: job!.evaluation_criteria || {},
-            salary_info: job!.salary_info,
-            benefits: job!.benefits,
-            custom_fields: job!.custom_fields
-          },
-          company: {
-            id: job!.company.id,
-            name: job!.company.name,
-            contact_email: job!.company.contact_email,
-            address: job!.company.address
-          }
-        });
+      // Generate contextual criteria with LLM 2
+      await generateContextualCriteria(candidate.id, formData);
 
-        if (planResponse.success) {
-          interviewPlanId = planResponse.interview_plan_id;
-        } else {
-          console.warn('Interview planning failed:', planResponse.error);
-        }
-      } catch (planError) {
-        console.error('Error planning interview:', planError);
-        // Continue without interview plan - this is not critical for candidate creation
-      }
-
-      // Update candidate with interview plan ID if available
-      if (interviewPlanId) {
-        await supabase
-          .from('candidates')
-          .update({ interview_plan_id: interviewPlanId })
-          .eq('id', candidate.id);
-      }
-
-      // Generate secure interview token using edge function
+      // Generate secure interview token
       const interviewToken = await generateSecureInterviewToken(candidate.id);
 
       setSuccess(true);
@@ -286,12 +297,13 @@ function JobApplicationPage() {
               </h1>
               
               <p className={`font-sans mb-6 ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
-                Sua candidatura foi enviada com sucesso. Você será redirecionado para a entrevista com nossa IA em alguns segundos.
+                Sua candidatura foi enviada com sucesso. Nossa IA está preparando uma entrevista personalizada para você. 
+                Você será redirecionado em alguns segundos.
               </p>
 
               <StatusMessage
                 type="info"
-                message="Prepare-se para uma conversa natural com nossa IA. Ela fará perguntas sobre sua experiência e adequação à vaga."
+                message="Prepare-se para uma conversa natural com nossa IA. Ela fará perguntas sobre sua experiência e adequação à vaga baseadas no seu perfil."
                 darkMode={darkMode}
               />
             </div>
@@ -314,13 +326,9 @@ function JobApplicationPage() {
               {job?.title}
             </h1>
             <div className="flex items-center justify-center space-x-4 text-sm mb-6">
-              {job?.location && (
-                <span className={`${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
-                  📍 {job.location}
-                </span>
-              )}
               <span className={`${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
-                💼 {job?.contract_type}
+                📍 {job?.work_model === 'remoto' ? 'Remoto' : job?.work_model === 'hibrido' ? 'Híbrido' : 'Presencial'}
+                {job?.location && ` • ${job.location}`}
               </span>
               {job?.company && (
                 <span className={`${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
@@ -332,18 +340,53 @@ function JobApplicationPage() {
               {job?.description}
             </p>
 
-            {/* Salary and Benefits */}
-            {(job?.salary_info || job?.benefits) && (
+            {/* Requirements and Differentials */}
+            {(job?.requirements && job.requirements.length > 0) || (job?.differentials && job.differentials.length > 0) ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-                {job.salary_info && (
+                {job?.requirements && job.requirements.length > 0 && (
+                  <div className={`p-4 rounded-xl ${
+                    darkMode ? 'bg-gray-800/30' : 'bg-triagen-light-bg/30'
+                  }`}>
+                    <h3 className={`font-semibold mb-3 ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
+                      ✅ Requisitos Obrigatórios
+                    </h3>
+                    <ul className={`text-sm space-y-1 ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
+                      {(job.requirements as string[]).map((req, index) => (
+                        <li key={index}>• {req}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {job?.differentials && job.differentials.length > 0 && (
+                  <div className={`p-4 rounded-xl ${
+                    darkMode ? 'bg-gray-800/30' : 'bg-triagen-light-bg/30'
+                  }`}>
+                    <h3 className={`font-semibold mb-3 ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
+                      ⭐ Diferenciais Desejáveis
+                    </h3>
+                    <ul className={`text-sm space-y-1 ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
+                      {(job.differentials as string[]).map((diff, index) => (
+                        <li key={index}>• {diff}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            ) : null}
+
+            {/* Salary and Benefits */}
+            {(job?.salary_range || job?.benefits) && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                {job.salary_range && (
                   <div className={`p-4 rounded-xl ${
                     darkMode ? 'bg-gray-800/30' : 'bg-triagen-light-bg/30'
                   }`}>
                     <h3 className={`font-semibold mb-2 ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
-                      💰 Salário
+                      💰 Faixa Salarial
                     </h3>
                     <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
-                      {job.salary_info}
+                      {job.salary_range}
                     </p>
                   </div>
                 )}
@@ -455,56 +498,76 @@ function JobApplicationPage() {
               </div>
             </div>
 
-            {/* Custom Fields */}
-            {job?.custom_fields && Object.keys(job.custom_fields).length > 0 && (
+            {/* Resume Text */}
+            <div>
+              <label htmlFor="resume_text" className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-triagen-dark-bg'}`}>
+                <FileText className="h-4 w-4 inline mr-1" />
+                Resumo do seu Currículo (Opcional)
+              </label>
+              <textarea
+                id="resume_text"
+                name="resume_text"
+                value={formData.resume_text}
+                onChange={handleInputChange}
+                placeholder="Descreva brevemente sua experiência profissional, formação e principais habilidades..."
+                rows={4}
+                className={`font-sans w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-triagen-secondary-green/50 focus:border-triagen-secondary-green resize-none ${
+                  darkMode
+                    ? 'bg-gray-800/50 border-triagen-border-dark text-white placeholder-gray-400'
+                    : 'bg-white/70 border-triagen-border-light text-triagen-dark-bg placeholder-triagen-text-light'
+                }`}
+              />
+              <p className={`text-xs mt-1 ${darkMode ? 'text-gray-500' : 'text-triagen-text-light'}`}>
+                Essas informações ajudarão nossa IA a personalizar a entrevista para você
+              </p>
+            </div>
+
+            {/* Custom Questions */}
+            {job?.custom_questions && (job.custom_questions as any[]).length > 0 && (
               <div className="space-y-4">
                 <h3 className={`font-heading text-lg font-semibold ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
-                  Informações Adicionais
+                  Perguntas Específicas da Vaga
                 </h3>
                 
-                {Object.entries(job.custom_fields).map(([fieldId, field]) => {
-                  const fieldData = field as any;
-                  
-                  return (
-                    <div key={fieldId}>
-                      <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-triagen-dark-bg'}`}>
-                        {fieldData.label} {fieldData.required && '*'}
-                      </label>
-                      
-                      {fieldData.type === 'text' && (
-                        <input
-                          type="text"
-                          value={formData.custom_answers[fieldId] || ''}
-                          onChange={(e) => handleCustomFieldChange(fieldId, e.target.value)}
-                          className={`font-sans w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-triagen-secondary-green/50 focus:border-triagen-secondary-green ${
-                            darkMode
-                              ? 'bg-gray-800/50 border-triagen-border-dark text-white placeholder-gray-400'
-                              : 'bg-white/70 border-triagen-border-light text-triagen-dark-bg placeholder-triagen-text-light'
-                          }`}
-                          required={fieldData.required}
-                        />
-                      )}
-                      
-                      {fieldData.type === 'select' && (
-                        <select
-                          value={formData.custom_answers[fieldId] || ''}
-                          onChange={(e) => handleCustomFieldChange(fieldId, e.target.value)}
-                          className={`font-sans w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-triagen-secondary-green/50 focus:border-triagen-secondary-green ${
-                            darkMode
-                              ? 'bg-gray-800/50 border-triagen-border-dark text-white'
-                              : 'bg-white/70 border-triagen-border-light text-triagen-dark-bg'
-                          }`}
-                          required={fieldData.required}
-                        >
-                          <option value="">Selecione...</option>
-                          {fieldData.options?.map((option: string) => (
-                            <option key={option} value={option}>{option}</option>
-                          ))}
-                        </select>
-                      )}
-                    </div>
-                  );
-                })}
+                {(job.custom_questions as any[]).map((question, index) => (
+                  <div key={index}>
+                    <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-triagen-dark-bg'}`}>
+                      {question.question} {question.required && '*'}
+                    </label>
+                    
+                    {question.type === 'text' && (
+                      <input
+                        type="text"
+                        value={formData.custom_answers[question.question] || ''}
+                        onChange={(e) => handleCustomAnswerChange(question.question, e.target.value)}
+                        className={`font-sans w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-triagen-secondary-green/50 focus:border-triagen-secondary-green ${
+                          darkMode
+                            ? 'bg-gray-800/50 border-triagen-border-dark text-white placeholder-gray-400'
+                            : 'bg-white/70 border-triagen-border-light text-triagen-dark-bg placeholder-triagen-text-light'
+                        }`}
+                        required={question.required}
+                      />
+                    )}
+                    
+                    {question.type === 'select' && (
+                      <select
+                        value={formData.custom_answers[question.question] || ''}
+                        onChange={(e) => handleCustomAnswerChange(question.question, e.target.value)}
+                        className={`font-sans w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-triagen-secondary-green/50 focus:border-triagen-secondary-green ${
+                          darkMode
+                            ? 'bg-gray-800/50 border-triagen-border-dark text-white'
+                            : 'bg-white/70 border-triagen-border-light text-triagen-dark-bg'
+                        }`}
+                        required={question.required}
+                      >
+                        <option value="">Selecione...</option>
+                        {question.options?.map((option: string) => (
+                          <option key={option} value={option}>{option}</option>
+                        ))}
+                      </select>
+                    )}
+                  </div>
+                ))}
               </div>
             )}
 
@@ -518,8 +581,8 @@ function JobApplicationPage() {
 
             <StatusMessage
               type="info"
-              title="Próximo passo: Entrevista com IA"
-              message="Após enviar sua candidatura, você será direcionado para uma entrevista com nossa IA. A conversa dura cerca de 15-20 minutos e é totalmente automatizada."
+              title="Próximo passo: Entrevista Personalizada com IA"
+              message="Após enviar sua candidatura, nossa IA analisará seu perfil e criará uma entrevista personalizada. A conversa dura cerca de 15-20 minutos e é totalmente automatizada."
               darkMode={darkMode}
             />
 
