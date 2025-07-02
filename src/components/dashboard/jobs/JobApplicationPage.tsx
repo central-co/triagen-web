@@ -119,35 +119,14 @@ function JobApplicationPage() {
         throw new Error('URL da API não configurada');
       }
 
-      // Preparar payload para sua API
+      // Preparar payload simplificado para sua API
       const payload = {
+        jobId: jobId,
         candidate: {
           name: formData.name,
           email: formData.email,
           phone: formData.phone || null,
-          resume_url: formData.resume_url || null,
-          resume_text: formData.resume_text || null,
-          custom_answers: formData.custom_answers
-        },
-        job: {
-          id: job!.id,
-          title: job!.title,
-          description: job!.description,
-          location: job!.location,
-          work_model: job!.work_model,
-          contract_type: job!.contract_type,
-          requirements: job!.requirements || [],
-          differentials: job!.differentials || [],
-          evaluation_criteria: job!.evaluation_criteria || [],
-          salary_range: job!.salary_range,
-          benefits: job!.benefits,
-          custom_fields: job!.custom_fields || {}
-        },
-        company: {
-          id: job!.company.id,
-          name: job!.company.name,
-          contact_email: job!.company.contact_email,
-          address: job!.company.address
+          resume_text: formData.resume_text || null
         }
       };
 
@@ -163,25 +142,14 @@ function JobApplicationPage() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Erro ao enviar candidatura');
+        throw new Error(errorData.error || 'Erro ao processar candidatura');
       }
 
-      const result = await response.json();
-      console.log('Resposta da API:', result);
-
-      // Extrair interview_token da resposta
-      const interviewToken = result.interview_token || result.data?.interview_token;
-      
-      if (!interviewToken) {
-        throw new Error('Token de entrevista não recebido da API');
+      if (response.status === 201) {
+        setSuccess(true);
+      } else {
+        throw new Error('Resposta inesperada da API');
       }
-
-      setSuccess(true);
-      
-      // Redirecionar para entrevista após delay
-      setTimeout(() => {
-        navigate(`/interview/${interviewToken}`);
-      }, 3000);
 
     } catch (err) {
       console.error('Error submitting application:', err);
@@ -254,15 +222,27 @@ function JobApplicationPage() {
               </h1>
               
               <p className={`font-sans mb-6 ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
-                Sua candidatura foi processada com sucesso. Nossa IA está preparando uma entrevista personalizada para você. 
-                Você será redirecionado em alguns segundos.
+                Sua candidatura foi processada com sucesso! Nossa IA está preparando uma entrevista personalizada para você.
               </p>
 
               <StatusMessage
                 type="info"
-                message="Prepare-se para uma conversa natural com nossa IA. Ela fará perguntas sobre sua experiência e adequação à vaga baseadas no seu perfil."
+                title="Próximos passos"
+                message="Você receberá um e-mail com o link para sua entrevista em breve. Verifique sua caixa de entrada e spam."
                 darkMode={darkMode}
               />
+
+              <Button
+                variant="primary"
+                size="lg"
+                fullWidth
+                onClick={() => navigate('/')}
+                icon={ArrowLeft}
+                iconPosition="left"
+                className="mt-6 bg-triagen-dark-bg hover:bg-triagen-primary-blue"
+              >
+                Voltar ao Início
+              </Button>
             </div>
           </Card>
         </div>
@@ -415,44 +395,23 @@ function JobApplicationPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label htmlFor="phone" className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-triagen-dark-bg'}`}>
-                  Telefone
-                </label>
-                <input
-                  type="tel"
-                  id="phone"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleInputChange}
-                  placeholder="(11) 99999-9999"
-                  className={`font-sans w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-triagen-secondary-green/50 focus:border-triagen-secondary-green ${
-                    darkMode
-                      ? 'bg-gray-800/50 border-triagen-border-dark text-white placeholder-gray-400'
-                      : 'bg-white/70 border-triagen-border-light text-triagen-dark-bg placeholder-triagen-text-light'
-                  }`}
-                />
-              </div>
-
-              <div>
-                <label htmlFor="resume_url" className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-triagen-dark-bg'}`}>
-                  Link do Currículo
-                </label>
-                <input
-                  type="url"
-                  id="resume_url"
-                  name="resume_url"
-                  value={formData.resume_url}
-                  onChange={handleInputChange}
-                  placeholder="https://drive.google.com/..."
-                  className={`font-sans w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-triagen-secondary-green/50 focus:border-triagen-secondary-green ${
-                    darkMode
-                      ? 'bg-gray-800/50 border-triagen-border-dark text-white placeholder-gray-400'
-                      : 'bg-white/70 border-triagen-border-light text-triagen-dark-bg placeholder-triagen-text-light'
-                  }`}
-                />
-              </div>
+            <div>
+              <label htmlFor="phone" className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-triagen-dark-bg'}`}>
+                Telefone
+              </label>
+              <input
+                type="tel"
+                id="phone"
+                name="phone"
+                value={formData.phone}
+                onChange={handleInputChange}
+                placeholder="(11) 99999-9999"
+                className={`font-sans w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-triagen-secondary-green/50 focus:border-triagen-secondary-green ${
+                  darkMode
+                    ? 'bg-gray-800/50 border-triagen-border-dark text-white placeholder-gray-400'
+                    : 'bg-white/70 border-triagen-border-light text-triagen-dark-bg placeholder-triagen-text-light'
+                }`}
+              />
             </div>
 
             {/* Resume Text */}
@@ -479,55 +438,6 @@ function JobApplicationPage() {
               </p>
             </div>
 
-            {/* Custom Questions */}
-            {job?.custom_questions && (job.custom_questions as any[]).length > 0 && (
-              <div className="space-y-4">
-                <h3 className={`font-heading text-lg font-semibold ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
-                  Perguntas Específicas da Vaga
-                </h3>
-                
-                {(job.custom_questions as any[]).map((question, index) => (
-                  <div key={index}>
-                    <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-triagen-dark-bg'}`}>
-                      {question.question} {question.required && '*'}
-                    </label>
-                    
-                    {question.type === 'text' && (
-                      <input
-                        type="text"
-                        value={formData.custom_answers[question.question] || ''}
-                        onChange={(e) => handleCustomAnswerChange(question.question, e.target.value)}
-                        className={`font-sans w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-triagen-secondary-green/50 focus:border-triagen-secondary-green ${
-                          darkMode
-                            ? 'bg-gray-800/50 border-triagen-border-dark text-white placeholder-gray-400'
-                            : 'bg-white/70 border-triagen-border-light text-triagen-dark-bg placeholder-triagen-text-light'
-                        }`}
-                        required={question.required}
-                      />
-                    )}
-                    
-                    {question.type === 'select' && (
-                      <select
-                        value={formData.custom_answers[question.question] || ''}
-                        onChange={(e) => handleCustomAnswerChange(question.question, e.target.value)}
-                        className={`font-sans w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-triagen-secondary-green/50 focus:border-triagen-secondary-green ${
-                          darkMode
-                            ? 'bg-gray-800/50 border-triagen-border-dark text-white'
-                            : 'bg-white/70 border-triagen-border-light text-triagen-dark-bg'
-                        }`}
-                        required={question.required}
-                      >
-                        <option value="">Selecione...</option>
-                        {question.options?.map((option: string) => (
-                          <option key={option} value={option}>{option}</option>
-                        ))}
-                      </select>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-
             {error && (
               <StatusMessage
                 type="error"
@@ -539,7 +449,7 @@ function JobApplicationPage() {
             <StatusMessage
               type="info"
               title="Próximo passo: Entrevista Personalizada com IA"
-              message="Após enviar sua candidatura, nossa IA analisará seu perfil e criará uma entrevista personalizada. A conversa dura cerca de 15-20 minutos e é totalmente automatizada."
+              message="Após enviar sua candidatura, nossa IA analisará seu perfil e criará uma entrevista personalizada. Você receberá um e-mail com o link para a entrevista."
               darkMode={darkMode}
             />
 
