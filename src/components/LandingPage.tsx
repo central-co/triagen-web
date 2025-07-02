@@ -4,15 +4,11 @@ import ReCAPTCHA from 'react-google-recaptcha';
 import {
   Users,
   Bot,
-  TrendingUp,
-  Star,
   ArrowRight,
-  Sparkles,
   Building,
   Target,
   Brain,
   Mail,
-  User,
   MessageSquare,
   X,
   Shield,
@@ -37,7 +33,7 @@ import SectionHeader from './ui/SectionHeader';
 import FeatureCard from './ui/FeatureCard';
 import StatCard from './ui/StatCard';
 import Footer from './ui/Footer';
-import Card from './ui/card';
+import Card from './ui/Card';
 import StatusMessage from './ui/StatusMessage';
 import UserDropdown from './ui/UserDropdown';
 
@@ -372,7 +368,7 @@ function LandingPage() {
                       <div className="flex justify-between items-center mb-6">
                         <div className="text-center flex-1">
                           <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-triagen-dark-bg flex items-center justify-center">
-                            <User className="h-8 w-8 text-white" />
+                            <UserCheck className="h-8 w-8 text-white" />
                           </div>
                           
                           <h3 className={`font-heading text-xl font-bold mb-2 transition-colors duration-300 ${

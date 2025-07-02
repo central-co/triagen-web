@@ -1,16 +1,26 @@
+
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { User, Mail, Phone, Upload, Send, ArrowLeft, FileText } from 'lucide-react';
+import { Send, ArrowLeft, FileText } from 'lucide-react';
 import useDarkMode from '../../../hooks/useDarkMode';
-import { supabase } from '../../../lib/supabase';
+import { supabase } from '../../../integrations/supabase/client';
 import Button from '../../ui/button';
-import Card from '../../ui/card';
+import Card from '../../ui/Card';
 import StatusMessage from '../../ui/StatusMessage';
 import AnimatedBackground from '../../ui/AnimatedBackground';
 import PageHeader from '../../ui/PageHeader';
-import { Job } from '../../../types/company';
 
-interface JobWithCompany extends Job {
+interface JobWithCompany {
+  id: string;
+  title: string;
+  description: string;
+  location?: string;
+  work_model?: string;
+  requirements?: string[];
+  differentials?: string[];
+  salary_range?: string;
+  benefits?: string;
+  custom_questions?: any[];
   company: {
     id: string;
     name: string;
@@ -79,16 +89,6 @@ function JobApplicationPage() {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleCustomAnswerChange = (questionId: string, value: any) => {
-    setFormData(prev => ({
-      ...prev,
-      custom_answers: {
-        ...prev.custom_answers,
-        [questionId]: value
-      }
-    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
