@@ -1,12 +1,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
 
-interface UseOptimizedQueryOptions {
-  enabled?: boolean;
-  refetchOnWindowFocus?: boolean;
-  staleTime?: number;
-}
-
 interface UseOptimizedQueryResult<T> {
   data: T[] | null;
   loading: boolean;

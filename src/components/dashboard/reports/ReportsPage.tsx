@@ -1,12 +1,12 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Download,
   Search,
   Star,
-  StarOff,
   Eye,
-  FileText
+  FileText,
+  Calendar
 } from 'lucide-react';
 import useDarkMode from '../../../hooks/useDarkMode';
 import { useAuth } from '../../../hooks/useAuth';
@@ -54,8 +54,6 @@ function ReportsPage() {
         return;
       }
 
-      const company = companies[0];
-
       const { data: reportsData, error: reportsError } = await supabase
         .from('interview_reports')
         .select(`
@@ -67,7 +65,6 @@ function ReportsPage() {
             )
           )
         `)
-        .in('candidate_id', [])  // This would need proper subquery
         .order('created_at', { ascending: false });
 
       if (reportsError) {
@@ -83,7 +80,9 @@ function ReportsPage() {
         created_at: report.created_at || '',
         alignment_analysis: report.alignment_analysis || '',
         summary: report.summary || '',
-        category_scores: (report.category_scores as Record<string, number>) || {}
+        category_scores: typeof report.category_scores === 'object' && report.category_scores !== null 
+          ? report.category_scores as Record<string, number>
+          : {}
       }));
 
       setReports(transformedReports);

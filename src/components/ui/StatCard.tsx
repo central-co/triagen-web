@@ -1,49 +1,47 @@
-import { DivideIcon as LucideIcon } from 'lucide-react';
+
+import React from 'react';
+import { LucideIcon } from 'lucide-react';
 
 export interface StatCardProps {
-  icon: typeof LucideIcon;
+  title: string;
   value: string;
-  label: string;
+  icon: LucideIcon;
+  trend?: string;
   darkMode?: boolean;
-  className?: string;
-  iconColor?: string;
 }
 
-function StatCard({
-  icon: Icon,
-  value,
-  label,
-  darkMode = false,
-  className = '',
-  iconColor = 'bg-triagen-dark-bg'
-}: StatCardProps) {
-  // Extract color name for text color
-  const getTextColor = (bgColor: string) => {
-    if (bgColor.includes('dark-bg')) return 'text-triagen-dark-bg';
-    if (bgColor.includes('primary-blue')) return 'text-triagen-primary-blue';
-    if (bgColor.includes('secondary-green')) return 'text-triagen-secondary-green';
-    if (bgColor.includes('highlight-purple')) return 'text-triagen-highlight-purple';
-    return 'text-triagen-dark-bg';
-  };
-
-  const textColor = getTextColor(iconColor);
-
+function StatCard({ title, value, icon: Icon, trend, darkMode = false }: StatCardProps) {
   return (
-    <div className={`group relative p-8 rounded-3xl backdrop-blur-xl border transition-all duration-500 hover:scale-105 hover:shadow-2xl ${
+    <div className={`p-6 rounded-3xl border transition-all duration-500 ${
       darkMode 
-        ? 'bg-gray-800/30 border-triagen-border-dark hover:bg-gray-800/50' 
-        : 'bg-triagen-light-bg/30 border-triagen-border-light hover:bg-triagen-light-bg/50'
-    } ${className}`}>
-      <div className="text-center">
-        <div className={`w-16 h-16 mx-auto mb-4 rounded-2xl ${iconColor} flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
-          <Icon className="h-8 w-8 text-white" />
+        ? 'bg-gray-800/40 border-gray-700/50' 
+        : 'bg-white/50 border-triagen-petrol/10'
+    }`}>
+      <div className="flex items-center justify-between mb-4">
+        <div className={`p-3 rounded-2xl ${
+          darkMode ? 'bg-triagen-primary-blue/20' : 'bg-triagen-primary-blue/10'
+        }`}>
+          <Icon className="h-6 w-6 text-triagen-primary-blue" />
         </div>
-        <div className={`font-heading text-4xl font-bold mb-2 ${textColor}`}>
+        {trend && (
+          <span className={`text-sm font-medium ${
+            trend.startsWith('+') ? 'text-green-500' : 'text-red-500'
+          }`}>
+            {trend}
+          </span>
+        )}
+      </div>
+      <div>
+        <h3 className={`text-2xl font-bold mb-1 ${
+          darkMode ? 'text-white' : 'text-triagen-dark-bg'
+        }`}>
           {value}
-        </div>
-        <div className={`font-sans transition-colors duration-300 ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
-          {label}
-        </div>
+        </h3>
+        <p className={`text-sm ${
+          darkMode ? 'text-gray-400' : 'text-triagen-text-light'
+        }`}>
+          {title}
+        </p>
       </div>
     </div>
   );
