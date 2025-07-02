@@ -534,109 +534,55 @@ function NewJobPage() {
           </div>
         </Card>
 
-        {/* Perguntas Customizadas */}
-        <Card darkMode={darkMode}>
-          <div className="flex items-center justify-between mb-6">
-            <h2 className={`font-heading text-xl font-semibold ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
-              <Users className="h-6 w-6 inline mr-2" />
-              Perguntas Customizadas
-            </h2>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={addCustomQuestion}
-              icon={Plus}
-              iconPosition="left"
-              darkMode={darkMode}
-            >
-              Adicionar Pergunta
-            </Button>
+        {/* Perguntas Customizadas - DESABILITADA */}
+        <div className={`rounded-3xl border transition-all duration-500 backdrop-blur-xl ${
+          darkMode 
+            ? 'bg-gray-800/40 border-triagen-border-dark' 
+            : 'bg-triagen-light-bg/50 border-triagen-border-light'
+        } p-6 relative overflow-hidden`}>
+          {/* Overlay para desabilitar interação */}
+          <div className="absolute inset-0 bg-gray-900/50 backdrop-blur-sm z-10 flex items-center justify-center">
+            <div className="text-center">
+              <div className={`text-6xl mb-4 ${darkMode ? 'text-gray-600' : 'text-triagen-text-light'}`}>
+                🚧
+              </div>
+              <h3 className={`font-heading text-xl font-semibold mb-2 ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
+                Em Desenvolvimento
+              </h3>
+              <p className={`font-sans ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
+                Esta seção estará disponível em breve
+              </p>
+            </div>
           </div>
 
-          {customQuestions.length === 0 ? (
+          {/* Conteúdo original (visível mas não interativo) */}
+          <div className="opacity-30">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className={`font-heading text-xl font-semibold ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
+                <Users className="h-6 w-6 inline mr-2" />
+                Perguntas Customizadas
+              </h2>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={addCustomQuestion}
+                icon={Plus}
+                iconPosition="left"
+                darkMode={darkMode}
+                disabled
+              >
+                Adicionar Pergunta
+              </Button>
+            </div>
+
             <div className={`text-center py-8 ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
               <p className="font-sans">
                 Adicione perguntas específicas que os candidatos devem responder no formulário de inscrição
               </p>
             </div>
-          ) : (
-            <div className="space-y-4">
-              {customQuestions.map((question) => (
-                <div key={question.id} className={`p-4 rounded-xl border ${
-                  darkMode ? 'border-triagen-border-dark' : 'border-triagen-border-light'
-                }`}>
-                  <div className="flex items-center justify-between mb-4">
-                    <input
-                      type="text"
-                      placeholder="Pergunta para o candidato"
-                      value={question.question}
-                      onChange={(e) => updateCustomQuestion(question.id, { question: e.target.value })}
-                      className={`font-sans flex-1 px-3 py-2 rounded-lg border transition-all duration-300 focus:ring-2 focus:ring-triagen-secondary-green/50 focus:border-triagen-secondary-green ${
-                        darkMode
-                          ? 'bg-gray-800/50 border-triagen-border-dark text-white placeholder-gray-400'
-                          : 'bg-white/70 border-triagen-border-light text-triagen-dark-bg placeholder-triagen-text-light'
-                      }`}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removeCustomQuestion(question.id)}
-                      className={`ml-3 p-2 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/20 text-red-600`}
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <select
-                      value={question.type}
-                      onChange={(e) => updateCustomQuestion(question.id, { type: e.target.value as any })}
-                      className={`font-sans px-3 py-2 rounded-lg border transition-all duration-300 focus:ring-2 focus:ring-triagen-secondary-green/50 focus:border-triagen-secondary-green ${
-                        darkMode
-                          ? 'bg-gray-800/50 border-triagen-border-dark text-white'
-                          : 'bg-white/70 border-triagen-border-light text-triagen-dark-bg'
-                      }`}
-                    >
-                      <option value="text">Texto</option>
-                      <option value="select">Seleção Única</option>
-                      <option value="multiselect">Seleção Múltipla</option>
-                    </select>
-
-                    <label className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        checked={question.required}
-                        onChange={(e) => updateCustomQuestion(question.id, { required: e.target.checked })}
-                        className="h-4 w-4 text-triagen-secondary-green focus:ring-triagen-secondary-green border-triagen-border-light rounded"
-                      />
-                      <span className={`font-sans text-sm ${darkMode ? 'text-gray-300' : 'text-triagen-dark-bg'}`}>
-                        Obrigatório
-                      </span>
-                    </label>
-                  </div>
-
-                  {(question.type === 'select' || question.type === 'multiselect') && (
-                    <div className="mt-4">
-                      <input
-                        type="text"
-                        placeholder="Opções separadas por vírgula (ex: Júnior, Pleno, Sênior)"
-                        value={question.options?.join(', ') || ''}
-                        onChange={(e) => updateCustomQuestion(question.id, { 
-                          options: e.target.value.split(',').map(opt => opt.trim()).filter(Boolean)
-                        })}
-                        className={`font-sans w-full px-3 py-2 rounded-lg border transition-all duration-300 focus:ring-2 focus:ring-triagen-secondary-green/50 focus:border-triagen-secondary-green ${
-                          darkMode
-                            ? 'bg-gray-800/50 border-triagen-border-dark text-white placeholder-gray-400'
-                            : 'bg-white/70 border-triagen-border-light text-triagen-dark-bg placeholder-triagen-text-light'
-                        }`}
-                      />
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-        </Card>
+          </div>
+        </div>
 
         {/* Messages */}
         {error && (
