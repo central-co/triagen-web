@@ -13,7 +13,7 @@
   "dependencies": {
     "@livekit/components-react": "^2.9.12",
     "@livekit/components-styles": "^1.1.6",
-    "@supabase/supabase-js": "^2.39.0",
+    "@supabase/supabase-js": "^2.50.3",
     "@types/node": "^24.0.4",
     "livekit-client": "^2.13.8",
     "lovable-tagger": "^1.1.8",
