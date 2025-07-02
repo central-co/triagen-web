@@ -68,13 +68,20 @@ function SettingsPage() {
           `)
           .eq('company_id', company.id)
           .eq('status', 'active')
-          .single();
+          .limit(1);
 
-        if (subscriptionError && subscriptionError.code !== 'PGRST116') {
+        if (subscriptionError) {
+          throw subscriptionError;
+        }
+
+        if (subscriptionData && subscriptionData.length > 0) {
+          const subscriptionRecord = subscriptionData[0];
+          setSubscription(subscriptionRecord);
+          setPlan(subscriptionRecord.plan);
+        } else {
           console.warn('No active subscription found');
-        } else if (subscriptionData) {
-          setSubscription(subscriptionData);
-          setPlan(subscriptionData.plan);
+          setSubscription(null);
+          setPlan(null);
         }
       }
 
