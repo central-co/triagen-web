@@ -25,7 +25,8 @@ import {
   Clock,
   Download,
   Zap,
-  UserPlus
+  UserPlus,
+  Play
 } from 'lucide-react';
 import useDarkMode from '../hooks/useDarkMode';
 import { useAuth } from '../hooks/useAuth';
@@ -191,9 +192,11 @@ function LandingPage() {
           variant="primary"
           size="sm"
           onClick={handleStartInterview}
+          icon={Play}
+          iconPosition="left"
           className="h-10 px-4 text-sm whitespace-nowrap flex-shrink-0 bg-triagen-dark-bg hover:bg-triagen-primary-blue"
         >
-          Entrevista Demo
+          Iniciar Entrevista
         </Button>
       </div>
     );
@@ -295,6 +298,41 @@ function LandingPage() {
                 }`}
               >
                 Piloto Acadêmico (R$200)
+              </Button>
+            </div>
+
+            {/* Interview Access for Candidates */}
+            <div className="mt-12 pt-8 border-t border-triagen-border-light dark:border-triagen-border-dark">
+              <div className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-medium mb-4 backdrop-blur-sm border ${
+                darkMode 
+                  ? 'bg-triagen-primary-blue/10 border-triagen-primary-blue/30 text-triagen-primary-blue' 
+                  : 'bg-triagen-primary-blue/10 border-triagen-primary-blue/30 text-triagen-primary-blue'
+              }`}>
+                <Bot className="h-4 w-4 mr-2" />
+                Para Candidatos
+              </div>
+              
+              <h2 className={`font-heading text-2xl font-bold mb-4 transition-colors duration-300 ${
+                darkMode ? 'text-white' : 'text-triagen-dark-bg'
+              }`}>
+                Recebeu um código de entrevista?
+              </h2>
+              
+              <p className={`font-sans text-lg mb-6 transition-colors duration-300 ${
+                darkMode ? 'text-gray-400' : 'text-triagen-text-light'
+              }`}>
+                Inicie sua entrevista personalizada com nossa IA empática
+              </p>
+              
+              <Button
+                variant="primary"
+                size="lg"
+                onClick={handleStartInterview}
+                icon={Play}
+                iconPosition="left"
+                className="text-lg px-8 py-4 bg-triagen-primary-blue hover:bg-triagen-dark-bg"
+              >
+                Iniciar Minha Entrevista
               </Button>
             </div>
 
