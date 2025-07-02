@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Send, ArrowLeft, FileText } from 'lucide-react';
@@ -9,25 +8,7 @@ import Card from '../../ui/Card';
 import StatusMessage from '../../ui/StatusMessage';
 import AnimatedBackground from '../../ui/AnimatedBackground';
 import PageHeader from '../../ui/PageHeader';
-
-interface JobWithCompany {
-  id: string;
-  title: string;
-  description: string;
-  location?: string | null;
-  work_model?: string | null;
-  requirements?: string[] | null;
-  differentials?: string[] | null;
-  salary_range?: string | null;
-  benefits?: string | null;
-  custom_questions?: any[] | null;
-  company: {
-    id: string;
-    name: string;
-    contact_email?: string;
-    address?: string;
-  };
-}
+import { JobWithCompany } from '../../../types/company';
 
 function JobApplicationPage() {
   const { jobId } = useParams();
@@ -93,7 +74,12 @@ function JobApplicationPage() {
         salary_range: jobData.salary_range,
         benefits: jobData.benefits,
         custom_questions: jobData.custom_questions as any[] | null,
-        company: jobData.company
+        company: {
+          id: jobData.company.id,
+          name: jobData.company.name,
+          contact_email: jobData.company.contact_email || undefined,
+          address: jobData.company.address || undefined
+        }
       };
 
       setJob(transformedJob);

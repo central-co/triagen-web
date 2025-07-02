@@ -1,3 +1,4 @@
+
 export interface Company {
   id: string;
   user_id: string;
@@ -15,13 +16,46 @@ export interface Job {
   company_id: string;
   title: string;
   description: string;
-  location?: string;
-  contract_type: string;
-  custom_fields: Record<string, any>;
+  location?: string | null;
+  contract_type: string | null;
+  custom_fields: Record<string, any> | null;
   status: 'open' | 'closed' | 'paused';
-  deadline?: string;
+  deadline?: string | null;
   created_at: string;
   updated_at: string;
+  // Additional fields from database
+  benefits?: string | null;
+  requirements?: string[] | null;
+  differentials?: string[] | null;
+  salary_range?: string | null;
+  work_model?: string | null;
+  custom_questions?: any[] | null;
+  salary_info?: string | null;
+  evaluation_criteria?: any[] | null;
+}
+
+export interface JobWithStats extends Job {
+  candidatesCount: number;
+  candidates?: { count: number }[];
+}
+
+export interface JobWithCompany {
+  id: string;
+  title: string;
+  description: string;
+  location?: string | null;
+  work_model?: string | null;
+  requirements?: string[] | null;
+  differentials?: string[] | null;
+  salary_range?: string | null;
+  benefits?: string | null;
+  custom_questions?: any[] | null;
+  company: {
+    id: string;
+    name: string;
+    contact_email?: string | null;
+    address?: string | null;
+  };
 }
 
 export interface Candidate {
@@ -52,6 +86,17 @@ export interface InterviewReport {
   transcript_url?: string;
   recording_url?: string;
   created_at: string;
+}
+
+export interface Report {
+  id: string;
+  candidate_name: string;
+  job_title: string;
+  overall_score: number;
+  created_at: string;
+  alignment_analysis: string;
+  summary: string;
+  category_scores: Record<string, number>;
 }
 
 export interface Plan {

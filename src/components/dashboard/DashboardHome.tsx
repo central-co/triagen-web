@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Users, Briefcase, FileText, TrendingUp } from 'lucide-react';
 import useDarkMode from '../../hooks/useDarkMode';
@@ -32,28 +33,28 @@ function DashboardHome() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
           title="Total de Candidatos"
-          value={stats.totalCandidates}
+          value={stats.totalCandidates.toString()}
           icon={Users}
           trend="+12%"
           darkMode={darkMode}
         />
         <StatCard
           title="Vagas Ativas"
-          value={stats.activeJobs}
+          value={stats.activeJobs.toString()}
           icon={Briefcase}
           trend="+3%"
           darkMode={darkMode}
         />
         <StatCard
           title="Entrevistas Concluídas"
-          value={stats.completedInterviews}
+          value={stats.completedInterviews.toString()}
           icon={FileText}
           trend="+25%"
           darkMode={darkMode}
         />
         <StatCard
           title="Avaliações Pendentes"
-          value={stats.pendingReviews}
+          value={stats.pendingReviews.toString()}
           icon={TrendingUp}
           trend="-8%"
           darkMode={darkMode}

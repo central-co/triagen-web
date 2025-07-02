@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import {
   Plus,
   Search,
-  Filter,
   Eye,
   Edit,
   Trash2,
@@ -23,11 +22,7 @@ import { supabase } from '../../../integrations/supabase/client';
 import Button from '../../ui/button';
 import Card from '../../ui/Card';
 import StatusMessage from '../../ui/StatusMessage';
-import { Job } from '../../../types/company';
-
-interface JobWithStats extends Job {
-  candidatesCount: number;
-}
+import { JobWithStats } from '../../../types/company';
 
 function JobsPage() {
   const [jobs, setJobs] = useState<JobWithStats[]>([]);
@@ -49,11 +44,15 @@ function JobsPage() {
     try {
       setLoading(true);
       
+      if (!user?.id) {
+        throw new Error('User not found');
+      }
+      
       // First get the user's company
       const { data: companies, error: companyError } = await supabase
         .from('companies')
         .select('id')
-        .eq('user_id', user?.id);
+        .eq('user_id', user.id);
 
       if (companyError) {
         throw companyError;
@@ -81,8 +80,9 @@ function JobsPage() {
       }
 
       // Transform the data to include candidates count
-      const jobsWithStats = (jobsData || []).map(job => ({
+      const jobsWithStats: JobWithStats[] = (jobsData || []).map(job => ({
         ...job,
+        location: job.location || undefined,
         candidatesCount: job.candidates?.[0]?.count || 0
       }));
 
@@ -132,7 +132,7 @@ function JobsPage() {
 
       setJobs(prev => prev.map(job => 
         job.id === jobId 
-          ? { ...job, status: newStatus }
+          ? { ...job, status: newStatus as 'open' | 'closed' | 'paused' }
           : job
       ));
     } catch (err) {

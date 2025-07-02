@@ -1,12 +1,13 @@
+
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, ArrowRight, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, ArrowRight } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import useDarkMode from '../../hooks/useDarkMode';
-import AnimatedBackground from '../ui/AnimatedBackground';
 import Button from '../ui/button';
-import Card from '../ui/card';
+import Card from '../ui/Card';
 import StatusMessage from '../ui/StatusMessage';
+import AnimatedBackground from '../ui/AnimatedBackground';
 import PageHeader from '../ui/PageHeader';
 
 function LoginPage() {
@@ -15,6 +16,7 @@ function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  
   const { signIn } = useAuth();
   const { darkMode } = useDarkMode(true);
   const navigate = useNavigate();
@@ -31,14 +33,14 @@ function LoginPage() {
     setError('');
 
     try {
-      const { error } = await signIn(email, password);
-      if (error) {
-        setError(error.message);
-      } else {
-        navigate('/dashboard');
-      }
+      await signIn(email, password);
+      navigate('/dashboard');
     } catch (err) {
-      setError('Erro ao fazer login. Tente novamente.');
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('Erro ao fazer login. Tente novamente.');
+      }
     } finally {
       setIsLoading(false);
     }

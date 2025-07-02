@@ -5,7 +5,7 @@ import InterviewRoom from './InterviewRoom';
 import useDarkMode from '../hooks/useDarkMode';
 import AnimatedBackground from './ui/AnimatedBackground';
 import Button from './ui/button';
-import Card from './ui/card';
+import Card from './ui/Card';
 import StatusMessage from './ui/StatusMessage';
 import PageHeader from './ui/PageHeader';
 import { startInterview } from '../api/interview/start';
