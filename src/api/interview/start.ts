@@ -7,7 +7,7 @@ export async function startInterview(authToken: string): Promise<string> {
   const response = await fetch(`${baseUrl}/api/interview/start`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ shortCode: authToken }),
+    body: JSON.stringify({ interview_code: authToken }),
   });
 
   if (!response.ok) {
