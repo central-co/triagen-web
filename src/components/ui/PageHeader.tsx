@@ -1,15 +1,11 @@
 import { useNavigate } from 'react-router-dom';
-import { Moon, Sun, UserPlus } from 'lucide-react';
+import { Moon, Sun } from 'lucide-react';
 import Logo from './Logo';
-import Button from './button';
 
 export interface PageHeaderProps {
   darkMode: boolean;
   toggleDarkMode?: () => void;
   onLogoClick?: () => void;
-  showAuthButtons?: boolean;
-  onJoinWaitlist?: () => void;
-  onStartInterview?: () => void;
   rightContent?: React.ReactNode;
   className?: string;
 }
@@ -18,9 +14,6 @@ function PageHeader({
   darkMode,
   toggleDarkMode,
   onLogoClick,
-  showAuthButtons = false,
-  onJoinWaitlist,
-  onStartInterview,
   rightContent,
   className = ''
 }: PageHeaderProps) {
@@ -66,36 +59,6 @@ function PageHeader({
               >
                 {darkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
               </button>
-            )}
-
-            {/* Auth buttons - Fixed size */}
-            {showAuthButtons && (
-              <>
-                <Button 
-                  variant="secondary"
-                  size="sm"
-                  darkMode={darkMode}
-                  onClick={onJoinWaitlist}
-                  icon={UserPlus}
-                  iconPosition="left"
-                  className={`h-10 px-4 text-sm whitespace-nowrap flex-shrink-0 ${
-                    darkMode 
-                      ? 'bg-triagen-secondary-green/10 border-triagen-secondary-green/30 text-triagen-secondary-green hover:bg-triagen-secondary-green/20' 
-                      : 'bg-triagen-highlight-purple/10 border-triagen-highlight-purple/30 text-triagen-highlight-purple hover:bg-triagen-highlight-purple/20'
-                  }`}
-                >
-                  Teste Grátis
-                </Button>
-                
-                <Button 
-                  variant="primary"
-                  size="sm"
-                  onClick={onStartInterview}
-                  className="h-10 px-4 text-sm whitespace-nowrap flex-shrink-0 bg-triagen-dark-bg hover:bg-triagen-primary-blue"
-                >
-                  Entrevista Demo
-                </Button>
-              </>
             )}
           </div>
         </div>

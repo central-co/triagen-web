@@ -24,9 +24,11 @@ import {
   UserCheck,
   Clock,
   Download,
-  Zap
+  Zap,
+  UserPlus
 } from 'lucide-react';
 import useDarkMode from '../hooks/useDarkMode';
+import { useAuth } from '../hooks/useAuth';
 import AnimatedBackground from './ui/AnimatedBackground';
 import Button from './ui/button';
 import PageHeader from './ui/PageHeader';
@@ -36,6 +38,7 @@ import StatCard from './ui/StatCard';
 import Footer from './ui/Footer';
 import Card from './ui/card';
 import StatusMessage from './ui/StatusMessage';
+import UserDropdown from './ui/UserDropdown';
 
 function LandingPage() {
   const [scrollY, setScrollY] = useState(0);
@@ -51,6 +54,7 @@ function LandingPage() {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [error, setError] = useState('');
   const { darkMode, toggleDarkMode } = useDarkMode();
+  const { user, loading } = useAuth();
   const navigate = useNavigate();
   const recaptchaRef = useRef<ReCAPTCHA>(null);
 
@@ -153,6 +157,48 @@ function LandingPage() {
     recaptchaRef.current?.reset();
   };
 
+  // Create right content based on authentication status
+  const rightContent = (() => {
+    if (loading) {
+      return (
+        <div className="w-8 h-8 rounded-full border-2 border-triagen-primary-blue border-t-transparent animate-spin"></div>
+      );
+    }
+
+    if (user) {
+      return <UserDropdown />;
+    }
+
+    return (
+      <div className="flex items-center space-x-3">
+        <Button 
+          variant="secondary"
+          size="sm"
+          darkMode={darkMode}
+          onClick={handleWaitlistClick}
+          icon={UserPlus}
+          iconPosition="left"
+          className={`h-10 px-4 text-sm whitespace-nowrap flex-shrink-0 ${
+            darkMode 
+              ? 'bg-triagen-secondary-green/10 border-triagen-secondary-green/30 text-triagen-secondary-green hover:bg-triagen-secondary-green/20' 
+              : 'bg-triagen-highlight-purple/10 border-triagen-highlight-purple/30 text-triagen-highlight-purple hover:bg-triagen-highlight-purple/20'
+          }`}
+        >
+          Teste Grátis
+        </Button>
+        
+        <Button 
+          variant="primary"
+          size="sm"
+          onClick={handleStartInterview}
+          className="h-10 px-4 text-sm whitespace-nowrap flex-shrink-0 bg-triagen-dark-bg hover:bg-triagen-primary-blue"
+        >
+          Entrevista Demo
+        </Button>
+      </div>
+    );
+  })();
+
   const stats = [
     { icon: Users, value: '2.5K+', label: 'Candidatos ouvidos', iconColor: 'bg-triagen-dark-bg' },
     { icon: Building, value: '50+', label: 'Empresas parceiras', iconColor: 'bg-triagen-secondary-green' },
@@ -190,9 +236,7 @@ function LandingPage() {
       <PageHeader
         darkMode={darkMode}
         toggleDarkMode={toggleDarkMode}
-        showAuthButtons={true}
-        onJoinWaitlist={handleWaitlistClick}
-        onStartInterview={handleStartInterview}
+        rightContent={rightContent}
       />
 
       {/* Hero Section */}
