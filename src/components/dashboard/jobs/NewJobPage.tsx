@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -122,7 +121,7 @@ function NewJobPage() {
 
       const company = companies[0];
 
-      // Create job
+      // Create job with proper Json casting
       const { error: jobError } = await supabase
         .from('jobs')
         .insert({
@@ -134,9 +133,9 @@ function NewJobPage() {
           contract_type: formData.contractType,
           salary_range: formData.salaryRange || null,
           benefits: formData.benefits || null,
-          requirements: formData.requirements.filter(req => req.trim() !== ''),
-          differentials: formData.differentials.filter(diff => diff.trim() !== ''),
-          custom_questions: customQuestions,
+          requirements: formData.requirements.filter(req => req.trim() !== '') as any,
+          differentials: formData.differentials.filter(diff => diff.trim() !== '') as any,
+          custom_questions: customQuestions as any,
           deadline: formData.deadline || null,
           status: 'open'
         });

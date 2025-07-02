@@ -199,10 +199,10 @@ function LandingPage() {
   })();
 
   const stats = [
-    { icon: Users, value: '2.5K+', label: 'Candidatos ouvidos', iconColor: 'bg-triagen-dark-bg' },
-    { icon: Building, value: '50+', label: 'Empresas parceiras', iconColor: 'bg-triagen-secondary-green' },
-    { icon: Clock, value: '80%', label: 'Redução no tempo de triagem', iconColor: 'bg-triagen-primary-blue' },
-    { icon: Heart, value: '95%', label: 'Satisfação dos candidatos', iconColor: 'bg-triagen-highlight-purple' }
+    { icon: Users, value: '2.5K+', title: 'Candidatos ouvidos', iconColor: 'bg-triagen-dark-bg' },
+    { icon: Building, value: '50+', title: 'Empresas parceiras', iconColor: 'bg-triagen-secondary-green' },
+    { icon: Clock, value: '80%', title: 'Redução no tempo de triagem', iconColor: 'bg-triagen-primary-blue' },
+    { icon: Heart, value: '95%', title: 'Satisfação dos candidatos', iconColor: 'bg-triagen-highlight-purple' }
   ];
 
   const features = [
@@ -602,7 +602,7 @@ function LandingPage() {
                 key={index}
                 icon={stat.icon}
                 value={stat.value}
-                label={stat.label}
+                title={stat.title}
                 darkMode={darkMode}
                 iconColor={stat.iconColor}
               />

@@ -1,9 +1,10 @@
+
 import { useState } from 'react';
 import { ArrowLeft, Mail, User, MessageSquare } from 'lucide-react';
 import useDarkMode from '../hooks/useDarkMode';
 import AnimatedBackground from './ui/AnimatedBackground';
 import Button from './ui/button';
-import Card from './ui/card';
+import Card from './ui/Card';
 import StatusMessage from './ui/StatusMessage';
 import PageHeader from './ui/PageHeader';
 

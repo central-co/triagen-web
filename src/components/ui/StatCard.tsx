@@ -1,5 +1,4 @@
 
-import React from 'react';
 import { LucideIcon } from 'lucide-react';
 
 export interface StatCardProps {
@@ -8,9 +7,10 @@ export interface StatCardProps {
   icon: LucideIcon;
   trend?: string;
   darkMode?: boolean;
+  iconColor?: string;
 }
 
-function StatCard({ title, value, icon: Icon, trend, darkMode = false }: StatCardProps) {
+function StatCard({ title, value, icon: Icon, trend, darkMode = false, iconColor }: StatCardProps) {
   return (
     <div className={`p-6 rounded-3xl border transition-all duration-500 ${
       darkMode 
@@ -19,7 +19,7 @@ function StatCard({ title, value, icon: Icon, trend, darkMode = false }: StatCar
     }`}>
       <div className="flex items-center justify-between mb-4">
         <div className={`p-3 rounded-2xl ${
-          darkMode ? 'bg-triagen-primary-blue/20' : 'bg-triagen-primary-blue/10'
+          iconColor || (darkMode ? 'bg-triagen-primary-blue/20' : 'bg-triagen-primary-blue/10')
         }`}>
           <Icon className="h-6 w-6 text-triagen-primary-blue" />
         </div>

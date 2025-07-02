@@ -48,7 +48,7 @@ function RegisterPage() {
         phone: formData.phone
       });
       
-      if (result && 'error' in result) {
+      if (result?.error) {
         throw new Error(result.error);
       }
       
