@@ -36,7 +36,6 @@ function NewJobPage() {
   const [differentials, setDifferentials] = useState<RequirementItem[]>([]);
   const [customQuestions, setCustomQuestions] = useState<CustomQuestion[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [isGeneratingCriteria, setIsGeneratingCriteria] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const { darkMode } = useDarkMode(true);
@@ -107,47 +106,6 @@ function NewJobPage() {
     setCustomQuestions(prev => prev.filter(q => q.id !== id));
   };
 
-  // Função para gerar critérios de avaliação com LLM 1
-  const generateEvaluationCriteria = async (jobData: any) => {
-    setIsGeneratingCriteria(true);
-    
-    try {
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-      const response = await fetch(`${supabaseUrl}/functions/v1/generate-evaluation-criteria`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${supabaseAnonKey}`,
-        },
-        body: JSON.stringify({
-          job: {
-            title: jobData.title,
-            description: jobData.description,
-            work_model: jobData.work_model,
-            requirements: requirements.filter(r => r.text.trim()).map(r => r.text),
-            differentials: differentials.filter(d => d.text.trim()).map(d => d.text),
-            salary_range: jobData.salary_range,
-            benefits: jobData.benefits
-          }
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Falha ao gerar critérios de avaliação');
-      }
-
-      const result = await response.json();
-      return result.evaluation_criteria || [];
-    } catch (error) {
-      console.error('Erro ao gerar critérios:', error);
-      return [];
-    } finally {
-      setIsGeneratingCriteria(false);
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -181,9 +139,6 @@ function NewJobPage() {
         return;
       }
 
-      // Gerar critérios de avaliação com LLM 1
-      const evaluationCriteria = await generateEvaluationCriteria(formData);
-
       // Preparar dados para inserção
       const jobData = {
         company_id: companies[0].id,
@@ -196,7 +151,7 @@ function NewJobPage() {
         deadline: formData.deadline || null,
         requirements: requirements.filter(r => r.text.trim()).map(r => r.text),
         differentials: differentials.filter(d => d.text.trim()).map(d => d.text),
-        evaluation_criteria: evaluationCriteria,
+        evaluation_criteria: [], // Será preenchido quando o primeiro candidato se inscrever
         custom_questions: customQuestions.filter(q => q.question.trim()).map(q => ({
           question: q.question,
           type: q.type,
@@ -216,7 +171,7 @@ function NewJobPage() {
         throw jobError;
       }
 
-      setSuccess('Vaga criada com sucesso! Critérios de avaliação foram gerados automaticamente.');
+      setSuccess('Vaga criada com sucesso! Os critérios de avaliação serão gerados automaticamente quando o primeiro candidato se inscrever.');
       setTimeout(() => {
         navigate('/dashboard/jobs');
       }, 2000);
@@ -249,7 +204,7 @@ function NewJobPage() {
             Nova Vaga
           </h1>
           <p className={`font-sans mt-2 ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
-            Crie uma nova vaga e nossa IA gerará automaticamente os critérios de avaliação
+            Crie uma nova vaga e nossa IA gerará automaticamente os critérios de avaliação quando o primeiro candidato se inscrever
           </p>
         </div>
       </div>
@@ -597,15 +552,6 @@ function NewJobPage() {
           <StatusMessage
             type="success"
             message={success}
-            darkMode={darkMode}
-          />
-        )}
-
-        {isGeneratingCriteria && (
-          <StatusMessage
-            type="info"
-            title="Gerando critérios de avaliação..."
-            message="Nossa IA está analisando a vaga e criando critérios personalizados para a entrevista."
             darkMode={darkMode}
           />
         )}

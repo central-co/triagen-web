@@ -91,85 +91,6 @@ function JobApplicationPage() {
     }));
   };
 
-  const generateSecureInterviewToken = async (candidateId: string): Promise<string> => {
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-    const response = await fetch(`${supabaseUrl}/functions/v1/generate-interview-token`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${supabaseAnonKey}`,
-      },
-      body: JSON.stringify({
-        candidate_id: candidateId
-      }),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'Failed to generate interview token');
-    }
-
-    const data = await response.json();
-    return data.interview_token;
-  };
-
-  const generateContextualCriteria = async (candidateId: string, candidateData: any) => {
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-    try {
-      const response = await fetch(`${supabaseUrl}/functions/v1/generate-contextual-criteria`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${supabaseAnonKey}`,
-        },
-        body: JSON.stringify({
-          candidate: {
-            id: candidateId,
-            name: candidateData.name,
-            email: candidateData.email,
-            phone: candidateData.phone,
-            resume_url: candidateData.resume_url,
-            resume_text: candidateData.resume_text,
-            custom_answers: candidateData.custom_answers
-          },
-          job: {
-            id: job!.id,
-            title: job!.title,
-            description: job!.description,
-            work_model: job!.work_model,
-            requirements: job!.requirements || [],
-            differentials: job!.differentials || [],
-            evaluation_criteria: job!.evaluation_criteria || [],
-            salary_range: job!.salary_range,
-            benefits: job!.benefits
-          },
-          company: {
-            id: job!.company.id,
-            name: job!.company.name,
-            contact_email: job!.company.contact_email,
-            address: job!.company.address
-          }
-        }),
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        console.log('Critérios contextuais gerados:', result);
-        return result.context_id;
-      } else {
-        console.warn('Falha ao gerar critérios contextuais');
-        return null;
-      }
-    } catch (error) {
-      console.error('Erro ao gerar critérios contextuais:', error);
-      return null;
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -193,35 +114,71 @@ function JobApplicationPage() {
     setError('');
 
     try {
-      // Create candidate first
-      const { data: candidate, error: candidateError } = await supabase
-        .from('candidates')
-        .insert({
-          job_id: jobId,
+      const apiUrl = import.meta.env.VITE_API_URL;
+      if (!apiUrl) {
+        throw new Error('URL da API não configurada');
+      }
+
+      // Preparar payload para sua API
+      const payload = {
+        candidate: {
           name: formData.name,
           email: formData.email,
           phone: formData.phone || null,
           resume_url: formData.resume_url || null,
           resume_text: formData.resume_text || null,
-          custom_answers: formData.custom_answers,
-          status: 'pending'
-        })
-        .select()
-        .single();
+          custom_answers: formData.custom_answers
+        },
+        job: {
+          id: job!.id,
+          title: job!.title,
+          description: job!.description,
+          location: job!.location,
+          work_model: job!.work_model,
+          contract_type: job!.contract_type,
+          requirements: job!.requirements || [],
+          differentials: job!.differentials || [],
+          evaluation_criteria: job!.evaluation_criteria || [],
+          salary_range: job!.salary_range,
+          benefits: job!.benefits,
+          custom_fields: job!.custom_fields || {}
+        },
+        company: {
+          id: job!.company.id,
+          name: job!.company.name,
+          contact_email: job!.company.contact_email,
+          address: job!.company.address
+        }
+      };
 
-      if (candidateError) {
-        throw candidateError;
+      console.log('Enviando payload para API:', payload);
+
+      const response = await fetch(`${apiUrl}/api/application/create`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Erro ao enviar candidatura');
       }
 
-      // Generate contextual criteria with LLM 2
-      await generateContextualCriteria(candidate.id, formData);
+      const result = await response.json();
+      console.log('Resposta da API:', result);
 
-      // Generate secure interview token
-      const interviewToken = await generateSecureInterviewToken(candidate.id);
+      // Extrair interview_token da resposta
+      const interviewToken = result.interview_token || result.data?.interview_token;
+      
+      if (!interviewToken) {
+        throw new Error('Token de entrevista não recebido da API');
+      }
 
       setSuccess(true);
       
-      // Redirect to interview after a delay
+      // Redirecionar para entrevista após delay
       setTimeout(() => {
         navigate(`/interview/${interviewToken}`);
       }, 3000);
@@ -297,7 +254,7 @@ function JobApplicationPage() {
               </h1>
               
               <p className={`font-sans mb-6 ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
-                Sua candidatura foi enviada com sucesso. Nossa IA está preparando uma entrevista personalizada para você. 
+                Sua candidatura foi processada com sucesso. Nossa IA está preparando uma entrevista personalizada para você. 
                 Você será redirecionado em alguns segundos.
               </p>
 
@@ -597,7 +554,7 @@ function JobApplicationPage() {
               iconPosition="left"
               className="bg-triagen-dark-bg hover:bg-triagen-primary-blue"
             >
-              {submitting ? 'Enviando...' : 'Enviar Candidatura'}
+              {submitting ? 'Processando...' : 'Enviar Candidatura'}
             </Button>
           </form>
         </Card>
