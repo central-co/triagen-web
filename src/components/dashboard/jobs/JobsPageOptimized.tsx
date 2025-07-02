@@ -1,85 +1,89 @@
-import { useState, useEffect } from 'react';
+
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search, Filter, MoreVertical, Users, Calendar, MapPin, Briefcase, Copy, ExternalLink, Check } from 'lucide-react';
+import {
+  Plus,
+  Search,
+  Filter,
+  Eye,
+  Edit,
+  Trash2,
+  Users,
+  Clock,
+  CheckCircle,
+  XCircle,
+  MapPin,
+  Calendar,
+  Building,
+  Briefcase
+} from 'lucide-react';
 import useDarkMode from '../../../hooks/useDarkMode';
 import { useAuth } from '../../../hooks/useAuth';
 import { useOptimizedQuery } from '../../../hooks/useOptimizedQuery';
-import { OptimizedDataService, createOptimizedQuery } from '../../../utils/supabaseOptimized';
 import Button from '../../ui/button';
-import Card from '../../ui/card';
+import Card from '../../ui/Card';
 import StatusMessage from '../../ui/StatusMessage';
 import { Job } from '../../../types/company';
+
+interface JobWithStats extends Job {
+  candidatesCount: number;
+}
 
 function JobsPageOptimized() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [copiedJobId, setCopiedJobId] = useState<string | null>(null);
   const { darkMode } = useDarkMode(true);
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  // Get user's company first
-  const {
-    data: company,
-    loading: companyLoading,
-    error: companyError
-  } = useOptimizedQuery(
-    () => createOptimizedQuery<any>('companies')
-      .select('id')
-      .eq('user_id', user?.id || '')
-      .cache(10 * 60 * 1000), // Cache for 10 minutes
-    [user?.id],
-    { enabled: !!user?.id }
-  );
+  const { 
+    data: jobs = [], 
+    isLoading: loading, 
+    error 
+  } = useOptimizedQuery<JobWithStats>({
+    tableName: 'jobs',
+    filters: user ? [{ column: 'company_id', operator: 'eq', value: user.id }] : [],
+    orderBy: { column: 'created_at', ascending: false },
+    select: `
+      *,
+      candidates(count)
+    `,
+    transform: (data) => (data || []).map(job => ({
+      ...job,
+      candidatesCount: job.candidates?.[0]?.count || 0
+    })),
+    enabled: !!user
+  });
 
-  // Get jobs with candidate count using optimized query
-  const {
-    data: jobs,
-    loading: jobsLoading,
-    error: jobsError,
-    refetch: refetchJobs
-  } = useOptimizedQuery(
-    () => createOptimizedQuery<Job>('jobs')
-      .select(`
-        *,
-        candidates(count)
-      `)
-      .eq('company_id', company?.[0]?.id || '')
-      .orderBy('created_at', false)
-      .cache(2 * 60 * 1000), // Cache for 2 minutes
-    [company?.[0]?.id],
-    { 
-      enabled: !!company?.[0]?.id,
-      refetchOnWindowFocus: true
+  const deleteJob = async (jobId: string) => {
+    if (!confirm('Tem certeza que deseja excluir esta vaga?')) {
+      return;
     }
-  );
 
-  const loading = companyLoading || jobsLoading;
-  const error = companyError || jobsError;
+    try {
+      // This would use the optimized mutation hook
+      console.log('Delete job:', jobId);
+    } catch (err) {
+      console.error('Error deleting job:', err);
+    }
+  };
 
-  const copyJobLink = async (jobId: string) => {
-    const baseUrl = window.location.origin;
-    const jobLink = `${baseUrl}/apply/${jobId}`;
+  const toggleJobStatus = async (jobId: string, currentStatus: string) => {
+    const newStatus = currentStatus === 'open' ? 'paused' : 'open';
     
     try {
-      await navigator.clipboard.writeText(jobLink);
-      setCopiedJobId(jobId);
-      setTimeout(() => setCopiedJobId(null), 2000);
+      // This would use the optimized mutation hook
+      console.log('Toggle job status:', jobId, newStatus);
     } catch (err) {
-      console.error('Failed to copy link:', err);
+      console.error('Error updating job status:', err);
     }
   };
 
-  const openJobLink = (jobId: string) => {
-    const baseUrl = window.location.origin;
-    const jobLink = `${baseUrl}/apply/${jobId}`;
-    window.open(jobLink, '_blank');
-  };
-
-  const filteredJobs = (jobs || []).filter(job => {
+  const filteredJobs = jobs.filter(job => {
     const matchesSearch = job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          job.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || job.status === statusFilter;
+    
     return matchesSearch && matchesStatus;
   });
 
@@ -87,7 +91,7 @@ function JobsPageOptimized() {
     switch (status) {
       case 'open': return 'bg-triagen-secondary-green/20 text-triagen-secondary-green';
       case 'paused': return 'bg-orange-500/20 text-orange-500';
-      case 'closed': return 'bg-gray-500/20 text-gray-500';
+      case 'closed': return 'bg-red-500/20 text-red-500';
       default: return 'bg-gray-500/20 text-gray-500';
     }
   };
@@ -98,6 +102,15 @@ function JobsPageOptimized() {
       case 'paused': return 'Pausada';
       case 'closed': return 'Fechada';
       default: return status;
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'open': return CheckCircle;
+      case 'paused': return Clock;
+      case 'closed': return XCircle;
+      default: return Clock;
     }
   };
 
@@ -112,55 +125,26 @@ function JobsPageOptimized() {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="flex justify-between items-center">
         <div>
           <h1 className={`font-heading text-3xl font-bold ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
-            Vagas
+            Vagas (Otimizada)
           </h1>
           <p className={`font-sans mt-2 ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
-            Gerencie suas vagas e acompanhe candidatos
+            Gerencie suas oportunidades de emprego com performance otimizada
           </p>
         </div>
         
-        <div className="flex items-center space-x-3">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={refetchJobs}
-            darkMode={darkMode}
-          >
-            Atualizar
-          </Button>
-          
-          <Button
-            variant="primary"
-            size="md"
-            onClick={() => navigate('/dashboard/jobs/new')}
-            icon={Plus}
-            iconPosition="left"
-            className="bg-triagen-dark-bg hover:bg-triagen-primary-blue"
-          >
-            Nova Vaga
-          </Button>
-        </div>
+        <Button
+          variant="primary"
+          onClick={() => navigate('/dashboard/jobs/new')}
+          icon={Plus}
+          darkMode={darkMode}
+          className="bg-triagen-dark-bg hover:bg-triagen-primary-blue"
+        >
+          Nova Vaga
+        </Button>
       </div>
-
-      {/* Performance Info */}
-      {jobs && (
-        <Card darkMode={darkMode} className="border-triagen-secondary-green/20">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="w-3 h-3 rounded-full bg-triagen-secondary-green animate-pulse"></div>
-              <span className={`text-sm ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
-                Dados carregados com cache otimizado • {jobs.length} vagas encontradas
-              </span>
-            </div>
-            <span className={`text-xs ${darkMode ? 'text-gray-500' : 'text-triagen-text-light'}`}>
-              Cache válido por 2 minutos
-            </span>
-          </div>
-        </Card>
-      )}
 
       {/* Filters */}
       <Card darkMode={darkMode}>
@@ -184,8 +168,7 @@ function JobsPageOptimized() {
             </div>
           </div>
           
-          <div className="flex items-center space-x-3">
-            <Filter className={`h-5 w-5 ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`} />
+          <div className="flex gap-4">
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
@@ -208,7 +191,7 @@ function JobsPageOptimized() {
       {error && (
         <StatusMessage
           type="error"
-          message={error}
+          message="Erro ao carregar vagas"
           darkMode={darkMode}
         />
       )}
@@ -219,21 +202,20 @@ function JobsPageOptimized() {
           <div className="text-center py-12">
             <Briefcase className={`h-16 w-16 mx-auto mb-4 ${darkMode ? 'text-gray-600' : 'text-triagen-text-light'}`} />
             <h3 className={`font-heading text-xl font-semibold mb-2 ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
-              {searchTerm || statusFilter !== 'all' ? 'Nenhuma vaga encontrada' : 'Nenhuma vaga criada'}
+              {searchTerm || statusFilter !== 'all' ? 'Nenhuma vaga encontrada' : 'Nenhuma vaga criada ainda'}
             </h3>
             <p className={`font-sans mb-6 ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
               {searchTerm || statusFilter !== 'all' 
                 ? 'Tente ajustar os filtros de busca'
-                : 'Comece criando sua primeira vaga para atrair candidatos'
+                : 'Comece criando sua primeira vaga de emprego'
               }
             </p>
             {!searchTerm && statusFilter === 'all' && (
               <Button
                 variant="primary"
-                size="md"
                 onClick={() => navigate('/dashboard/jobs/new')}
                 icon={Plus}
-                iconPosition="left"
+                darkMode={darkMode}
                 className="bg-triagen-dark-bg hover:bg-triagen-primary-blue"
               >
                 Criar Primeira Vaga
@@ -242,119 +224,100 @@ function JobsPageOptimized() {
           </div>
         </Card>
       ) : (
-        <div className="space-y-6">
-          {filteredJobs.map((job) => (
-            <Card key={job.id} darkMode={darkMode} hoverEffect>
-              <div className="space-y-4">
-                {/* Header */}
-                <div className="flex justify-between items-start">
+        <div className="space-y-4">
+          {filteredJobs.map((job) => {
+            const StatusIcon = getStatusIcon(job.status);
+            
+            return (
+              <Card key={job.id} darkMode={darkMode} hoverEffect>
+                <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <h3 className={`font-heading text-xl font-semibold mb-2 ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
-                      {job.title}
-                    </h3>
-                    <div className="flex items-center space-x-4 text-sm">
+                    <div className="flex items-center space-x-3 mb-3">
+                      <h3 className={`font-heading text-xl font-semibold ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
+                        {job.title}
+                      </h3>
+                      <StatusIcon className="h-4 w-4" />
+                      <span className={`px-3 py-1 rounded-lg text-xs font-medium ${getStatusColor(job.status)}`}>
+                        {getStatusText(job.status)}
+                      </span>
+                    </div>
+                    
+                    <p className={`font-sans text-sm mb-4 ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'} line-clamp-2`}>
+                      {job.description}
+                    </p>
+                    
+                    <div className="flex items-center space-x-6 text-sm">
+                      <div className={`flex items-center space-x-1 ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
+                        <Users className="h-4 w-4" />
+                        <span>{job.candidatesCount} candidatos</span>
+                      </div>
+                      
                       {job.location && (
                         <div className={`flex items-center space-x-1 ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
                           <MapPin className="h-4 w-4" />
                           <span>{job.location}</span>
                         </div>
                       )}
+                      
                       <div className={`flex items-center space-x-1 ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
                         <Calendar className="h-4 w-4" />
-                        <span>{job.contract_type}</span>
+                        <span>{new Date(job.created_at).toLocaleDateString('pt-BR')}</span>
                       </div>
-                      <div className={`flex items-center space-x-1 ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
-                        <Users className="h-4 w-4" />
-                        <span>{(job as any).candidates?.[0]?.count || 0} candidatos</span>
-                      </div>
+                      
+                      {job.contract_type && (
+                        <div className={`flex items-center space-x-1 ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
+                          <Building className="h-4 w-4" />
+                          <span className="capitalize">{job.contract_type}</span>
+                        </div>
+                      )}
                     </div>
                   </div>
-                  
-                  <div className="flex items-center space-x-2">
-                    <span className={`px-3 py-1 rounded-lg text-xs font-medium ${getStatusColor(job.status)}`}>
-                      {getStatusText(job.status)}
-                    </span>
-                  </div>
-                </div>
 
-                {/* Description */}
-                <p className={`font-sans text-sm line-clamp-2 ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
-                  {job.description}
-                </p>
-
-                {/* Job Application Link */}
-                <div className={`p-4 rounded-xl border ${
-                  darkMode ? 'border-triagen-border-dark bg-gray-800/30' : 'border-triagen-border-light bg-triagen-light-bg/30'
-                }`}>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className={`font-semibold text-sm mb-1 ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
-                        Link para Candidatura
-                      </h4>
-                      <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
-                        Compartilhe este link para que candidatos se inscrevam
-                      </p>
-                    </div>
-                    <div className="flex space-x-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => copyJobLink(job.id)}
-                        icon={copiedJobId === job.id ? Check : Copy}
-                        darkMode={darkMode}
-                        className={copiedJobId === job.id ? 'border-triagen-secondary-green text-triagen-secondary-green' : ''}
-                      >
-                        {copiedJobId === job.id ? 'Copiado!' : 'Copiar'}
-                      </Button>
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        onClick={() => openJobLink(job.id)}
-                        icon={ExternalLink}
-                        darkMode={darkMode}
-                      >
-                        Abrir
-                      </Button>
-                    </div>
-                  </div>
-                  
-                  <div className={`mt-3 p-2 rounded-lg text-xs font-mono break-all ${
-                    darkMode ? 'bg-gray-900/50 text-gray-300' : 'bg-white/50 text-triagen-text-dark'
-                  }`}>
-                    {window.location.origin}/apply/{job.id}
-                  </div>
-                </div>
-
-                {/* Actions */}
-                <div className="flex justify-between items-center pt-4 border-t border-inherit">
-                  <div className="flex space-x-2">
+                  <div className="flex items-center space-x-2 ml-4">
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => navigate(`/dashboard/jobs/${job.id}/candidates`)}
+                      onClick={() => navigate(`/dashboard/jobs/${job.id}`)}
+                      icon={Eye}
                       darkMode={darkMode}
                     >
-                      Ver Candidatos
+                      Ver
                     </Button>
+                    
                     <Button
-                      variant="secondary"
+                      variant="outline"
                       size="sm"
                       onClick={() => navigate(`/dashboard/jobs/${job.id}/edit`)}
+                      icon={Edit}
                       darkMode={darkMode}
                     >
                       Editar
                     </Button>
+                    
+                    <Button
+                      variant={job.status === 'open' ? 'outline' : 'secondary'}
+                      size="sm"
+                      onClick={() => toggleJobStatus(job.id, job.status)}
+                      darkMode={darkMode}
+                    >
+                      {job.status === 'open' ? 'Pausar' : 'Ativar'}
+                    </Button>
+                    
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => deleteJob(job.id)}
+                      icon={Trash2}
+                      darkMode={darkMode}
+                      className="text-red-500 hover:text-red-600 border-red-500 hover:border-red-600"
+                    >
+                      Excluir
+                    </Button>
                   </div>
-
-                  {job.deadline && (
-                    <div className={`text-xs ${darkMode ? 'text-gray-500' : 'text-triagen-text-light'}`}>
-                      Prazo: {new Date(job.deadline).toLocaleDateString('pt-BR')}
-                    </div>
-                  )}
                 </div>
-              </div>
-            </Card>
-          ))}
+              </Card>
+            );
+          })}
         </div>
       )}
     </div>

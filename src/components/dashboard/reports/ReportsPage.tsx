@@ -1,29 +1,43 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { BarChart3, Download, Eye, TrendingUp, Users, Clock, Star } from 'lucide-react';
+import {
+  FileText,
+  Download,
+  Eye,
+  Search,
+  Filter,
+  BarChart3,
+  TrendingUp,
+  Users,
+  Calendar,
+  Star,
+  CheckCircle
+} from 'lucide-react';
 import useDarkMode from '../../../hooks/useDarkMode';
 import { useAuth } from '../../../hooks/useAuth';
-import { supabase } from '../../../lib/supabase';
+import { supabase } from '../../../integrations/supabase/client';
 import Button from '../../ui/button';
-import Card from '../../ui/card';
+import Card from '../../ui/Card';
 import StatusMessage from '../../ui/StatusMessage';
-import StatCard from '../../ui/StatCard';
-import { InterviewReport, Candidate, Job } from '../../../types/company';
 
-interface ReportWithCandidate extends InterviewReport {
-  candidate: Candidate & { job: Job };
+interface Report {
+  id: string;
+  candidate_name: string;
+  job_title: string;
+  overall_score: number;
+  created_at: string;
+  alignment_analysis: string;
+  summary: string;
+  category_scores: Record<string, number>;
 }
 
 function ReportsPage() {
-  const [reports, setReports] = useState<ReportWithCandidate[]>([]);
+  const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [stats, setStats] = useState({
-    totalReports: 0,
-    averageScore: 0,
-    topPerformers: 0,
-    completionRate: 0
-  });
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortBy, setSortBy] = useState<string>('date');
   const { darkMode } = useDarkMode(true);
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -48,65 +62,12 @@ function ReportsPage() {
         throw companyError;
       }
 
-      // If no company exists, set empty data and return
       if (!companies || companies.length === 0) {
         setReports([]);
-        setStats({
-          totalReports: 0,
-          averageScore: 0,
-          topPerformers: 0,
-          completionRate: 0
-        });
         return;
       }
 
       const company = companies[0];
-
-      // Get all job IDs for this company
-      const { data: jobsData, error: jobsError } = await supabase
-        .from('jobs')
-        .select('id')
-        .eq('company_id', company.id);
-
-      if (jobsError) {
-        throw jobsError;
-      }
-
-      const jobIds = (jobsData || []).map(job => job.id);
-
-      if (jobIds.length === 0) {
-        setReports([]);
-        setStats({
-          totalReports: 0,
-          averageScore: 0,
-          topPerformers: 0,
-          completionRate: 0
-        });
-        return;
-      }
-
-      // Get all candidate IDs for these jobs
-      const { data: candidatesData, error: candidatesError } = await supabase
-        .from('candidates')
-        .select('id')
-        .in('job_id', jobIds);
-
-      if (candidatesError) {
-        throw candidatesError;
-      }
-
-      const candidateIds = (candidatesData || []).map(candidate => candidate.id);
-
-      if (candidateIds.length === 0) {
-        setReports([]);
-        setStats({
-          totalReports: 0,
-          averageScore: 0,
-          topPerformers: 0,
-          completionRate: 0
-        });
-        return;
-      }
 
       // Get reports with candidate and job information
       const { data: reportsData, error: reportsError } = await supabase
@@ -114,38 +75,42 @@ function ReportsPage() {
         .select(`
           *,
           candidate:candidates(
-            *,
-            job:jobs(*)
+            name,
+            job:jobs(title)
           )
         `)
-        .in('candidate_id', candidateIds)
+        .in('candidate_id', 
+          await supabase
+            .from('candidates')
+            .select('id')
+            .in('job_id', 
+              await supabase
+                .from('jobs')
+                .select('id')
+                .eq('company_id', company.id)
+                .then(({ data }) => (data || []).map(job => job.id))
+            )
+            .then(({ data }) => (data || []).map(candidate => candidate.id))
+        )
         .order('created_at', { ascending: false });
 
       if (reportsError) {
         throw reportsError;
       }
 
-      const reports = reportsData || [];
-      setReports(reports);
+      // Transform the data
+      const transformedReports = (reportsData || []).map(report => ({
+        id: report.id,
+        candidate_name: report.candidate?.name || 'Nome não disponível',
+        job_title: report.candidate?.job?.title || 'Vaga não disponível',
+        overall_score: report.overall_score || 0,
+        created_at: report.created_at || '',
+        alignment_analysis: report.alignment_analysis || '',
+        summary: report.summary || '',
+        category_scores: report.category_scores || {}
+      }));
 
-      // Calculate stats
-      const totalReports = reports.length;
-      const scoresWithValues = reports.filter(r => r.overall_score !== null);
-      const averageScore = scoresWithValues.length > 0 
-        ? scoresWithValues.reduce((sum, r) => sum + (r.overall_score || 0), 0) / scoresWithValues.length
-        : 0;
-      const topPerformers = scoresWithValues.filter(r => (r.overall_score || 0) >= 8).length;
-      
-      const totalCandidates = candidatesData?.length || 0;
-      const completionRate = totalCandidates > 0 ? (totalReports / totalCandidates) * 100 : 0;
-
-      setStats({
-        totalReports,
-        averageScore,
-        topPerformers,
-        completionRate
-      });
-
+      setReports(transformedReports);
     } catch (err) {
       console.error('Error fetching reports:', err);
       setError('Erro ao carregar relatórios');
@@ -154,18 +119,36 @@ function ReportsPage() {
     }
   };
 
+  const filteredReports = reports.filter(report => {
+    const matchesSearch = report.candidate_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         report.job_title.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesSearch;
+  });
+
+  const sortedReports = [...filteredReports].sort((a, b) => {
+    switch (sortBy) {
+      case 'score':
+        return b.overall_score - a.overall_score;
+      case 'name':
+        return a.candidate_name.localeCompare(b.candidate_name);
+      case 'job':
+        return a.job_title.localeCompare(b.job_title);
+      case 'date':
+      default:
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    }
+  });
+
   const getScoreColor = (score: number) => {
-    if (score >= 8) return 'text-triagen-secondary-green';
-    if (score >= 6) return 'text-triagen-primary-blue';
-    if (score >= 4) return 'text-orange-500';
+    if (score >= 80) return 'text-triagen-secondary-green';
+    if (score >= 60) return 'text-orange-500';
     return 'text-red-500';
   };
 
-  const getScoreLabel = (score: number) => {
-    if (score >= 8) return 'Excelente';
-    if (score >= 6) return 'Bom';
-    if (score >= 4) return 'Regular';
-    return 'Baixo';
+  const getScoreBg = (score: number) => {
+    if (score >= 80) return 'bg-triagen-secondary-green/20';
+    if (score >= 60) return 'bg-orange-500/20';
+    return 'bg-red-500/20';
   };
 
   if (loading) {
@@ -184,41 +167,50 @@ function ReportsPage() {
           Relatórios
         </h1>
         <p className={`font-sans mt-2 ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
-          Análises detalhadas das entrevistas realizadas pela IA
+          Visualize e analise os resultados das entrevistas
         </p>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard
-          icon={BarChart3}
-          value={stats.totalReports.toString()}
-          label="Relatórios Gerados"
-          darkMode={darkMode}
-          iconColor="bg-triagen-dark-bg"
-        />
-        <StatCard
-          icon={TrendingUp}
-          value={stats.averageScore.toFixed(1)}
-          label="Pontuação Média"
-          darkMode={darkMode}
-          iconColor="bg-triagen-secondary-green"
-        />
-        <StatCard
-          icon={Star}
-          value={stats.topPerformers.toString()}
-          label="Alto Desempenho (8+)"
-          darkMode={darkMode}
-          iconColor="bg-triagen-primary-blue"
-        />
-        <StatCard
-          icon={Users}
-          value={`${stats.completionRate.toFixed(0)}%`}
-          label="Taxa de Conclusão"
-          darkMode={darkMode}
-          iconColor="bg-triagen-highlight-purple"
-        />
-      </div>
+      {/* Filters */}
+      <Card darkMode={darkMode}>
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex-1">
+            <div className="relative">
+              <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 ${
+                darkMode ? 'text-gray-400' : 'text-triagen-text-light'
+              }`} />
+              <input
+                type="text"
+                placeholder="Buscar relatórios..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className={`font-sans w-full pl-10 pr-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-triagen-secondary-green/50 focus:border-triagen-secondary-green ${
+                  darkMode
+                    ? 'bg-gray-800/50 border-triagen-border-dark text-white placeholder-gray-400'
+                    : 'bg-white/70 border-triagen-border-light text-triagen-dark-bg placeholder-triagen-text-light'
+                }`}
+              />
+            </div>
+          </div>
+          
+          <div className="flex gap-4">
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className={`font-sans px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-triagen-secondary-green/50 focus:border-triagen-secondary-green ${
+                darkMode
+                  ? 'bg-gray-800/50 border-triagen-border-dark text-white'
+                  : 'bg-white/70 border-triagen-border-light text-triagen-dark-bg'
+              }`}
+            >
+              <option value="date">Data</option>
+              <option value="score">Pontuação</option>
+              <option value="name">Nome</option>
+              <option value="job">Vaga</option>
+            </select>
+          </div>
+        </div>
+      </Card>
 
       {/* Error Message */}
       {error && (
@@ -230,65 +222,56 @@ function ReportsPage() {
       )}
 
       {/* Reports List */}
-      {reports.length === 0 ? (
+      {sortedReports.length === 0 ? (
         <Card darkMode={darkMode}>
           <div className="text-center py-12">
-            <BarChart3 className={`h-16 w-16 mx-auto mb-4 ${darkMode ? 'text-gray-600' : 'text-triagen-text-light'}`} />
+            <FileText className={`h-16 w-16 mx-auto mb-4 ${darkMode ? 'text-gray-600' : 'text-triagen-text-light'}`} />
             <h3 className={`font-heading text-xl font-semibold mb-2 ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
-              Nenhum relatório disponível
+              {searchTerm ? 'Nenhum relatório encontrado' : 'Nenhum relatório disponível'}
             </h3>
             <p className={`font-sans mb-6 ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
-              Os relatórios aparecerão aqui após os candidatos concluírem suas entrevistas
+              {searchTerm 
+                ? 'Tente ajustar os filtros de busca'
+                : 'Os relatórios aparecerão aqui após as entrevistas serem concluídas'
+              }
             </p>
-            <Button
-              variant="primary"
-              size="md"
-              onClick={() => navigate('/dashboard/jobs')}
-              className="bg-triagen-dark-bg hover:bg-triagen-primary-blue"
-            >
-              Ver Vagas
-            </Button>
           </div>
         </Card>
       ) : (
         <div className="space-y-4">
-          {reports.map((report) => (
+          {sortedReports.map((report) => (
             <Card key={report.id} darkMode={darkMode} hoverEffect>
               <div className="flex items-center justify-between">
                 <div className="flex-1">
                   <div className="flex items-center space-x-4 mb-3">
                     <h3 className={`font-heading text-lg font-semibold ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
-                      {report.candidate.name}
+                      {report.candidate_name}
                     </h3>
-                    {report.overall_score && (
-                      <div className="flex items-center space-x-2">
-                        <div className={`w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center ${getScoreColor(report.overall_score)}`}>
-                          <span className="text-sm font-bold">{report.overall_score.toFixed(1)}</span>
-                        </div>
-                        <span className={`text-sm font-medium ${getScoreColor(report.overall_score)}`}>
-                          {getScoreLabel(report.overall_score)}
-                        </span>
-                      </div>
-                    )}
+                    <div className={`flex items-center space-x-2 px-3 py-1 rounded-lg ${getScoreBg(report.overall_score)}`}>
+                      <Star className={`h-4 w-4 ${getScoreColor(report.overall_score)}`} />
+                      <span className={`text-sm font-medium ${getScoreColor(report.overall_score)}`}>
+                        {report.overall_score.toFixed(1)}
+                      </span>
+                    </div>
                   </div>
                   
-                  <div className="flex items-center space-x-4 text-sm">
+                  <div className="flex items-center space-x-4 text-sm mb-3">
                     <span className={`${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
-                      {report.candidate.job.title}
+                      📋 {report.job_title}
                     </span>
                     <span className={`${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
-                      {new Date(report.created_at).toLocaleDateString('pt-BR')}
+                      📅 {new Date(report.created_at).toLocaleDateString('pt-BR')}
                     </span>
                   </div>
-
+                  
                   {report.summary && (
-                    <p className={`font-sans text-sm mt-3 line-clamp-2 ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
+                    <p className={`font-sans text-sm ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'} line-clamp-2`}>
                       {report.summary}
                     </p>
                   )}
                 </div>
 
-                <div className="flex space-x-2 ml-4">
+                <div className="flex items-center space-x-2 ml-4">
                   <Button
                     variant="outline"
                     size="sm"
@@ -303,39 +286,66 @@ function ReportsPage() {
                     variant="secondary"
                     size="sm"
                     onClick={() => {
-                      // TODO: Implement PDF download
-                      console.log('Download PDF for report:', report.id);
+                      // Download report functionality
+                      console.log('Download report:', report.id);
                     }}
                     icon={Download}
                     darkMode={darkMode}
                   >
-                    PDF
+                    Download
                   </Button>
                 </div>
               </div>
-
-              {/* Category Scores */}
-              {report.category_scores && Object.keys(report.category_scores).length > 0 && (
-                <div className={`mt-4 pt-4 border-t ${
-                  darkMode ? 'border-triagen-border-dark' : 'border-triagen-border-light'
-                }`}>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {Object.entries(report.category_scores).map(([category, score]) => (
-                      <div key={category} className="text-center">
-                        <div className={`text-lg font-bold ${getScoreColor(score as number)}`}>
-                          {(score as number).toFixed(1)}
-                        </div>
-                        <div className={`text-xs ${darkMode ? 'text-gray-500' : 'text-triagen-text-light'}`}>
-                          {category}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
             </Card>
           ))}
         </div>
+      )}
+
+      {/* Summary Stats */}
+      {sortedReports.length > 0 && (
+        <Card darkMode={darkMode}>
+          <h2 className={`font-heading text-xl font-semibold mb-4 ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
+            Estatísticas Gerais
+          </h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div className="text-center">
+              <div className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
+                {sortedReports.length}
+              </div>
+              <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
+                Total de Relatórios
+              </div>
+            </div>
+            
+            <div className="text-center">
+              <div className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
+                {(sortedReports.reduce((acc, report) => acc + report.overall_score, 0) / sortedReports.length).toFixed(1)}
+              </div>
+              <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
+                Pontuação Média
+              </div>
+            </div>
+            
+            <div className="text-center">
+              <div className={`text-2xl font-bold text-triagen-secondary-green`}>
+                {sortedReports.filter(report => report.overall_score >= 80).length}
+              </div>
+              <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
+                Pontuação Alta (≥80)
+              </div>
+            </div>
+            
+            <div className="text-center">
+              <div className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
+                {Math.max(...sortedReports.map(report => report.overall_score)).toFixed(1)}
+              </div>
+              <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
+                Melhor Pontuação
+              </div>
+            </div>
+          </div>
+        </Card>
       )}
     </div>
   );

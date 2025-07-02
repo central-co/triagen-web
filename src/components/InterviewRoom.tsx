@@ -13,7 +13,7 @@ import useDarkMode from '../hooks/useDarkMode';
 import useAudioLevel from '../hooks/useAudioLevel';
 import AnimatedBackground from './ui/AnimatedBackground';
 import Button from './ui/button';
-import Card from './ui/card';
+import Card from './ui/Card';
 import StatusMessage from './ui/StatusMessage';
 
 interface InterviewRoomProps {

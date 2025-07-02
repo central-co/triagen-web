@@ -14,13 +14,13 @@ interface JobWithCompany {
   id: string;
   title: string;
   description: string;
-  location?: string;
-  work_model?: string;
-  requirements?: string[];
-  differentials?: string[];
-  salary_range?: string;
-  benefits?: string;
-  custom_questions?: any[];
+  location?: string | null;
+  work_model?: string | null;
+  requirements?: string[] | null;
+  differentials?: string[] | null;
+  salary_range?: string | null;
+  benefits?: string | null;
+  custom_questions?: any[] | null;
   company: {
     id: string;
     name: string;
@@ -58,6 +58,10 @@ function JobApplicationPage() {
     try {
       setLoading(true);
       
+      if (!jobId) {
+        throw new Error('Job ID is required');
+      }
+      
       const { data: jobData, error: jobError } = await supabase
         .from('jobs')
         .select(`
@@ -77,7 +81,22 @@ function JobApplicationPage() {
         throw jobError;
       }
 
-      setJob(jobData);
+      // Transform the data to match our interface
+      const transformedJob: JobWithCompany = {
+        id: jobData.id,
+        title: jobData.title,
+        description: jobData.description,
+        location: jobData.location,
+        work_model: jobData.work_model,
+        requirements: jobData.requirements as string[] | null,
+        differentials: jobData.differentials as string[] | null,
+        salary_range: jobData.salary_range,
+        benefits: jobData.benefits,
+        custom_questions: jobData.custom_questions as any[] | null,
+        company: jobData.company
+      };
+
+      setJob(transformedJob);
     } catch (err) {
       console.error('Error fetching job:', err);
       setError('Vaga não encontrada ou não está mais disponível');
@@ -288,7 +307,7 @@ function JobApplicationPage() {
                       ✅ Requisitos Obrigatórios
                     </h3>
                     <ul className={`text-sm space-y-1 ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
-                      {(job.requirements as string[]).map((req, index) => (
+                      {job.requirements.map((req, index) => (
                         <li key={index}>• {req}</li>
                       ))}
                     </ul>
@@ -303,7 +322,7 @@ function JobApplicationPage() {
                       ⭐ Diferenciais Desejáveis
                     </h3>
                     <ul className={`text-sm space-y-1 ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
-                      {(job.differentials as string[]).map((diff, index) => (
+                      {job.differentials.map((diff, index) => (
                         <li key={index}>• {diff}</li>
                       ))}
                     </ul>

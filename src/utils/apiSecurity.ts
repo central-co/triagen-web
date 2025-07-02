@@ -1,3 +1,4 @@
+
 import { apiRateLimiter, authRateLimiter, interviewRateLimiter, waitlistRateLimiter } from '../middleware/rateLimiter';
 
 export interface ApiSecurityOptions {
@@ -168,7 +169,6 @@ export async function secureFetch(
     
     // Check for security-related response headers
     const rateLimitRemaining = response.headers.get('X-RateLimit-Remaining');
-    const rateLimitReset = response.headers.get('X-RateLimit-Reset');
     
     if (rateLimitRemaining && parseInt(rateLimitRemaining) < 10) {
       console.warn('Rate limit warning: Only', rateLimitRemaining, 'requests remaining');
