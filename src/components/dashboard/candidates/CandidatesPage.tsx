@@ -1,4 +1,5 @@
 
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Star, StarOff, Eye, Download, Users, Clock, CheckCircle, XCircle } from 'lucide-react';
@@ -104,6 +105,8 @@ function CandidatesPage() {
         interview_completed_at: candidate.interview_completed_at || undefined, // Convert null to undefined
         status: (candidate.status || 'pending') as 'pending' | 'interviewed' | 'completed' | 'rejected' | 'hired', // Convert null to 'pending' and cast to proper type
         is_favorite: candidate.is_favorite || false, // Convert null to false
+        created_at: candidate.created_at || new Date().toISOString(), // Convert null to current timestamp
+        updated_at: candidate.updated_at || new Date().toISOString(), // Convert null to current timestamp
         job: candidate.job
       }));
 
