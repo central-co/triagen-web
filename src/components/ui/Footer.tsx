@@ -1,3 +1,4 @@
+
 import { Mail, Phone, MapPin, Heart } from 'lucide-react';
 import Logo from './Logo';
 import Button from './button';
@@ -55,18 +56,21 @@ function Footer({ darkMode, onJoinWaitlist }: FooterProps) {
             </p>
             <div className="space-y-3">
               <Button
-                variant="primary"
+                variant="success"
                 size="md"
+                fullWidth
                 onClick={onJoinWaitlist}
-                className="w-full bg-triagen-secondary-green hover:bg-triagen-secondary-green/90 text-white font-semibold"
+                darkMode={true}
               >
                 Teste Grátis (5 Candidatos)
               </Button>
               <Button
                 variant="outline"
                 size="md"
+                fullWidth
                 onClick={onJoinWaitlist}
-                className="w-full border-triagen-highlight-purple text-triagen-highlight-purple hover:bg-triagen-highlight-purple/10"
+                darkMode={true}
+                className="border-triagen-highlight-purple text-triagen-highlight-purple hover:bg-triagen-highlight-purple/10"
               >
                 Piloto Acadêmico (R$200)
               </Button>

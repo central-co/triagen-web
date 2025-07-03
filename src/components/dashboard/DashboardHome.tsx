@@ -6,6 +6,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { useDashboardStats } from '../../hooks/useDashboardStats';
 import Card from '../ui/Card';
 import StatCard from '../ui/StatCard';
+import Button from '../ui/button';
 
 function DashboardHome() {
   const { darkMode } = useDarkMode(true);
@@ -67,10 +68,8 @@ function DashboardHome() {
           Ações Rápidas
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          <div 
-            onClick={() => navigate('/dashboard/jobs/new')}
-            className={`p-4 rounded-xl border transition-colors cursor-pointer hover:border-triagen-secondary-green ${
-            darkMode ? 'border-triagen-border-dark bg-gray-800/30 hover:bg-gray-800/50' : 'border-triagen-border-light bg-triagen-light-bg/30 hover:bg-triagen-light-bg/50'
+          <div className={`p-4 rounded-xl border transition-colors ${
+            darkMode ? 'border-triagen-border-dark bg-gray-800/30' : 'border-triagen-border-light bg-triagen-light-bg/30'
           }`}>
             <div className="flex items-center mb-3">
               <Plus className={`h-5 w-5 mr-2 ${darkMode ? 'text-triagen-secondary-green' : 'text-triagen-primary-blue'}`} />
@@ -78,15 +77,22 @@ function DashboardHome() {
                 Nova Vaga
               </h3>
             </div>
-            <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
+            <p className={`text-sm mb-4 ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
               Criar uma nova oportunidade de emprego
             </p>
+            <Button
+              variant="outline"
+              size="sm"
+              fullWidth
+              onClick={() => navigate('/dashboard/jobs/new')}
+              darkMode={darkMode}
+            >
+              Criar Vaga
+            </Button>
           </div>
           
-          <div 
-            onClick={() => navigate('/dashboard/candidates')}
-            className={`p-4 rounded-xl border transition-colors cursor-pointer hover:border-triagen-secondary-green ${
-            darkMode ? 'border-triagen-border-dark bg-gray-800/30 hover:bg-gray-800/50' : 'border-triagen-border-light bg-triagen-light-bg/30 hover:bg-triagen-light-bg/50'
+          <div className={`p-4 rounded-xl border transition-colors ${
+            darkMode ? 'border-triagen-border-dark bg-gray-800/30' : 'border-triagen-border-light bg-triagen-light-bg/30'
           }`}>
             <div className="flex items-center mb-3">
               <Eye className={`h-5 w-5 mr-2 ${darkMode ? 'text-triagen-secondary-green' : 'text-triagen-primary-blue'}`} />
@@ -94,15 +100,22 @@ function DashboardHome() {
                 Ver Candidatos
               </h3>
             </div>
-            <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
+            <p className={`text-sm mb-4 ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
               Gerenciar candidatos existentes
             </p>
+            <Button
+              variant="outline"
+              size="sm"
+              fullWidth
+              onClick={() => navigate('/dashboard/candidates')}
+              darkMode={darkMode}
+            >
+              Ver Candidatos
+            </Button>
           </div>
           
-          <div 
-            onClick={() => navigate('/dashboard/reports')}
-            className={`p-4 rounded-xl border transition-colors cursor-pointer hover:border-triagen-secondary-green ${
-            darkMode ? 'border-triagen-border-dark bg-gray-800/30 hover:bg-gray-800/50' : 'border-triagen-border-light bg-triagen-light-bg/30 hover:bg-triagen-light-bg/50'
+          <div className={`p-4 rounded-xl border transition-colors ${
+            darkMode ? 'border-triagen-border-dark bg-gray-800/30' : 'border-triagen-border-light bg-triagen-light-bg/30'
           }`}>
             <div className="flex items-center mb-3">
               <BarChart3 className={`h-5 w-5 mr-2 ${darkMode ? 'text-triagen-secondary-green' : 'text-triagen-primary-blue'}`} />
@@ -110,9 +123,18 @@ function DashboardHome() {
                 Relatórios
               </h3>
             </div>
-            <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
+            <p className={`text-sm mb-4 ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
               Visualizar análises e relatórios
             </p>
+            <Button
+              variant="outline"
+              size="sm"
+              fullWidth
+              onClick={() => navigate('/dashboard/reports')}
+              darkMode={darkMode}
+            >
+              Ver Relatórios
+            </Button>
           </div>
         </div>
       </Card>

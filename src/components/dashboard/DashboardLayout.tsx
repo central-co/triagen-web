@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { 
@@ -66,12 +67,15 @@ function DashboardLayout() {
         {/* Sidebar header */}
         <div className="flex items-center justify-between p-6 border-b border-inherit">
           <Logo darkMode={darkMode} onClick={() => navigate('/')} />
-          <button
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => setSidebarOpen(false)}
-            className="lg:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
-          >
-            <X className="h-5 w-5" />
-          </button>
+            icon={X}
+            iconPosition="left"
+            darkMode={darkMode}
+            className="lg:hidden"
+          />
         </div>
 
         {/* Navigation */}
@@ -81,25 +85,28 @@ function DashboardLayout() {
             const isActive = isActivePath(item.path);
             
             return (
-              <button
+              <Button
                 key={item.path}
+                variant={isActive ? 'secondary' : 'ghost'}
+                size="md"
+                fullWidth
                 onClick={() => {
                   navigate(item.path);
                   setSidebarOpen(false);
                 }}
-                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 ${
+                icon={Icon}
+                iconPosition="left"
+                darkMode={darkMode}
+                className={`justify-start ${
                   isActive
                     ? darkMode
                       ? 'bg-triagen-secondary-green/20 text-triagen-secondary-green border border-triagen-secondary-green/30'
                       : 'bg-triagen-primary-blue/20 text-triagen-primary-blue border border-triagen-primary-blue/30'
-                    : darkMode
-                      ? 'text-gray-300 hover:bg-gray-700/50 hover:text-white'
-                      : 'text-triagen-text-light hover:bg-triagen-border-light hover:text-triagen-text-dark'
+                    : ''
                 }`}
               >
-                <Icon className="h-5 w-5" />
-                <span className="font-medium">{item.label}</span>
-              </button>
+                {item.label}
+              </Button>
             );
           })}
         </nav>
@@ -107,14 +114,13 @@ function DashboardLayout() {
         {/* Sidebar footer */}
         <div className="p-4 border-t border-inherit">
           <Button
-            variant="outline"
+            variant="danger"
             size="sm"
             fullWidth
             onClick={handleSignOut}
             icon={LogOut}
             iconPosition="left"
             darkMode={darkMode}
-            className={darkMode ? 'border-triagen-error/50 text-triagen-error hover:bg-triagen-error/10' : 'border-red-300 text-red-600 hover:bg-red-50'}
           >
             Sair
           </Button>
@@ -130,12 +136,15 @@ function DashboardLayout() {
             : 'bg-triagen-light-bg/80 border-triagen-border-light backdrop-blur-xl'
         }`}>
           <div className="flex items-center justify-between px-4 py-4">
-            <button
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => setSidebarOpen(true)}
-              className="lg:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
-            >
-              <Menu className="h-6 w-6" />
-            </button>
+              icon={Menu}
+              iconPosition="left"
+              darkMode={darkMode}
+              className="lg:hidden"
+            />
             
             <div className="flex items-center space-x-4">
               <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>

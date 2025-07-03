@@ -337,16 +337,19 @@ function CandidatesPage() {
                         <h3 className={`font-heading text-lg font-semibold ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
                           {candidate.name}
                         </h3>
-                        <button
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           onClick={() => toggleFavorite(candidate.id, candidate.is_favorite)}
-                          className={`p-1 rounded-full transition-colors ${
+                          icon={candidate.is_favorite ? Star : StarOff}
+                          iconPosition="left"
+                          darkMode={darkMode}
+                          className={`p-1 ${
                             candidate.is_favorite 
                               ? 'text-yellow-500 hover:text-yellow-600' 
                               : darkMode ? 'text-gray-400 hover:text-yellow-500' : 'text-triagen-text-light hover:text-yellow-500'
                           }`}
-                        >
-                          {candidate.is_favorite ? <Star className="h-5 w-5 fill-current" /> : <StarOff className="h-5 w-5" />}
-                        </button>
+                        />
                       </div>
                       
                       <div className="flex items-center space-x-4 text-sm">
