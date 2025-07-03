@@ -6,7 +6,6 @@ import { useAuth } from '../../hooks/useAuth';
 import { useDashboardStats } from '../../hooks/useDashboardStats';
 import Card from '../ui/Card';
 import StatCard from '../ui/StatCard';
-import Button from '../ui/button';
 
 function DashboardHome() {
   const { darkMode } = useDarkMode(true);

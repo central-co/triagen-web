@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Star, StarOff, Eye, Download, Users, Clock, CheckCircle, XCircle } from 'lucide-react';
@@ -41,11 +42,16 @@ function CandidatesPage() {
     try {
       setLoading(true);
       
+      if (!user?.id) {
+        setError('Usuário não encontrado');
+        return;
+      }
+      
       // First get the user's company
       const { data: companies, error: companyError } = await supabase
         .from('companies')
         .select('id')
-        .eq('user_id', user?.id);
+        .eq('user_id', user.id);
 
       if (companyError) {
         throw companyError;
@@ -87,7 +93,14 @@ function CandidatesPage() {
         throw candidatesError;
       }
 
-      setCandidates(candidatesData || []);
+      // Transform the data to match our interface
+      const transformedCandidates = (candidatesData || []).map(candidate => ({
+        ...candidate,
+        phone: candidate.phone || undefined, // Convert null to undefined
+        job: candidate.job
+      }));
+
+      setCandidates(transformedCandidates);
     } catch (err) {
       console.error('Error fetching data:', err);
       setError('Erro ao carregar candidatos');

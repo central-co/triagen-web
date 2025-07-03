@@ -63,7 +63,7 @@ export interface Candidate {
   job_id: string;
   name: string;
   email: string;
-  phone?: string;
+  phone?: string | null;
   resume_url?: string;
   status: 'pending' | 'interviewed' | 'completed' | 'rejected' | 'hired';
   is_favorite: boolean;
