@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Star, StarOff, Eye, Download, Users, Clock, CheckCircle, XCircle } from 'lucide-react';
@@ -97,6 +96,11 @@ function CandidatesPage() {
       const transformedCandidates = (candidatesData || []).map(candidate => ({
         ...candidate,
         phone: candidate.phone || undefined, // Convert null to undefined
+        resume_url: candidate.resume_url || undefined, // Convert null to undefined
+        notes: candidate.notes || undefined, // Convert null to undefined
+        interview_token: candidate.interview_token || undefined, // Convert null to undefined
+        interview_started_at: candidate.interview_started_at || undefined, // Convert null to undefined
+        interview_completed_at: candidate.interview_completed_at || undefined, // Convert null to undefined
         job: candidate.job
       }));
 
