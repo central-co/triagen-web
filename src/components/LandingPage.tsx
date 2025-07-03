@@ -157,7 +157,7 @@ function LandingPage() {
 
   // Create right content based on authentication status
   const rightContent = (() => {
-    // Show loading spinner only when auth is actually loading
+    // Only show loading when auth is actually being processed
     if (loading) {
       return (
         <div className="w-8 h-8 rounded-full border-2 border-triagen-primary-blue border-t-transparent animate-spin"></div>
@@ -168,6 +168,7 @@ function LandingPage() {
       return <UserDropdown />;
     }
 
+    // Default state: show login and interview buttons
     return (
       <div className="flex items-center space-x-3">
         <Button 

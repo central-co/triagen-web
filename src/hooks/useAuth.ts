@@ -11,54 +11,56 @@ export interface AuthState {
 export function useAuth() {
   const [authState, setAuthState] = useState<AuthState>({
     user: null,
-    loading: true,
+    loading: false, // Mudança: começar com false
     error: null
   });
 
   useEffect(() => {
+    let mounted = true;
+
     // Get initial session
     const getSession = async () => {
       try {
+        setAuthState(prev => ({ ...prev, loading: true }));
+        
         const { data: { session }, error } = await supabase.auth.getSession();
         if (error) throw error;
         
-        setAuthState({
-          user: session?.user ?? null,
-          loading: false,
-          error: null
-        });
+        if (mounted) {
+          setAuthState({
+            user: session?.user ?? null,
+            loading: false,
+            error: null
+          });
+        }
       } catch (error) {
-        setAuthState({
-          user: null,
-          loading: false,
-          error: error instanceof Error ? error.message : 'Authentication error'
-        });
+        if (mounted) {
+          setAuthState({
+            user: null,
+            loading: false,
+            error: error instanceof Error ? error.message : 'Authentication error'
+          });
+        }
       }
     };
 
     getSession();
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async () => {
-      try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        if (error) throw error;
-        
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (mounted) {
         setAuthState({
           user: session?.user ?? null,
           loading: false,
           error: null
         });
-      } catch (error) {
-        setAuthState({
-          user: null,
-          loading: false,
-          error: error instanceof Error ? error.message : 'Authentication error'
-        });
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signIn = async (email: string, password: string) => {
@@ -97,7 +99,7 @@ export function useAuth() {
         loading: false,
         error: err
       }));
-      return { error: err };
+      throw new Error(err);
     }
   };
 
