@@ -101,6 +101,7 @@ function CandidatesPage() {
         interview_token: candidate.interview_token || undefined, // Convert null to undefined
         interview_started_at: candidate.interview_started_at || undefined, // Convert null to undefined
         interview_completed_at: candidate.interview_completed_at || undefined, // Convert null to undefined
+        status: (candidate.status || 'pending') as 'pending' | 'interviewed' | 'completed' | 'rejected' | 'hired', // Convert null to 'pending' and cast to proper type
         job: candidate.job
       }));
 
