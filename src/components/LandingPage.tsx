@@ -156,10 +156,9 @@ function LandingPage() {
 
   // Create right content based on authentication status
   const rightContent = (() => {
+    // Don't show loading spinner in the header - just show nothing while loading
     if (loading) {
-      return (
-        <div className="w-8 h-8 rounded-full border-2 border-triagen-primary-blue border-t-transparent animate-spin"></div>
-      );
+      return null;
     }
 
     if (user) {

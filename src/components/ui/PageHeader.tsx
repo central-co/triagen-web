@@ -43,9 +43,6 @@ function PageHeader({
           
           {/* Right side - Actions */}
           <div className="flex items-center space-x-3 flex-shrink-0">
-            {/* Custom right content */}
-            {rightContent}
-            
             {/* Dark mode toggle */}
             {toggleDarkMode && (
               <button
@@ -60,6 +57,9 @@ function PageHeader({
                 {darkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
               </button>
             )}
+            
+            {/* Custom right content */}
+            {rightContent}
           </div>
         </div>
       </div>
