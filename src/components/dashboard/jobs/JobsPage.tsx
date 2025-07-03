@@ -78,6 +78,7 @@ function JobsPage() {
         requirements: job.requirements ? (Array.isArray(job.requirements) ? job.requirements as string[] : JSON.parse(job.requirements as string)) : null,
         differentials: job.differentials ? (Array.isArray(job.differentials) ? job.differentials as string[] : JSON.parse(job.differentials as string)) : null,
         custom_questions: job.custom_questions ? (Array.isArray(job.custom_questions) ? job.custom_questions : JSON.parse(job.custom_questions as string)) : null,
+        evaluation_criteria: job.evaluation_criteria ? (Array.isArray(job.evaluation_criteria) ? job.evaluation_criteria : JSON.parse(job.evaluation_criteria as string)) : null,
         candidatesCount: job.candidates?.[0]?.count || 0,
         candidates: job.candidates,
         status: (job.status as 'open' | 'closed' | 'paused') || 'open',
