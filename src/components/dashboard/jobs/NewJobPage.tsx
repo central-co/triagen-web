@@ -35,7 +35,7 @@ function NewJobPage() {
     deadline: ''
   });
   
-  const [customQuestions, setCustomQuestions] = useState<CustomQuestion[]>([]);
+  const [customQuestions] = useState<CustomQuestion[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const { darkMode } = useDarkMode(true);

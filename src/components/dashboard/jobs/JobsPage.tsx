@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -76,6 +75,9 @@ function JobsPage() {
         ...job,
         location: job.location || undefined,
         custom_fields: job.custom_fields ? job.custom_fields as Record<string, any> : null,
+        requirements: job.requirements ? (Array.isArray(job.requirements) ? job.requirements as string[] : JSON.parse(job.requirements as string)) : null,
+        differentials: job.differentials ? (Array.isArray(job.differentials) ? job.differentials as string[] : JSON.parse(job.differentials as string)) : null,
+        custom_questions: job.custom_questions ? (Array.isArray(job.custom_questions) ? job.custom_questions : JSON.parse(job.custom_questions as string)) : null,
         candidatesCount: job.candidates?.[0]?.count || 0,
         candidates: job.candidates,
         status: (job.status as 'open' | 'closed' | 'paused') || 'open',
