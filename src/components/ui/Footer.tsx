@@ -56,7 +56,7 @@ function Footer({ darkMode, onJoinWaitlist }: FooterProps) {
             </p>
             <div className="space-y-3">
               <Button
-                variant="success"
+                variant="secondary"
                 size="md"
                 fullWidth
                 onClick={onJoinWaitlist}
@@ -65,7 +65,7 @@ function Footer({ darkMode, onJoinWaitlist }: FooterProps) {
                 Teste Grátis (5 Candidatos)
               </Button>
               <Button
-                variant="outline"
+                variant="primary"
                 size="md"
                 fullWidth
                 onClick={onJoinWaitlist}
