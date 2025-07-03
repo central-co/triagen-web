@@ -72,33 +72,15 @@ export function useAuth() {
       });
       
       if (error) throw error;
+      return { error: null };
     } catch (error) {
+      const err = error instanceof Error ? error.message : 'Sign in failed';
       setAuthState(prev => ({
         ...prev,
         loading: false,
-        error: error instanceof Error ? error.message : 'Sign in failed'
+        error: err
       }));
-      throw error;
-    }
-  };
-
-  const signUp = async (email: string, password: string) => {
-    setAuthState(prev => ({ ...prev, loading: true, error: null }));
-    
-    try {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password
-      });
-      
-      if (error) throw error;
-    } catch (error) {
-      setAuthState(prev => ({
-        ...prev,
-        loading: false,
-        error: error instanceof Error ? error.message : 'Sign up failed'
-      }));
-      throw error;
+      return { error: err };
     }
   };
 
@@ -108,13 +90,41 @@ export function useAuth() {
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
+      return { error: null };
     } catch (error) {
+      const err = error instanceof Error ? error.message : 'Sign out failed';
       setAuthState(prev => ({
         ...prev,
         loading: false,
-        error: error instanceof Error ? error.message : 'Sign out failed'
+        error: err
       }));
-      throw error;
+      return { error: err };
+    }
+  };
+
+  const signUp = async (email: string, password: string, metadata?: any) => {
+    setAuthState(prev => ({ ...prev, loading: true, error: null }));
+    
+    try {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: metadata,
+          emailRedirectTo: `${window.location.origin}/`
+        }
+      });
+      
+      if (error) throw error;
+      return { error: null };
+    } catch (error) {
+      const err = error instanceof Error ? error.message : 'Sign up failed';
+      setAuthState(prev => ({
+        ...prev,
+        loading: false,
+        error: err
+      }));
+      return { error: err };
     }
   };
 

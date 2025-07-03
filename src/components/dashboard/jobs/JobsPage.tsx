@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -77,7 +78,9 @@ function JobsPage() {
         custom_fields: job.custom_fields ? job.custom_fields as Record<string, any> : null,
         candidatesCount: job.candidates?.[0]?.count || 0,
         candidates: job.candidates,
-        status: (job.status as 'open' | 'closed' | 'paused') || 'open'
+        status: (job.status as 'open' | 'closed' | 'paused') || 'open',
+        created_at: job.created_at || new Date().toISOString(),
+        updated_at: job.updated_at || new Date().toISOString()
       }));
 
       setJobs(transformedJobs);

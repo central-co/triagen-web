@@ -1,7 +1,7 @@
+
 import { useState } from 'react';
 import { Save, User, Building, Mail, Phone, Shield } from 'lucide-react';
 import useDarkMode from '../../../hooks/useDarkMode';
-import { useAuth } from '../../../hooks/useAuth';
 import Button from '../../ui/button';
 import Card from '../../ui/Card';
 import StatusMessage from '../../ui/StatusMessage';
@@ -17,7 +17,6 @@ function SettingsPage() {
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
   const { darkMode } = useDarkMode(true);
-  const { user } = useAuth();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData(prev => ({

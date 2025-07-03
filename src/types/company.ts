@@ -1,3 +1,4 @@
+
 export interface Company {
   id: string;
   user_id: string;
@@ -36,7 +37,6 @@ export interface Job {
 export interface JobWithStats extends Job {
   candidatesCount: number;
   candidates?: any[];
-  status: 'open' | 'closed' | 'paused';
 }
 
 export interface JobWithCompany {

@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -62,37 +63,6 @@ function NewJobPage() {
     }));
   };
 
-  const addDifferential = () => {
-    setFormData(prev => ({
-      ...prev,
-      differentials: [...prev.differentials, '']
-    }));
-  };
-
-  const removeDifferential = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      differentials: prev.differentials.filter((_, i) => i !== index)
-    }));
-  };
-
-  const updateDifferential = (index: number, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      differentials: prev.differentials.map((diff, i) => i === index ? value : diff)
-    }));
-  };
-
-  const addCustomQuestion = () => {
-    const newQuestion: CustomQuestion = {
-      id: Date.now().toString(),
-      question: '',
-      type: 'text',
-      required: false
-    };
-    setCustomQuestions(prev => [...prev, newQuestion]);
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -133,9 +103,9 @@ function NewJobPage() {
           contract_type: formData.contractType,
           salary_range: formData.salaryRange || null,
           benefits: formData.benefits || null,
-          requirements: formData.requirements.filter(req => req.trim() !== '') as any,
-          differentials: formData.differentials.filter(diff => diff.trim() !== '') as any,
-          custom_questions: customQuestions as any,
+          requirements: JSON.stringify(formData.requirements.filter(req => req.trim() !== '')),
+          differentials: JSON.stringify(formData.differentials.filter(diff => diff.trim() !== '')),
+          custom_questions: JSON.stringify(customQuestions),
           deadline: formData.deadline || null,
           status: 'open'
         });
