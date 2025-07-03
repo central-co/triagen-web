@@ -5,12 +5,11 @@ export interface StatCardProps {
   title: string;
   value: string;
   icon: LucideIcon;
-  trend?: string;
   darkMode?: boolean;
   iconColor?: string;
 }
 
-function StatCard({ title, value, icon: Icon, trend, darkMode = false, iconColor }: StatCardProps) {
+function StatCard({ title, value, icon: Icon, darkMode = false, iconColor }: StatCardProps) {
   return (
     <div className={`p-6 rounded-3xl border transition-all duration-500 ${
       darkMode 
@@ -23,13 +22,6 @@ function StatCard({ title, value, icon: Icon, trend, darkMode = false, iconColor
         }`}>
           <Icon className="h-6 w-6 text-triagen-primary-blue" />
         </div>
-        {trend && (
-          <span className={`text-sm font-medium ${
-            trend.startsWith('+') ? 'text-green-500' : 'text-red-500'
-          }`}>
-            {trend}
-          </span>
-        )}
       </div>
       <div>
         <h3 className={`text-2xl font-bold mb-1 ${

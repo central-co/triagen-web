@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, ArrowRight } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import useDarkMode from '../../hooks/useDarkMode';
@@ -19,7 +19,6 @@ function LoginPage() {
   
   const { signIn } = useAuth();
   const { darkMode } = useDarkMode(true);
-  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
