@@ -22,7 +22,8 @@ import {
   Download,
   Zap,
   UserPlus,
-  Play
+  Play,
+  LogIn
 } from 'lucide-react';
 import useDarkMode from '../hooks/useDarkMode';
 import { useAuth } from '../hooks/useAuth';
@@ -156,9 +157,11 @@ function LandingPage() {
 
   // Create right content based on authentication status
   const rightContent = (() => {
-    // Don't show loading spinner in the header - just show nothing while loading
+    // Show loading spinner only when auth is actually loading
     if (loading) {
-      return null;
+      return (
+        <div className="w-8 h-8 rounded-full border-2 border-triagen-primary-blue border-t-transparent animate-spin"></div>
+      );
     }
 
     if (user) {
@@ -181,6 +184,18 @@ function LandingPage() {
           }`}
         >
           Teste Grátis
+        </Button>
+        
+        <Button 
+          variant="outline"
+          size="sm"
+          onClick={() => navigate('/auth/login')}
+          icon={LogIn}
+          iconPosition="left"
+          darkMode={darkMode}
+          className="h-10 px-4 text-sm whitespace-nowrap flex-shrink-0"
+        >
+          Entrar
         </Button>
         
         <Button 
