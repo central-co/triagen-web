@@ -34,7 +34,8 @@ function LoginPage() {
 
     try {
       await signIn(email, password);
-      navigate('/dashboard');
+      // O redirecionamento será feito automaticamente pelo PublicRoute no App.tsx
+      // quando o estado de autenticação for atualizado
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message);
