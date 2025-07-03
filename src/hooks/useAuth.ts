@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
 import { supabase } from '../integrations/supabase/client';
@@ -80,7 +79,7 @@ export function useAuth() {
         loading: false,
         error: err
       }));
-      return { error: err };
+      throw new Error(err);
     }
   };
 
@@ -124,7 +123,7 @@ export function useAuth() {
         loading: false,
         error: err
       }));
-      return { error: err };
+      throw new Error(err);
     }
   };
 

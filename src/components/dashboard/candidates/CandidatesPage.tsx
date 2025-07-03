@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Search, Star, StarOff, Eye, Download, Users, Clock, CheckCircle, XCircle } from 'lucide-react';
 import useDarkMode from '../../../hooks/useDarkMode';
 import { useAuth } from '../../../hooks/useAuth';
-import { supabase } from '../../../lib/supabase';
+import { supabase } from '../../../integrations/supabase/client';
 import Button from '../../ui/button';
 import Card from '../../ui/Card';
 import StatusMessage from '../../ui/StatusMessage';
