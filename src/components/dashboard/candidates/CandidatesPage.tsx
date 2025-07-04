@@ -336,17 +336,13 @@ function CandidatesPage() {
                           {candidate.name}
                         </h3>
                         <Button
-                          variant="ghost"
+                          variant={candidate.is_favorite ? "favorite-toggle" : "ghost"}
                           size="sm"
                           onClick={() => toggleFavorite(candidate.id, candidate.is_favorite)}
                           icon={candidate.is_favorite ? Star : StarOff}
                           iconPosition="left"
                           darkMode={darkMode}
-                          className={`p-1 ${
-                            candidate.is_favorite 
-                              ? 'text-yellow-500 hover:text-yellow-600' 
-                              : darkMode ? 'text-gray-400 hover:text-yellow-500' : 'text-triagen-text-light hover:text-yellow-500'
-                          }`}
+                          className="p-1"
                         />
                       </div>
                       

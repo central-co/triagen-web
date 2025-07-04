@@ -249,13 +249,12 @@ function CandidateProfilePage() {
 
         <div className="flex items-center space-x-3">
           <Button
-            variant={candidate.is_favorite ? "secondary" : "outline"}
+            variant={candidate.is_favorite ? "favorite-toggle" : "outline"}
             size="sm"
             onClick={toggleFavorite}
             isLoading={isUpdatingFavorite}
             icon={candidate.is_favorite ? Star : StarOff}
             darkMode={darkMode}
-            className={candidate.is_favorite ? 'text-yellow-500 border-yellow-500' : ''}
           >
             {candidate.is_favorite ? 'Favorito' : 'Favoritar'}
           </Button>

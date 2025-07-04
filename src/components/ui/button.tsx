@@ -3,7 +3,7 @@ import { Loader2, DivideIcon as LucideIcon } from 'lucide-react';
 
 export interface ButtonProps {
   children: React.ReactNode;
-  variant?: 'primary' | 'primary-solid' | 'secondary' | 'outline' | 'outline-purple' | 'ghost' | 'danger' | 'success' | 'green-test' | 'purple-test';
+  variant?: 'primary' | 'primary-solid' | 'secondary' | 'outline' | 'outline-purple' | 'ghost' | 'danger' | 'success' | 'green-test' | 'purple-test' | 'favorite-toggle';
   size?: 'sm' | 'md' | 'lg';
   isLoading?: boolean;
   darkMode?: boolean;
@@ -13,6 +13,7 @@ export interface ButtonProps {
   disabled?: boolean;
   onClick?: () => void;
   type?: 'button' | 'submit' | 'reset';
+  className?: string;
 }
 
 function Button({
@@ -26,7 +27,8 @@ function Button({
   fullWidth = false,
   disabled = false,
   onClick,
-  type = 'button'
+  type = 'button',
+  className = ''
 }: Readonly<ButtonProps>) {
   const baseClasses = 'group relative font-semibold transition-all duration-300 hover:scale-105 overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 focus:outline-none focus:ring-2 focus:ring-offset-2';
 
@@ -50,6 +52,7 @@ function Button({
       ? 'bg-triagen-secondary-green/10 border-triagen-secondary-green/30 text-triagen-secondary-green hover:bg-triagen-secondary-green/20 focus:ring-triagen-secondary-green/50'
       : 'bg-triagen-secondary-green/10 border-triagen-secondary-green/30 text-triagen-secondary-green hover:bg-triagen-secondary-green/20 focus:ring-triagen-secondary-green/50',
     'purple-test': 'bg-triagen-highlight-purple/10 border-triagen-highlight-purple/30 text-triagen-highlight-purple hover:bg-triagen-highlight-purple/20 focus:ring-triagen-highlight-purple/50',
+    'favorite-toggle': 'border-2 border-yellow-500 text-yellow-500 hover:bg-yellow-500/10 hover:border-yellow-600 hover:text-yellow-600 focus:ring-yellow-500/50',
     ghost: darkMode
       ? 'text-gray-300 hover:bg-gray-800/30 focus:ring-gray-500/50'
       : 'text-triagen-dark-bg hover:bg-white/30 focus:ring-triagen-primary-blue/50',
@@ -61,7 +64,7 @@ function Button({
 
   const widthClass = fullWidth ? 'w-full' : '';
 
-  const classes = `${baseClasses} ${sizeClasses[size]} ${variantClasses[variant]} ${widthClass}`;
+  const classes = `${baseClasses} ${sizeClasses[size]} ${variantClasses[variant]} ${widthClass} ${className}`;
 
   return (
     <button
