@@ -22,9 +22,8 @@ function JobsHeader({ darkMode }: JobsHeaderProps) {
       </div>
       <Button
         onClick={() => navigate('/dashboard/jobs/new')}
-        variant="primary"
+        variant="primary-solid"
         icon={Plus}
-        className="bg-triagen-dark-bg hover:bg-triagen-primary-blue"
       >
         Nova Vaga
       </Button>

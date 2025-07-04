@@ -124,13 +124,12 @@ function InterviewPage() {
 
               <Button
                 type="submit"
-                variant="primary"
-                size="md"
+                variant="primary-solid"
+                size="lg"
                 fullWidth
                 isLoading={isLoading}
                 disabled={!token.trim()}
                 icon={ArrowRight}
-                className="h-12 px-6 text-base whitespace-nowrap bg-triagen-dark-bg hover:bg-triagen-primary-blue"
               >
                 {isLoading ? 'Validando código...' : 'Iniciar Entrevista'}
               </Button>

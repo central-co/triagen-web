@@ -86,7 +86,7 @@ function LandingPage() {
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.name || !formData.email) {
       setError('Por favor, preencha todos os campos obrigatórios');
       return;
@@ -171,41 +171,34 @@ function LandingPage() {
     // Default state: show login and interview buttons
     return (
       <div className="flex items-center space-x-3">
-        <Button 
+        <Button
           variant="secondary"
           size="sm"
           darkMode={darkMode}
           onClick={handleWaitlistClick}
           icon={UserPlus}
           iconPosition="left"
-          className={`h-10 px-4 text-sm whitespace-nowrap flex-shrink-0 ${
-            darkMode 
-              ? 'bg-triagen-secondary-green/10 border-triagen-secondary-green/30 text-triagen-secondary-green hover:bg-triagen-secondary-green/20' 
-              : 'bg-triagen-highlight-purple/10 border-triagen-highlight-purple/30 text-triagen-highlight-purple hover:bg-triagen-highlight-purple/20'
-          }`}
         >
           Teste Grátis
         </Button>
-        
-        <Button 
+
+        <Button
           variant="outline"
           size="sm"
           onClick={() => navigate('/auth/login')}
           icon={LogIn}
           iconPosition="left"
           darkMode={darkMode}
-          className="h-10 px-4 text-sm whitespace-nowrap flex-shrink-0"
         >
           Entrar
         </Button>
-        
-        <Button 
+
+        <Button
           variant="primary"
           size="sm"
           onClick={handleStartInterview}
           icon={Play}
           iconPosition="left"
-          className="h-10 px-4 text-sm whitespace-nowrap flex-shrink-0 bg-triagen-dark-bg hover:bg-triagen-primary-blue"
         >
           Iniciar Entrevista
         </Button>
@@ -258,14 +251,14 @@ function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-4xl mx-auto">
             <div className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-medium mb-8 backdrop-blur-sm border ${
-              darkMode 
-                ? 'bg-gray-800/30 border-triagen-border-dark text-gray-300' 
+              darkMode
+                ? 'bg-gray-800/30 border-triagen-border-dark text-gray-300'
                 : 'bg-white/40 border-triagen-border-light text-triagen-text-dark'
             }`}>
               <Zap className="h-4 w-4 mr-2 text-triagen-secondary-green" />
               Democratizando a escuta no recrutamento
             </div>
-            
+
             <h1 className={`font-heading text-5xl md:text-7xl font-bold mb-8 transition-colors duration-300 ${
               darkMode ? 'text-white' : 'text-triagen-dark-bg'
             }`}>
@@ -278,35 +271,29 @@ function LandingPage() {
                 precisão
               </span>
             </h1>
-            
+
             <p className={`font-sans text-xl md:text-2xl mb-12 transition-colors duration-300 leading-relaxed ${
               darkMode ? 'text-gray-400' : 'text-triagen-text-light'
             }`}>
-              Amplie seu funil de candidatos e afunile com contexto. Nossa IA empática entrevista todos que se candidatam, 
+              Amplie seu funil de candidatos e afunile com contexto. Nossa IA empática entrevista todos que se candidatam,
               entregando apenas os perfis com maior fit — humanizando o processo sem inflar os custos.
             </p>
-            
+
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
                 variant="primary"
                 size="lg"
                 onClick={handleWaitlistClick}
                 icon={ArrowRight}
-                className="text-lg px-8 py-4 bg-triagen-dark-bg hover:bg-triagen-primary-blue"
               >
                 Teste Grátis (5 Candidatos)
               </Button>
-              
+
               <Button
                 variant="outline"
                 size="lg"
                 onClick={handleWaitlistClick}
                 darkMode={darkMode}
-                className={`text-lg px-8 py-4 border-2 ${
-                  darkMode 
-                    ? 'border-triagen-secondary-green/50 text-triagen-secondary-green hover:bg-triagen-secondary-green/10' 
-                    : 'border-triagen-highlight-purple/50 text-triagen-highlight-purple hover:bg-triagen-highlight-purple/10'
-                }`}
               >
                 Piloto Acadêmico (R$200)
               </Button>
@@ -315,33 +302,32 @@ function LandingPage() {
             {/* Interview Access for Candidates */}
             <div className="mt-12 pt-8 border-t border-triagen-border-light dark:border-triagen-border-dark">
               <div className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-medium mb-4 backdrop-blur-sm border ${
-                darkMode 
-                  ? 'bg-triagen-primary-blue/10 border-triagen-primary-blue/30 text-triagen-primary-blue' 
+                darkMode
+                  ? 'bg-triagen-primary-blue/10 border-triagen-primary-blue/30 text-triagen-primary-blue'
                   : 'bg-triagen-primary-blue/10 border-triagen-primary-blue/30 text-triagen-primary-blue'
               }`}>
                 <Bot className="h-4 w-4 mr-2" />
                 Para Candidatos
               </div>
-              
+
               <h2 className={`font-heading text-2xl font-bold mb-4 transition-colors duration-300 ${
                 darkMode ? 'text-white' : 'text-triagen-dark-bg'
               }`}>
                 Recebeu um código de entrevista?
               </h2>
-              
+
               <p className={`font-sans text-lg mb-6 transition-colors duration-300 ${
                 darkMode ? 'text-gray-400' : 'text-triagen-text-light'
               }`}>
                 Inicie sua entrevista personalizada com nossa IA empática
               </p>
-              
+
               <Button
                 variant="primary"
                 size="lg"
                 onClick={handleStartInterview}
                 icon={Play}
                 iconPosition="left"
-                className="text-lg px-8 py-4 bg-triagen-primary-blue hover:bg-triagen-dark-bg"
               >
                 Iniciar Minha Entrevista
               </Button>
@@ -356,24 +342,24 @@ function LandingPage() {
                       <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-triagen-secondary-green flex items-center justify-center">
                         <Mail className="h-8 w-8 text-white" />
                       </div>
-                      
+
                       <h3 className={`font-heading text-xl font-bold mb-4 transition-colors duration-300 ${
                         darkMode ? 'text-white' : 'text-triagen-dark-bg'
                       }`}>
                         Obrigado por se inscrever!
                       </h3>
-                      
+
                       <p className={`font-sans mb-6 transition-colors duration-300 ${
                         darkMode ? 'text-gray-400' : 'text-triagen-text-light'
                       }`}>
                         Você foi adicionado à nossa lista. Verifique seu email para confirmação.
                       </p>
-                      
+
                       <Button
                         variant="primary"
                         size="md"
                         onClick={handleCloseForm}
-                        className="w-full bg-triagen-dark-bg hover:bg-triagen-primary-blue"
+                        fullWidth
                       >
                         Fechar
                       </Button>
@@ -385,25 +371,25 @@ function LandingPage() {
                           <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-triagen-dark-bg flex items-center justify-center">
                             <UserCheck className="h-8 w-8 text-white" />
                           </div>
-                          
+
                           <h3 className={`font-heading text-xl font-bold mb-2 transition-colors duration-300 ${
                             darkMode ? 'text-white' : 'text-triagen-dark-bg'
                           }`}>
                             Comece a Ouvir Mais
                           </h3>
-                          
+
                           <p className={`font-sans text-sm transition-colors duration-300 ${
                             darkMode ? 'text-gray-400' : 'text-triagen-text-light'
                           }`}>
                             Teste grátis ou piloto acadêmico
                           </p>
                         </div>
-                        
+
                         <button
                           onClick={handleCloseForm}
                           className={`p-2 rounded-full transition-colors ${
-                            darkMode 
-                              ? 'hover:bg-gray-700 text-gray-400 hover:text-gray-300' 
+                            darkMode
+                              ? 'hover:bg-gray-700 text-gray-400 hover:text-gray-300'
                               : 'hover:bg-triagen-border-light text-triagen-text-light hover:text-triagen-text-dark'
                           }`}
                         >
@@ -549,18 +535,18 @@ function LandingPage() {
                           darkMode ? 'text-gray-500' : 'text-triagen-text-light'
                         }`}>
                           This site is protected by reCAPTCHA and the Google{' '}
-                          <a 
-                            href="https://policies.google.com/privacy" 
-                            target="_blank" 
+                          <a
+                            href="https://policies.google.com/privacy"
+                            target="_blank"
                             rel="noopener noreferrer"
                             className="text-triagen-secondary-green hover:text-triagen-secondary-green/80 underline"
                           >
                             Privacy Policy
                           </a>
                           {' '}and{' '}
-                          <a 
-                            href="https://policies.google.com/terms" 
-                            target="_blank" 
+                          <a
+                            href="https://policies.google.com/terms"
+                            target="_blank"
                             rel="noopener noreferrer"
                             className="text-triagen-secondary-green hover:text-triagen-secondary-green/80 underline"
                           >
@@ -585,7 +571,6 @@ function LandingPage() {
                           isLoading={isLoading}
                           disabled={!formData.name || !formData.email || !newsletterConsent}
                           icon={MessageSquare}
-                          className="bg-triagen-dark-bg hover:bg-triagen-primary-blue"
                         >
                           {isLoading ? 'Enviando...' : 'Começar Agora'}
                         </Button>
@@ -636,7 +621,7 @@ function LandingPage() {
             description="Nossa IA não substitui você — ela amplifica sua capacidade de ouvir todos os candidatos e identificar os melhores fits com precisão e humanidade."
             darkMode={darkMode}
           />
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {features.map((feature, index) => (
               <FeatureCard
@@ -662,7 +647,7 @@ function LandingPage() {
             description="Receba análises detalhadas e transparentes sobre cada candidato, com dados que realmente importam para sua decisão."
             darkMode={darkMode}
           />
-          
+
           <div className="max-w-4xl mx-auto">
             <Card darkMode={darkMode} hoverEffect className="overflow-hidden">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -727,7 +712,6 @@ function LandingPage() {
                       variant="primary"
                       size="sm"
                       icon={Download}
-                      className="bg-triagen-dark-bg hover:bg-triagen-primary-blue"
                     >
                       Baixar PDF
                     </Button>
@@ -736,7 +720,6 @@ function LandingPage() {
                       size="sm"
                       icon={BarChart3}
                       darkMode={darkMode}
-                      className={darkMode ? 'border-triagen-secondary-green/50 text-triagen-secondary-green' : 'border-triagen-highlight-purple/50 text-triagen-highlight-purple'}
                     >
                       Ver Detalhes
                     </Button>
@@ -748,7 +731,7 @@ function LandingPage() {
                   <h4 className={`font-heading text-lg font-bold mb-4 ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
                     Pontos-chave da Entrevista
                   </h4>
-                  
+
                   <div className="space-y-4">
                     <div className="flex items-start space-x-3">
                       <CheckCircle className="h-5 w-5 text-triagen-secondary-green flex-shrink-0 mt-0.5" />
@@ -791,7 +774,7 @@ function LandingPage() {
                     darkMode ? 'bg-triagen-secondary-green/10 border border-triagen-secondary-green/20' : 'bg-triagen-secondary-green/10 border border-triagen-secondary-green/30'
                   }`}>
                     <p className={`font-sans text-sm ${darkMode ? 'text-gray-300' : 'text-triagen-dark-bg'}`}>
-                      <strong>Checklist Automático:</strong> Todos os pontos-chave da vaga foram cobertos durante a conversa, 
+                      <strong>Checklist Automático:</strong> Todos os pontos-chave da vaga foram cobertos durante a conversa,
                       garantindo uma avaliação completa e justa.
                     </p>
                   </div>

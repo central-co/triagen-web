@@ -221,12 +221,11 @@ function RegisterPage() {
 
               <Button
                 type="submit"
-                variant="primary"
-                size="md"
+                variant="primary-solid"
+                size="lg"
                 fullWidth
                 isLoading={isLoading}
                 icon={ArrowRight}
-                className="h-12 px-6 text-base whitespace-nowrap bg-triagen-dark-bg hover:bg-triagen-primary-blue"
               >
                 {isLoading ? 'Criando conta...' : 'Criar Conta'}
               </Button>

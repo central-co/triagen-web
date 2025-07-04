@@ -19,7 +19,7 @@ function Footer({ darkMode, onJoinWaitlist }: FooterProps) {
           <div className="space-y-6">
             <Logo darkMode={true} />
             <p className="font-sans text-gray-300 leading-relaxed">
-              Mais alcance, mais precisão. 
+              Mais alcance, mais precisão.
               Democratizamos a escuta no recrutamento com IA empática e transparente.
             </p>
             <div className="flex items-center space-x-2 text-triagen-secondary-green">
@@ -51,12 +51,12 @@ function Footer({ darkMode, onJoinWaitlist }: FooterProps) {
           <div className="space-y-6">
             <h3 className="font-heading text-lg font-semibold text-white">Comece a Ouvir Mais</h3>
             <p className="font-sans text-gray-300">
-              Teste grátis com 5 candidatos ou inicie um piloto acadêmico. 
+              Teste grátis com 5 candidatos ou inicie um piloto acadêmico.
               Descubra como nossa IA pode transformar seu recrutamento.
             </p>
             <div className="space-y-3">
               <Button
-                variant="primary"
+                variant="outline"
                 size="md"
                 fullWidth
                 onClick={onJoinWaitlist}
@@ -65,12 +65,11 @@ function Footer({ darkMode, onJoinWaitlist }: FooterProps) {
                 Teste Grátis (5 Candidatos)
               </Button>
               <Button
-                variant="outline"
+                variant="outline-purple"
                 size="md"
                 fullWidth
                 onClick={onJoinWaitlist}
                 darkMode={true}
-                className="border-triagen-highlight-purple text-triagen-highlight-purple hover:bg-triagen-highlight-purple/10"
               >
                 Piloto Acadêmico (R$200)
               </Button>

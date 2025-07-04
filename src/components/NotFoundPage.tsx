@@ -12,10 +12,10 @@ function NotFoundPage() {
   return (
     <div className={`min-h-screen transition-all duration-500 ${darkMode ? 'dark bg-gray-900' : 'bg-triagen-light-bg'}`}>
       <AnimatedBackground darkMode={darkMode} />
-      
+
       {/* Header */}
       <PageHeader darkMode={darkMode} />
-      
+
       {/* Main Content */}
       <div className="flex items-center justify-center min-h-[calc(100vh-80px)] px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full">
@@ -31,11 +31,10 @@ function NotFoundPage() {
                 A página que você está procurando não existe ou foi movida.
               </p>
               <Link to="/">
-                <Button 
-                  variant="primary" 
-                  size="lg" 
+                <Button
+                  variant="primary"
+                  size="lg"
                   fullWidth
-                  className="bg-triagen-dark-bg hover:bg-triagen-primary-blue"
                 >
                   Voltar para a Home
                 </Button>

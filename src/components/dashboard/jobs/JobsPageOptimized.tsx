@@ -40,7 +40,7 @@ function JobsPageOptimized() {
   });
 
   const filteredJobs = (jobs || []).filter(job => {
-    const matchesSearch = 
+    const matchesSearch =
       job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       job.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (job.location && job.location.toLowerCase().includes(searchTerm.toLowerCase()));
@@ -69,9 +69,8 @@ function JobsPageOptimized() {
         </div>
         <Button
           onClick={() => navigate('/dashboard/jobs/new')}
-          variant="primary"
+          variant="primary-solid"
           icon={Plus}
-          className="bg-triagen-dark-bg hover:bg-triagen-primary-blue"
         >
           Nova Vaga
         </Button>
@@ -123,9 +122,8 @@ function JobsPageOptimized() {
             </p>
             <Button
               onClick={() => navigate('/dashboard/jobs/new')}
-              variant="primary"
+              variant="primary-solid"
               icon={Plus}
-              className="bg-triagen-dark-bg hover:bg-triagen-primary-blue"
             >
               Criar Primeira Vaga
             </Button>

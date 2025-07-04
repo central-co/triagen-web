@@ -33,7 +33,7 @@ function NewJobPage() {
     differentials: [''],
     deadline: ''
   });
-  
+
   const [customQuestions] = useState<CustomQuestion[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -64,7 +64,7 @@ function NewJobPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!user?.id) {
       setError('Usuário não encontrado');
       return;
@@ -151,7 +151,7 @@ function NewJobPage() {
           <h2 className={`font-heading text-xl font-semibold mb-6 ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
             Informações Básicas
           </h2>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="md:col-span-2">
               <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-triagen-dark-bg'}`}>
@@ -232,7 +232,7 @@ function NewJobPage() {
           <h2 className={`font-heading text-xl font-semibold mb-6 ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
             Requisitos
           </h2>
-          
+
           <div className="space-y-4">
             {formData.requirements.map((req, index) => (
               <div key={index} className="flex gap-2">
@@ -293,9 +293,8 @@ function NewJobPage() {
           </Button>
           <Button
             type="submit"
-            variant="primary"
+            variant="primary-solid"
             isLoading={isLoading}
-            className="bg-triagen-dark-bg hover:bg-triagen-primary-blue"
           >
             {isLoading ? 'Criando...' : 'Criar Vaga'}
           </Button>

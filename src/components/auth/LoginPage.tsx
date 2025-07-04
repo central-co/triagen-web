@@ -16,13 +16,13 @@ function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  
+
   const { signIn } = useAuth();
   const { darkMode } = useDarkMode(true);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!email || !password) {
       setError('Por favor, preencha todos os campos');
       return;
@@ -50,7 +50,7 @@ function LoginPage() {
     <div className={`min-h-screen transition-all duration-500 ${darkMode ? 'dark bg-gray-900' : 'bg-triagen-light-bg'}`}>
       <AnimatedBackground darkMode={darkMode} />
       <PageHeader darkMode={darkMode} />
-      
+
       <div className="flex items-center justify-center min-h-[calc(100vh-80px)] px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full">
           <Card darkMode={darkMode} hoverEffect>
@@ -58,11 +58,11 @@ function LoginPage() {
               <div className="w-20 h-20 mx-auto mb-6 rounded-3xl bg-triagen-dark-bg flex items-center justify-center">
                 <Lock className="h-10 w-10 text-white" />
               </div>
-              
+
               <h1 className={`font-heading text-3xl font-bold mb-3 transition-colors duration-300 ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
                 Entrar na Plataforma
               </h1>
-              
+
               <p className={`font-sans transition-colors duration-300 ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
                 Acesse sua conta para gerenciar vagas e candidatos
               </p>
@@ -132,13 +132,12 @@ function LoginPage() {
 
               <Button
                 type="submit"
-                variant="primary"
+                variant="primary-solid"
                 size="lg"
                 fullWidth
                 isLoading={isLoading}
                 disabled={!email || !password}
                 icon={ArrowRight}
-                className="bg-triagen-dark-bg hover:bg-triagen-primary-blue"
               >
                 {isLoading ? 'Entrando...' : 'Entrar'}
               </Button>
@@ -148,21 +147,21 @@ function LoginPage() {
               <Link
                 to="/auth/forgot-password"
                 className={`font-sans text-sm transition-colors ${
-                  darkMode 
-                    ? 'text-triagen-secondary-green hover:text-triagen-secondary-green/80' 
+                  darkMode
+                    ? 'text-triagen-secondary-green hover:text-triagen-secondary-green/80'
                     : 'text-triagen-primary-blue hover:text-triagen-primary-blue/80'
                 } underline`}
               >
                 Esqueceu sua senha?
               </Link>
-              
+
               <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
                 Não tem uma conta?{' '}
                 <Link
                   to="/auth/register"
                   className={`font-medium transition-colors ${
-                    darkMode 
-                      ? 'text-triagen-secondary-green hover:text-triagen-secondary-green/80' 
+                    darkMode
+                      ? 'text-triagen-secondary-green hover:text-triagen-secondary-green/80'
                       : 'text-triagen-primary-blue hover:text-triagen-primary-blue/80'
                   } underline`}
                 >
