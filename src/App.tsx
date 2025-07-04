@@ -11,6 +11,7 @@ import JobsPage from './components/dashboard/jobs/JobsPage';
 import NewJobPage from './components/dashboard/jobs/NewJobPage';
 import JobApplicationPage from './components/dashboard/jobs/JobApplicationPage';
 import CandidatesPage from './components/dashboard/candidates/CandidatesPage';
+import CandidateProfilePage from './components/dashboard/candidates/CandidateProfilePage';
 import ReportsPage from './components/dashboard/reports/ReportsPage';
 import SettingsPage from './components/dashboard/settings/SettingsPage';
 
@@ -83,6 +84,7 @@ function App() {
         <Route path="jobs" element={<JobsPage />} />
         <Route path="jobs/new" element={<NewJobPage />} />
         <Route path="candidates" element={<CandidatesPage />} />
+        <Route path="candidates/:candidateId" element={<CandidateProfilePage />} />
         <Route path="reports" element={<ReportsPage />} />
         <Route path="settings" element={<SettingsPage />} />
       </Route>
