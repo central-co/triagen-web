@@ -11,6 +11,7 @@ import {
 import { Mic, MicOff, PhoneOff, Volume2, VolumeX } from 'lucide-react';
 import useDarkMode from '../hooks/useDarkMode';
 import useAudioLevel from '../hooks/useAudioLevel';
+import { useAppConfig } from '../hooks/useAppConfig';
 import AnimatedBackground from './ui/AnimatedBackground';
 import Button from './ui/button';
 import Card from './ui/Card';
@@ -33,28 +34,30 @@ function InterviewRoom({ jwtToken, onLeave }: InterviewRoomProps) {
   const { darkMode } = useDarkMode(true);
   const audioLevel = useAudioLevel(localAudioTrack);
   const audioRef = useRef<HTMLAudioElement>(null);
+  const { config, loading: configLoading, error: configError } = useAppConfig();
 
   useEffect(() => {
-    connectToRoom();
+    if (config && !configLoading) {
+      connectToRoom();
+    }
     return () => {
       if (room) {
         room.disconnect();
       }
     };
-  }, []);
+  }, [config, configLoading]);
 
   const connectToRoom = async () => {
-    if (isConnecting) return;
+    if (isConnecting || !config) return;
 
     setIsConnecting(true);
     setError('');
 
     try {
-      // Get LiveKit URL from environment variables
-      const livekitUrl = import.meta.env.VITE_LIVEKIT_WS_URL || import.meta.env.VITE_LIVEKIT_URL;
+      const livekitUrl = config.livekitUrl;
       
       if (!livekitUrl) {
-        throw new Error('LiveKit server URL not configured. Please set VITE_LIVEKIT_WS_URL in your environment variables.');
+        throw new Error('LiveKit server URL not configured. Please check your configuration.');
       }
 
       // Validate that the URL is a WebSocket URL
@@ -73,7 +76,7 @@ function InterviewRoom({ jwtToken, onLeave }: InterviewRoomProps) {
       roomInstance.on(RoomEvent.TrackUnsubscribed, handleTrackUnsubscribed);
       roomInstance.on(RoomEvent.LocalTrackPublished, handleLocalTrackPublished);
 
-      // Connect to room using environment variable
+      // Connect to room using config
       await roomInstance.connect(livekitUrl, jwtToken, {
         autoSubscribe: true,
       });
@@ -174,6 +177,53 @@ function InterviewRoom({ jwtToken, onLeave }: InterviewRoomProps) {
     }
     onLeave();
   };
+
+  // Show loading while config is loading
+  if (configLoading) {
+    return (
+      <div className={`min-h-screen transition-all duration-500 ${darkMode ? 'dark bg-gray-900' : 'bg-triagen-light-bg'}`}>
+        <AnimatedBackground darkMode={darkMode} isRoom />
+        <div className="flex items-center justify-center min-h-screen px-4">
+          <Card darkMode={darkMode}>
+            <StatusMessage
+              type="info"
+              title="Carregando configuração..."
+              message="Obtendo configurações do servidor."
+              darkMode={darkMode}
+            />
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error if config failed to load
+  if (configError) {
+    return (
+      <div className={`min-h-screen transition-all duration-500 ${darkMode ? 'dark bg-gray-900' : 'bg-triagen-light-bg'}`}>
+        <AnimatedBackground darkMode={darkMode} isRoom />
+        <div className="flex items-center justify-center min-h-screen px-4">
+          <Card darkMode={darkMode}>
+            <StatusMessage
+              type="error"
+              title="Erro de configuração"
+              message={configError}
+              darkMode={darkMode}
+            />
+            <Button
+              variant="primary"
+              size="lg"
+              fullWidth
+              onClick={() => window.location.reload()}
+              className="mt-4 bg-triagen-dark-bg hover:bg-triagen-primary-blue"
+            >
+              Tentar Novamente
+            </Button>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   if (!isConnected && !isConnecting) {
     return (

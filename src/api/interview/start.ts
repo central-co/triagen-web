@@ -1,10 +1,12 @@
+import { getConfig } from '../../utils/config';
+
 export interface AuthResponse {
   token: string;
 }
 
 export async function startInterview(authToken: string): Promise<string> {
-  const baseUrl = import.meta.env.VITE_API_URL;
-  const response = await fetch(`${baseUrl}/api/interview/start`, {
+  const config = await getConfig();
+  const response = await fetch(`${config.apiUrl}/api/interview/start`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ interview_code: authToken }),

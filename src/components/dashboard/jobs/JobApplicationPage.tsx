@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Send, ArrowLeft, FileText } from 'lucide-react';
 import useDarkMode from '../../../hooks/useDarkMode';
+import { useAppConfig } from '../../../hooks/useAppConfig';
 import { supabase } from '../../../integrations/supabase/client';
 import Button from '../../ui/button';
 import Card from '../../ui/Card';
@@ -19,6 +20,7 @@ function JobApplicationPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const { darkMode } = useDarkMode(true);
+  const { config, loading: configLoading, error: configError } = useAppConfig();
 
   const [formData, setFormData] = useState({
     name: '',
@@ -115,15 +117,20 @@ function JobApplicationPage() {
       }
     }
 
+    if (configLoading) {
+      setError('Aguarde o carregamento da configuração');
+      return;
+    }
+
+    if (configError || !config) {
+      setError('Erro na configuração do sistema. Tente recarregar a página.');
+      return;
+    }
+
     setSubmitting(true);
     setError('');
 
     try {
-      const apiUrl = import.meta.env.VITE_API_URL;
-      if (!apiUrl) {
-        throw new Error('URL da API não configurada');
-      }
-
       // Preparar payload simplificado para sua API
       const payload = {
         jobId: jobId,
@@ -137,7 +144,7 @@ function JobApplicationPage() {
 
       console.log('Enviando payload para API:', payload);
 
-      const response = await fetch(`${apiUrl}/api/application/create`, {
+      const response = await fetch(`${config.apiUrl}/api/application/create`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -168,7 +175,7 @@ function JobApplicationPage() {
     }
   };
 
-  if (loading) {
+  if (loading || configLoading) {
     return (
       <div className={`min-h-screen transition-all duration-500 ${darkMode ? 'dark bg-gray-900' : 'bg-triagen-light-bg'}`}>
         <AnimatedBackground darkMode={darkMode} />
@@ -203,6 +210,34 @@ function JobApplicationPage() {
               className="mt-4 bg-triagen-dark-bg hover:bg-triagen-primary-blue"
             >
               Voltar ao Início
+            </Button>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  if (configError) {
+    return (
+      <div className={`min-h-screen transition-all duration-500 ${darkMode ? 'dark bg-gray-900' : 'bg-triagen-light-bg'}`}>
+        <AnimatedBackground darkMode={darkMode} />
+        <PageHeader darkMode={darkMode} />
+        <div className="flex items-center justify-center min-h-[calc(100vh-80px)] px-4">
+          <Card darkMode={darkMode}>
+            <StatusMessage
+              type="error"
+              title="Erro de configuração"
+              message={configError}
+              darkMode={darkMode}
+            />
+            <Button
+              variant="primary"
+              size="lg"
+              fullWidth
+              onClick={() => window.location.reload()}
+              className="mt-4 bg-triagen-dark-bg hover:bg-triagen-primary-blue"
+            >
+              Tentar Novamente
             </Button>
           </Card>
         </div>

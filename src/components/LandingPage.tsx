@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import useDarkMode from '../hooks/useDarkMode';
 import { useAuth } from '../hooks/useAuth';
+import { useAppConfig } from '../hooks/useAppConfig';
 import AnimatedBackground from './ui/AnimatedBackground';
 import Button from './ui/button';
 import PageHeader from './ui/PageHeader';
@@ -53,6 +54,7 @@ function LandingPage() {
   const [error, setError] = useState('');
   const { darkMode, toggleDarkMode } = useDarkMode();
   const { user, loading } = useAuth();
+  const { config, loading: configLoading } = useAppConfig();
   const navigate = useNavigate();
   const recaptchaRef = useRef<ReCAPTCHA>(null);
 
@@ -104,20 +106,20 @@ function LandingPage() {
       return;
     }
 
+    if (!config) {
+      setError('Configuração não carregada. Tente recarregar a página.');
+      return;
+    }
+
     setIsLoading(true);
     setError('');
 
     try {
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      if (!supabaseUrl) {
-        throw new Error('Configuração do Supabase não encontrada');
-      }
-
-      const response = await fetch(`${supabaseUrl}/functions/v1/waitlist-signup`, {
+      const response = await fetch(`${config.supabaseUrl}/functions/v1/waitlist-signup`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          'Authorization': `Bearer ${config.supabaseAnonKey}`,
         },
         body: JSON.stringify({
           email: formData.email,
@@ -158,7 +160,7 @@ function LandingPage() {
   // Create right content based on authentication status
   const rightContent = (() => {
     // Only show loading when auth is actually being processed
-    if (loading) {
+    if (loading || configLoading) {
       return (
         <div className="w-8 h-8 rounded-full border-2 border-triagen-primary-blue border-t-transparent animate-spin"></div>
       );
@@ -524,7 +526,7 @@ function LandingPage() {
                         <div className="flex justify-center">
                           <ReCAPTCHA
                             ref={recaptchaRef}
-                            sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY || ''}
+                            sitekey={config?.recaptchaSiteKey || ''}
                             size="invisible"
                             theme={darkMode ? 'dark' : 'light'}
                           />
