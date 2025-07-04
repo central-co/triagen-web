@@ -30,6 +30,7 @@ interface Job {
   title: string;
   description: string;
   company: {
+    id: string; // Added id field
     name: string;
   };
 }
@@ -76,7 +77,7 @@ function CandidateProfilePage() {
         throw new Error('Empresa não encontrada');
       }
 
-      // Get candidate with job information
+      // Get candidate with job information - FIXED: Added company id to the query
       const { data: candidateData, error: candidateError } = await supabase
         .from('candidates')
         .select(`
@@ -86,6 +87,7 @@ function CandidateProfilePage() {
             title,
             description,
             company:companies(
+              id,
               name
             )
           )
