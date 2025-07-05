@@ -3,7 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
   Plus,
-  Minus
+  Minus,
+  Calendar,
+  DollarSign,
+  Gift,
+  Target,
+  HelpCircle
 } from 'lucide-react';
 import useDarkMode from '../../../hooks/useDarkMode';
 import { useAuth } from '../../../hooks/useAuth';
@@ -31,10 +36,11 @@ function NewJobPage() {
     benefits: '',
     requirements: [''],
     differentials: [''],
-    deadline: ''
+    deadline: '',
+    salaryInfo: ''
   });
 
-  const [customQuestions] = useState<CustomQuestion[]>([]);
+  const [customQuestions, setCustomQuestions] = useState<CustomQuestion[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const { darkMode } = useDarkMode(true);
@@ -60,6 +66,77 @@ function NewJobPage() {
       ...prev,
       requirements: prev.requirements.map((req, i) => i === index ? value : req)
     }));
+  };
+
+  const addDifferential = () => {
+    setFormData(prev => ({
+      ...prev,
+      differentials: [...prev.differentials, '']
+    }));
+  };
+
+  const removeDifferential = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      differentials: prev.differentials.filter((_, i) => i !== index)
+    }));
+  };
+
+  const updateDifferential = (index: number, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      differentials: prev.differentials.map((diff, i) => i === index ? value : diff)
+    }));
+  };
+
+  const addCustomQuestion = () => {
+    const newQuestion: CustomQuestion = {
+      id: crypto.randomUUID(),
+      question: '',
+      type: 'text',
+      required: false
+    };
+    setCustomQuestions(prev => [...prev, newQuestion]);
+  };
+
+  const removeCustomQuestion = (id: string) => {
+    setCustomQuestions(prev => prev.filter(q => q.id !== id));
+  };
+
+  const updateCustomQuestion = (id: string, field: keyof CustomQuestion, value: any) => {
+    setCustomQuestions(prev => prev.map(q => 
+      q.id === id ? { ...q, [field]: value } : q
+    ));
+  };
+
+  const addQuestionOption = (questionId: string) => {
+    setCustomQuestions(prev => prev.map(q => 
+      q.id === questionId 
+        ? { ...q, options: [...(q.options || []), ''] }
+        : q
+    ));
+  };
+
+  const updateQuestionOption = (questionId: string, optionIndex: number, value: string) => {
+    setCustomQuestions(prev => prev.map(q => 
+      q.id === questionId 
+        ? { 
+            ...q, 
+            options: q.options?.map((opt, i) => i === optionIndex ? value : opt) 
+          }
+        : q
+    ));
+  };
+
+  const removeQuestionOption = (questionId: string, optionIndex: number) => {
+    setCustomQuestions(prev => prev.map(q => 
+      q.id === questionId 
+        ? { 
+            ...q, 
+            options: q.options?.filter((_, i) => i !== optionIndex) 
+          }
+        : q
+    ));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -90,7 +167,15 @@ function NewJobPage() {
 
       const company = companies[0];
 
-      // Create job with proper Json casting
+      // Validate custom questions
+      const validCustomQuestions = customQuestions.filter(q => q.question.trim() !== '');
+      for (const question of validCustomQuestions) {
+        if (question.type === 'select' && (!question.options || question.options.filter(opt => opt.trim() !== '').length === 0)) {
+          throw new Error(`A pergunta "${question.question}" do tipo seleção deve ter pelo menos uma opção.`);
+        }
+      }
+
+      // Create job with all fields
       const { error: jobError } = await supabase
         .from('jobs')
         .insert({
@@ -101,10 +186,11 @@ function NewJobPage() {
           work_model: formData.workModel,
           contract_type: formData.contractType,
           salary_range: formData.salaryRange || null,
+          salary_info: formData.salaryInfo || null,
           benefits: formData.benefits || null,
           requirements: JSON.stringify(formData.requirements.filter(req => req.trim() !== '')),
           differentials: JSON.stringify(formData.differentials.filter(diff => diff.trim() !== '')),
-          custom_questions: JSON.stringify(customQuestions),
+          custom_questions: JSON.stringify(validCustomQuestions),
           deadline: formData.deadline || null,
           status: 'open'
         });
@@ -224,13 +310,114 @@ function NewJobPage() {
                 <option value="hibrido">Híbrido</option>
               </select>
             </div>
+
+            <div>
+              <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-triagen-dark-bg'}`}>
+                Tipo de Contrato
+              </label>
+              <select
+                value={formData.contractType}
+                onChange={(e) => setFormData(prev => ({ ...prev, contractType: e.target.value }))}
+                className={`font-sans w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-triagen-secondary-green/50 focus:border-triagen-secondary-green ${
+                  darkMode
+                    ? 'bg-gray-800/50 border-triagen-border-dark text-white'
+                    : 'bg-white/70 border-triagen-border-light text-triagen-dark-bg'
+                }`}
+              >
+                <option value="full-time">Tempo Integral</option>
+                <option value="part-time">Meio Período</option>
+                <option value="contract">Contrato</option>
+                <option value="freelance">Freelance</option>
+                <option value="internship">Estágio</option>
+              </select>
+            </div>
+
+            <div>
+              <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-triagen-dark-bg'}`}>
+                <Calendar className="h-4 w-4 inline mr-1" />
+                Prazo Final (Opcional)
+              </label>
+              <input
+                type="date"
+                value={formData.deadline}
+                onChange={(e) => setFormData(prev => ({ ...prev, deadline: e.target.value }))}
+                className={`font-sans w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-triagen-secondary-green/50 focus:border-triagen-secondary-green ${
+                  darkMode
+                    ? 'bg-gray-800/50 border-triagen-border-dark text-white'
+                    : 'bg-white/70 border-triagen-border-light text-triagen-dark-bg'
+                }`}
+              />
+            </div>
+          </div>
+        </Card>
+
+        {/* Salary and Benefits */}
+        <Card darkMode={darkMode}>
+          <h2 className={`font-heading text-xl font-semibold mb-6 ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
+            <DollarSign className="h-5 w-5 inline mr-2" />
+            Remuneração e Benefícios
+          </h2>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-triagen-dark-bg'}`}>
+                Faixa Salarial
+              </label>
+              <input
+                type="text"
+                value={formData.salaryRange}
+                onChange={(e) => setFormData(prev => ({ ...prev, salaryRange: e.target.value }))}
+                className={`font-sans w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-triagen-secondary-green/50 focus:border-triagen-secondary-green ${
+                  darkMode
+                    ? 'bg-gray-800/50 border-triagen-border-dark text-white placeholder-gray-400'
+                    : 'bg-white/70 border-triagen-border-light text-triagen-dark-bg placeholder-triagen-text-light'
+                }`}
+                placeholder="Ex: R$ 5.000 - R$ 8.000"
+              />
+            </div>
+
+            <div>
+              <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-triagen-dark-bg'}`}>
+                Informações Salariais Adicionais
+              </label>
+              <input
+                type="text"
+                value={formData.salaryInfo}
+                onChange={(e) => setFormData(prev => ({ ...prev, salaryInfo: e.target.value }))}
+                className={`font-sans w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-triagen-secondary-green/50 focus:border-triagen-secondary-green ${
+                  darkMode
+                    ? 'bg-gray-800/50 border-triagen-border-dark text-white placeholder-gray-400'
+                    : 'bg-white/70 border-triagen-border-light text-triagen-dark-bg placeholder-triagen-text-light'
+                }`}
+                placeholder="Ex: CLT, PJ, 13º salário, etc."
+              />
+            </div>
+
+            <div className="md:col-span-2">
+              <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-triagen-dark-bg'}`}>
+                <Gift className="h-4 w-4 inline mr-1" />
+                Benefícios
+              </label>
+              <textarea
+                value={formData.benefits}
+                onChange={(e) => setFormData(prev => ({ ...prev, benefits: e.target.value }))}
+                rows={3}
+                className={`font-sans w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-triagen-secondary-green/50 focus:border-triagen-secondary-green ${
+                  darkMode
+                    ? 'bg-gray-800/50 border-triagen-border-dark text-white placeholder-gray-400'
+                    : 'bg-white/70 border-triagen-border-light text-triagen-dark-bg placeholder-triagen-text-light'
+                }`}
+                placeholder="Ex: Vale refeição, plano de saúde, home office, horário flexível..."
+              />
+            </div>
           </div>
         </Card>
 
         {/* Requirements */}
         <Card darkMode={darkMode}>
           <h2 className={`font-heading text-xl font-semibold mb-6 ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
-            Requisitos
+            <Target className="h-5 w-5 inline mr-2" />
+            Requisitos Obrigatórios
           </h2>
 
           <div className="space-y-4">
@@ -268,6 +455,187 @@ function NewJobPage() {
               darkMode={darkMode}
             >
               Adicionar Requisito
+            </Button>
+          </div>
+        </Card>
+
+        {/* Differentials */}
+        <Card darkMode={darkMode}>
+          <h2 className={`font-heading text-xl font-semibold mb-6 ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
+            Diferenciais Desejáveis
+          </h2>
+
+          <div className="space-y-4">
+            {formData.differentials.map((diff, index) => (
+              <div key={index} className="flex gap-2">
+                <input
+                  type="text"
+                  value={diff}
+                  onChange={(e) => updateDifferential(index, e.target.value)}
+                  className={`font-sans flex-1 px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-triagen-secondary-green/50 focus:border-triagen-secondary-green ${
+                    darkMode
+                      ? 'bg-gray-800/50 border-triagen-border-dark text-white placeholder-gray-400'
+                      : 'bg-white/70 border-triagen-border-light text-triagen-dark-bg placeholder-triagen-text-light'
+                  }`}
+                  placeholder="Ex: Conhecimento em TypeScript"
+                />
+                {formData.differentials.length > 1 && (
+                  <Button
+                    type="button"
+                    onClick={() => removeDifferential(index)}
+                    variant="outline"
+                    size="sm"
+                    icon={Minus}
+                    darkMode={darkMode}
+                  />
+                )}
+              </div>
+            ))}
+            <Button
+              type="button"
+              onClick={addDifferential}
+              variant="outline"
+              size="sm"
+              icon={Plus}
+              darkMode={darkMode}
+            >
+              Adicionar Diferencial
+            </Button>
+          </div>
+        </Card>
+
+        {/* Custom Questions */}
+        <Card darkMode={darkMode}>
+          <h2 className={`font-heading text-xl font-semibold mb-6 ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
+            <HelpCircle className="h-5 w-5 inline mr-2" />
+            Perguntas Personalizadas
+          </h2>
+
+          <div className="space-y-6">
+            {customQuestions.map((question, index) => (
+              <div key={question.id} className={`p-4 rounded-xl border ${
+                darkMode ? 'border-triagen-border-dark bg-gray-800/30' : 'border-triagen-border-light bg-triagen-light-bg/30'
+              }`}>
+                <div className="flex justify-between items-start mb-4">
+                  <h3 className={`font-medium ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
+                    Pergunta {index + 1}
+                  </h3>
+                  <Button
+                    type="button"
+                    onClick={() => removeCustomQuestion(question.id)}
+                    variant="outline"
+                    size="sm"
+                    icon={Minus}
+                    darkMode={darkMode}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div className="md:col-span-2">
+                    <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-triagen-dark-bg'}`}>
+                      Pergunta
+                    </label>
+                    <input
+                      type="text"
+                      value={question.question}
+                      onChange={(e) => updateCustomQuestion(question.id, 'question', e.target.value)}
+                      className={`font-sans w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-triagen-secondary-green/50 focus:border-triagen-secondary-green ${
+                        darkMode
+                          ? 'bg-gray-800/50 border-triagen-border-dark text-white placeholder-gray-400'
+                          : 'bg-white/70 border-triagen-border-light text-triagen-dark-bg placeholder-triagen-text-light'
+                      }`}
+                      placeholder="Ex: Por que você se interessou por esta vaga?"
+                    />
+                  </div>
+
+                  <div>
+                    <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-triagen-dark-bg'}`}>
+                      Tipo de Resposta
+                    </label>
+                    <select
+                      value={question.type}
+                      onChange={(e) => updateCustomQuestion(question.id, 'type', e.target.value as 'text' | 'textarea' | 'select')}
+                      className={`font-sans w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-triagen-secondary-green/50 focus:border-triagen-secondary-green ${
+                        darkMode
+                          ? 'bg-gray-800/50 border-triagen-border-dark text-white'
+                          : 'bg-white/70 border-triagen-border-light text-triagen-dark-bg'
+                      }`}
+                    >
+                      <option value="text">Texto Curto</option>
+                      <option value="textarea">Texto Longo</option>
+                      <option value="select">Múltipla Escolha</option>
+                    </select>
+                  </div>
+
+                  <div className="flex items-center">
+                    <label className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        checked={question.required}
+                        onChange={(e) => updateCustomQuestion(question.id, 'required', e.target.checked)}
+                        className="h-4 w-4 text-triagen-secondary-green focus:ring-triagen-secondary-green border-triagen-border-light rounded"
+                      />
+                      <span className={`text-sm ${darkMode ? 'text-gray-300' : 'text-triagen-dark-bg'}`}>
+                        Obrigatória
+                      </span>
+                    </label>
+                  </div>
+                </div>
+
+                {question.type === 'select' && (
+                  <div>
+                    <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-triagen-dark-bg'}`}>
+                      Opções
+                    </label>
+                    <div className="space-y-2">
+                      {(question.options || []).map((option, optionIndex) => (
+                        <div key={optionIndex} className="flex gap-2">
+                          <input
+                            type="text"
+                            value={option}
+                            onChange={(e) => updateQuestionOption(question.id, optionIndex, e.target.value)}
+                            className={`font-sans flex-1 px-4 py-2 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-triagen-secondary-green/50 focus:border-triagen-secondary-green ${
+                              darkMode
+                                ? 'bg-gray-800/50 border-triagen-border-dark text-white placeholder-gray-400'
+                                : 'bg-white/70 border-triagen-border-light text-triagen-dark-bg placeholder-triagen-text-light'
+                            }`}
+                            placeholder={`Opção ${optionIndex + 1}`}
+                          />
+                          <Button
+                            type="button"
+                            onClick={() => removeQuestionOption(question.id, optionIndex)}
+                            variant="outline"
+                            size="sm"
+                            icon={Minus}
+                            darkMode={darkMode}
+                          />
+                        </div>
+                      ))}
+                      <Button
+                        type="button"
+                        onClick={() => addQuestionOption(question.id)}
+                        variant="outline"
+                        size="sm"
+                        icon={Plus}
+                        darkMode={darkMode}
+                      >
+                        Adicionar Opção
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+
+            <Button
+              type="button"
+              onClick={addCustomQuestion}
+              variant="outline"
+              size="md"
+              icon={Plus}
+              darkMode={darkMode}
+            >
+              Adicionar Pergunta Personalizada
             </Button>
           </div>
         </Card>
