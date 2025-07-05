@@ -1,6 +1,6 @@
-
 import { useNavigate } from 'react-router-dom';
-import { MapPin, Clock, Users } from 'lucide-react';
+import { MapPin, Clock, Users, ExternalLink, Copy, Check } from 'lucide-react';
+import { useState } from 'react';
 import Button from '../../ui/button';
 import Card from '../../ui/Card';
 import { JobWithStats } from '../../../types/company';
@@ -12,6 +12,23 @@ interface JobCardProps {
 
 function JobCard({ job, darkMode }: JobCardProps) {
   const navigate = useNavigate();
+  const [copied, setCopied] = useState(false);
+
+  const applicationUrl = `${window.location.origin}/apply/${job.id}`;
+
+  const copyApplicationLink = async () => {
+    try {
+      await navigator.clipboard.writeText(applicationUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy link:', err);
+    }
+  };
+
+  const openApplicationPage = () => {
+    window.open(applicationUrl, '_blank');
+  };
 
   return (
     <Card key={job.id} darkMode={darkMode} hoverEffect>
@@ -48,6 +65,46 @@ function JobCard({ job, darkMode }: JobCardProps) {
             <div className={`flex items-center space-x-1 ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
               <Clock className="h-4 w-4" />
               <span>{new Date(job.created_at).toLocaleDateString('pt-BR')}</span>
+            </div>
+          </div>
+
+          {/* Application Link Section */}
+          <div className={`mt-4 pt-4 border-t ${
+            darkMode ? 'border-triagen-border-dark' : 'border-triagen-border-light'
+          }`}>
+            <div className="flex items-center justify-between">
+              <div className="flex-1 mr-4">
+                <p className={`text-xs font-medium mb-1 ${darkMode ? 'text-gray-300' : 'text-triagen-dark-bg'}`}>
+                  Link de Candidatura:
+                </p>
+                <div className={`px-3 py-2 rounded-lg text-xs font-mono break-all ${
+                  darkMode ? 'bg-gray-800/50 text-gray-400' : 'bg-triagen-light-bg/50 text-triagen-text-light'
+                }`}>
+                  {applicationUrl}
+                </div>
+              </div>
+              <div className="flex space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={copyApplicationLink}
+                  icon={copied ? Check : Copy}
+                  darkMode={darkMode}
+                  className="text-xs"
+                >
+                  {copied ? 'Copiado!' : 'Copiar'}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={openApplicationPage}
+                  icon={ExternalLink}
+                  darkMode={darkMode}
+                  className="text-xs"
+                >
+                  Abrir
+                </Button>
+              </div>
             </div>
           </div>
         </div>
