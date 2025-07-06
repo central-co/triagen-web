@@ -79,7 +79,7 @@ function InterviewPage() {
           <Card darkMode={darkMode} hoverEffect>
             {/* Header */}
             <div className="text-center mb-8">
-              <div className={`w-20 h-20 mx-auto mb-6 rounded-3xl bg-triagen-dark-bg flex items-center justify-center transition-transform duration-300 hover:scale-110`}>
+              <div className={`w-20 h-20 mx-auto mb-6 rounded-3xl bg-triagen-dark-bg flex items-center justify-center transition-transform duration-300`}>
                 <Bot className="h-10 w-10 text-white" />
               </div>
 

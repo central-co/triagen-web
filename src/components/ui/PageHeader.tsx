@@ -47,7 +47,7 @@ function PageHeader({
             {toggleDarkMode && (
               <button
                 onClick={toggleDarkMode}
-                className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 flex-shrink-0 ${
+                className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-102 flex-shrink-0 ${
                   darkMode 
                     ? 'bg-gray-800/50 text-triagen-secondary-green hover:bg-gray-700/50' 
                     : 'bg-triagen-light-bg/50 text-triagen-dark-bg hover:bg-triagen-light-bg/70'

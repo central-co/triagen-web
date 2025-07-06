@@ -7,6 +7,7 @@ export interface CardProps {
   hoverEffect?: boolean;
   variant?: 'default' | 'glass' | 'solid';
   padding?: 'sm' | 'md' | 'lg';
+  onClick?: () => void;
 }
 
 function Card({
@@ -15,9 +16,10 @@ function Card({
   className = '',
   hoverEffect = false,
   variant = 'glass',
-  padding = 'md'
+  padding = 'md',
+  onClick
 }: CardProps) {
-  const baseClasses = 'rounded-3xl border transition-all duration-500';
+  const baseClasses = 'rounded-3xl border transition-all duration-300';
   
   const variantClasses = {
     default: darkMode
@@ -38,15 +40,19 @@ function Card({
   };
   
   const hoverClasses = hoverEffect 
-    ? 'hover:scale-[1.02] hover:shadow-2xl' 
+    ? onClick 
+      ? 'hover:scale-[1.005] hover:shadow-lg cursor-pointer' + (darkMode ? ' hover:bg-gray-800/60' : ' hover:bg-white/70')
+      : 'hover:scale-[1.005] hover:shadow-lg' + (darkMode ? ' hover:bg-gray-800/50' : ' hover:bg-white/60')
     : '';
   
   const classes = `${baseClasses} ${variantClasses[variant]} ${paddingClasses[padding]} ${hoverClasses} ${className}`;
 
+  const Component = onClick ? 'button' : 'div';
+
   return (
-    <div className={classes}>
+    <Component className={classes} onClick={onClick}>
       {children}
-    </div>
+    </Component>
   );
 }
 

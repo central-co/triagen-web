@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { 
@@ -97,7 +96,7 @@ function DashboardLayout() {
                 icon={Icon}
                 iconPosition="left"
                 darkMode={darkMode}
-                className={`justify-start ${
+                className={`justify-start text-left ${
                   isActive
                     ? darkMode
                       ? 'bg-triagen-secondary-green/20 text-triagen-secondary-green border border-triagen-secondary-green/30'
@@ -121,6 +120,7 @@ function DashboardLayout() {
             icon={LogOut}
             iconPosition="left"
             darkMode={darkMode}
+            className="justify-start"
           >
             Sair
           </Button>

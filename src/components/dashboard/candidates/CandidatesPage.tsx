@@ -327,7 +327,12 @@ function CandidatesPage() {
             const StatusIcon = getStatusIcon(candidate.status);
             
             return (
-              <Card key={candidate.id} darkMode={darkMode} hoverEffect>
+              <Card 
+                key={candidate.id} 
+                darkMode={darkMode} 
+                hoverEffect
+                onClick={() => navigate(`/dashboard/candidates/${candidate.id}`)}
+              >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4 flex-1">
                     <div className="flex-1">
@@ -335,15 +340,21 @@ function CandidatesPage() {
                         <h3 className={`font-heading text-lg font-semibold ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
                           {candidate.name}
                         </h3>
-                        <Button
-                          variant={candidate.is_favorite ? "favorite-toggle" : "ghost"}
-                          size="sm"
-                          onClick={() => toggleFavorite(candidate.id, candidate.is_favorite)}
-                          icon={candidate.is_favorite ? Star : StarOff}
-                          iconPosition="left"
-                          darkMode={darkMode}
-                          className="p-1"
-                        />
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleFavorite(candidate.id, candidate.is_favorite);
+                          }}
+                          className={`p-1 rounded-full transition-colors ${
+                            candidate.is_favorite 
+                              ? 'text-yellow-500 hover:text-yellow-600' 
+                              : darkMode 
+                                ? 'text-gray-400 hover:text-yellow-500' 
+                                : 'text-triagen-text-light hover:text-yellow-500'
+                          }`}
+                        >
+                          {candidate.is_favorite ? <Star className="h-4 w-4 fill-current" /> : <StarOff className="h-4 w-4" />}
+                        </button>
                       </div>
                       
                       <div className="flex items-center space-x-4 text-sm">
@@ -368,29 +379,20 @@ function CandidatesPage() {
                       </span>
                     </div>
 
-                    <div className="flex space-x-2">
+                    {candidate.status === 'completed' && (
                       <Button
-                        variant="outline"
+                        variant="secondary"
                         size="sm"
-                        onClick={() => navigate(`/dashboard/candidates/${candidate.id}`)}
-                        icon={Eye}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/dashboard/candidates/${candidate.id}/report`);
+                        }}
+                        icon={Download}
                         darkMode={darkMode}
                       >
-                        Ver Perfil
+                        Relatório
                       </Button>
-                      
-                      {candidate.status === 'completed' && (
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          onClick={() => navigate(`/dashboard/candidates/${candidate.id}/report`)}
-                          icon={Download}
-                          darkMode={darkMode}
-                        >
-                          Relatório
-                        </Button>
-                      )}
-                    </div>
+                    )}
                   </div>
                 </div>
 

@@ -30,7 +30,7 @@ function Button({
   type = 'button',
   className = ''
 }: Readonly<ButtonProps>) {
-  const baseClasses = 'group relative font-semibold transition-all duration-300 hover:scale-105 overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 focus:outline-none focus:ring-2 focus:ring-offset-2';
+  const baseClasses = 'group relative font-semibold transition-all duration-200 hover:scale-101 overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 focus:outline-none focus:ring-2 focus:ring-offset-2';
 
   const sizeClasses = {
     sm: 'px-4 py-2 text-sm rounded-xl',
@@ -82,11 +82,11 @@ function Button({
         ) : (
           <>
             {Icon && iconPosition === 'left' && (
-              <Icon className="h-5 w-5 group-hover:scale-110 transition-transform duration-300" />
+              <Icon className="h-5 w-5 group-hover:scale-105 transition-transform duration-200" />
             )}
             {children && <span>{children}</span>}
             {Icon && iconPosition === 'right' && (
-              <Icon className="h-5 w-5 group-hover:translate-x-1 transition-transform duration-300" />
+              <Icon className="h-5 w-5 group-hover:translate-x-1 transition-transform duration-200" />
             )}
           </>
         )}

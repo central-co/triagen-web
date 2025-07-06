@@ -66,7 +66,7 @@ function UserDropdown() {
       {/* User Avatar Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`flex items-center space-x-2 px-3 py-2 rounded-xl transition-all duration-300 hover:scale-105 ${
+        className={`flex items-center space-x-2 px-3 py-2 rounded-xl transition-all duration-300 hover:scale-101 ${
           darkMode 
             ? 'bg-gray-800/50 text-gray-300 hover:bg-gray-700/50 border border-triagen-border-dark' 
             : 'bg-triagen-light-bg/50 text-triagen-dark-bg hover:bg-triagen-light-bg/70 border border-triagen-border-light'
