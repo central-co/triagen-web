@@ -53,7 +53,7 @@ function InterviewPage() {
   };
 
   if (isAuthenticated) {
-    return (Fz
+    return (
       <InterviewRoom
         jwtToken={jwtToken}
         onLeave={() => {
@@ -139,7 +139,14 @@ function InterviewPage() {
             <StatusMessage
               type="info"
               title="Dicas para uma boa entrevista:"
-              message="Certifique-se de estar em um ambiente silencioso • Teste seu microfone antes de começar • Fale de forma clara e natural • A entrevista dura aproximadamente 15-20 minutos"
+              message={
+                <ul className="list-disc list-inside space-y-1">
+                  <li>Certifique-se de estar em um ambiente silencioso</li>
+                  <li>Teste seu microfone antes de começar</li>
+                  <li>Fale de forma clara e natural</li>
+                  <li>A entrevista dura aproximadamente 15-20 minutos</li>
+                </ul>
+              }
               darkMode={darkMode}
               className="mt-8"
             />

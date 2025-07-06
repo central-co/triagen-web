@@ -3,7 +3,7 @@ import { CheckCircle, AlertCircle, AlertTriangle, Info, DivideIcon as LucideIcon
 export interface StatusMessageProps {
   type: 'success' | 'error' | 'warning' | 'info';
   title?: string;
-  message: string;
+  message: React.ReactNode;
   darkMode?: boolean;
   className?: string;
   icon?: typeof LucideIcon;
@@ -52,11 +52,11 @@ function StatusMessage({
     <div className={`p-4 rounded-2xl border transition-all duration-300 ${typeClasses[type]} ${className}`}>
       <div className="flex items-start space-x-3">
         <Icon className={`h-5 w-5 flex-shrink-0 mt-0.5 ${iconColors[type]} ${type === 'success' ? 'animate-pulse' : ''}`} />
-        <div>
+        <div className="flex-1">
           {title && (
             <h4 className="font-semibold mb-1">{title}</h4>
           )}
-          <p className="text-sm">{message}</p>
+          <div className="text-sm">{message}</div>
         </div>
       </div>
     </div>
