@@ -73,7 +73,7 @@ function Button({
       onClick={onClick}
       type={type}
     >
-      <div className="relative flex items-center justify-center space-x-2">
+      <div className="relative flex items-center justify-start space-x-2">
         {isLoading ? (
           <>
             <Loader2 className="h-5 w-5 animate-spin" />

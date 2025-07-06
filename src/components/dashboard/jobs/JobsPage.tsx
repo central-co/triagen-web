@@ -1,5 +1,5 @@
-
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import useDarkMode from '../../../hooks/useDarkMode';
 import StatusMessage from '../../ui/StatusMessage';
 import JobsHeader from './JobsHeader';
@@ -12,6 +12,7 @@ function JobsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const { darkMode } = useDarkMode(true);
   const { jobs, loading, error } = useJobsData();
+  const navigate = useNavigate();
 
   const filteredJobs = jobs.filter(job => {
     const matchesSearch = 
@@ -20,6 +21,10 @@ function JobsPage() {
       (job.location && job.location.toLowerCase().includes(searchTerm.toLowerCase()));
     return matchesSearch;
   });
+
+  const handleJobClick = (jobId: string) => {
+    navigate(`/dashboard/jobs/${jobId}`);
+  };
 
   if (loading) {
     return (
@@ -50,7 +55,7 @@ function JobsPage() {
       {filteredJobs.length === 0 ? (
         <JobsEmptyState darkMode={darkMode} />
       ) : (
-        <JobsList jobs={filteredJobs} darkMode={darkMode} />
+        <JobsList jobs={filteredJobs} darkMode={darkMode} onJobClick={handleJobClick} />
       )}
     </div>
   );

@@ -9,6 +9,7 @@ import DashboardLayout from './components/dashboard/DashboardLayout';
 import DashboardHome from './components/dashboard/DashboardHome';
 import JobsPage from './components/dashboard/jobs/JobsPage';
 import NewJobPage from './components/dashboard/jobs/NewJobPage';
+import JobDetailsPage from './components/dashboard/jobs/JobDetailsPage';
 import JobApplicationPage from './components/dashboard/jobs/JobApplicationPage';
 import CandidatesPage from './components/dashboard/candidates/CandidatesPage';
 import CandidateProfilePage from './components/dashboard/candidates/CandidateProfilePage';
@@ -83,6 +84,7 @@ function App() {
         <Route index element={<DashboardHome />} />
         <Route path="jobs" element={<JobsPage />} />
         <Route path="jobs/new" element={<NewJobPage />} />
+        <Route path="jobs/:jobId" element={<JobDetailsPage />} />
         <Route path="candidates" element={<CandidatesPage />} />
         <Route path="candidates/:candidateId" element={<CandidateProfilePage />} />
         <Route path="reports" element={<ReportsPage />} />

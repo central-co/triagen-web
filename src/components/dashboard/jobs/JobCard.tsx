@@ -8,15 +8,17 @@ import { JobWithStats } from '../../../types/company';
 interface JobCardProps {
   job: JobWithStats;
   darkMode: boolean;
+  onClick: (jobId: string) => void;
 }
 
-function JobCard({ job, darkMode }: JobCardProps) {
+function JobCard({ job, darkMode, onClick }: JobCardProps) {
   const navigate = useNavigate();
   const [copied, setCopied] = useState(false);
 
   const applicationUrl = `${window.location.origin}/apply/${job.id}`;
 
-  const copyApplicationLink = async () => {
+  const copyApplicationLink = async (e: React.MouseEvent) => {
+    e.stopPropagation();
     try {
       await navigator.clipboard.writeText(applicationUrl);
       setCopied(true);
@@ -26,12 +28,23 @@ function JobCard({ job, darkMode }: JobCardProps) {
     }
   };
 
-  const openApplicationPage = () => {
+  const openApplicationPage = (e: React.MouseEvent) => {
+    e.stopPropagation();
     window.open(applicationUrl, '_blank');
   };
 
+  const handleCandidatesClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigate(`/dashboard/candidates?job=${job.id}`);
+  };
+
   return (
-    <Card key={job.id} darkMode={darkMode} hoverEffect>
+    <Card 
+      key={job.id} 
+      darkMode={darkMode} 
+      hoverEffect
+      onClick={() => onClick(job.id)}
+    >
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <div className="flex items-center space-x-3 mb-3">
@@ -113,7 +126,7 @@ function JobCard({ job, darkMode }: JobCardProps) {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => navigate(`/dashboard/candidates?job=${job.id}`)}
+            onClick={handleCandidatesClick}
             darkMode={darkMode}
           >
             Ver Candidatos
