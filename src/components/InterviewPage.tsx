@@ -53,7 +53,7 @@ function InterviewPage() {
   };
 
   if (isAuthenticated) {
-    return (
+    return (Fz
       <InterviewRoom
         jwtToken={jwtToken}
         onLeave={() => {
