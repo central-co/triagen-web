@@ -332,6 +332,7 @@ function CandidatesPage() {
                 darkMode={darkMode} 
                 hoverEffect
                 onClick={() => navigate(`/dashboard/candidates/${candidate.id}`)}
+                className="w-full"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4 flex-1">

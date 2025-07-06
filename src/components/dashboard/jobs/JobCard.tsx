@@ -33,11 +33,6 @@ function JobCard({ job, darkMode, onClick }: JobCardProps) {
     window.open(applicationUrl, '_blank');
   };
 
-  const handleCandidatesClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    navigate(`/dashboard/candidates?job=${job.id}`);
-  };
-
   return (
     <Card 
       key={job.id} 
@@ -120,17 +115,6 @@ function JobCard({ job, darkMode, onClick }: JobCardProps) {
               </div>
             </div>
           </div>
-        </div>
-
-        <div className="flex items-center space-x-2 ml-4">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleCandidatesClick}
-            darkMode={darkMode}
-          >
-            Ver Candidatos
-          </Button>
         </div>
       </div>
     </Card>

@@ -516,28 +516,6 @@ function JobDetailsPage() {
                 variant="outline"
                 size="md"
                 fullWidth
-                onClick={() => navigate(`/dashboard/candidates?job=${job.id}`)}
-                icon={Users}
-                darkMode={darkMode}
-              >
-                Gerenciar Candidatos
-              </Button>
-              
-              <Button
-                variant="outline"
-                size="md"
-                fullWidth
-                onClick={() => alert('Funcionalidade de edição será implementada em breve')}
-                icon={Edit}
-                darkMode={darkMode}
-              >
-                Editar Vaga
-              </Button>
-              
-              <Button
-                variant="outline"
-                size="md"
-                fullWidth
                 onClick={() => navigate('/dashboard/reports')}
                 icon={Download}
                 darkMode={darkMode}
