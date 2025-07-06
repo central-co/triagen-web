@@ -1,4 +1,3 @@
-
 import { Mail, Phone, MapPin, Heart } from 'lucide-react';
 import Logo from './Logo';
 import Button from './button';
@@ -51,7 +50,7 @@ function Footer({ darkMode, onJoinWaitlist }: FooterProps) {
           <div className="space-y-6">
             <h3 className="font-heading text-lg font-semibold text-white">Comece a Ouvir Mais</h3>
             <p className="font-sans text-gray-300">
-              Teste grátis com 5 candidatos ou inicie um piloto acadêmico.
+              Seja um dos primeiros a testar nossa plataforma revolucionária.
               Descubra como nossa IA pode transformar seu recrutamento.
             </p>
             <div className="space-y-3">
@@ -62,16 +61,7 @@ function Footer({ darkMode, onJoinWaitlist }: FooterProps) {
                 onClick={onJoinWaitlist}
                 darkMode={true}
               >
-                Teste Grátis (5 Candidatos)
-              </Button>
-              <Button
-                variant="outline-purple"
-                size="md"
-                fullWidth
-                onClick={onJoinWaitlist}
-                darkMode={true}
-              >
-                Piloto Acadêmico (R$200)
+                Junte-se à Lista de Espera
               </Button>
             </div>
           </div>

@@ -22,8 +22,7 @@ import {
   Download,
   Zap,
   UserPlus,
-  Play,
-  LogIn
+  Play
 } from 'lucide-react';
 import useDarkMode from '../hooks/useDarkMode';
 import { useAuth } from '../hooks/useAuth';
@@ -170,7 +169,7 @@ function LandingPage() {
       return <UserDropdown />;
     }
 
-    // Default state: show login and interview buttons
+    // Default state: show waitlist and interview buttons
     return (
       <div className="flex items-center space-x-3">
         <Button
@@ -181,18 +180,7 @@ function LandingPage() {
           icon={UserPlus}
           iconPosition="left"
         >
-          Teste Grátis
-        </Button>
-
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => navigate('/auth/login')}
-          icon={LogIn}
-          iconPosition="left"
-          darkMode={darkMode}
-        >
-          Entrar
+          Junte-se à Lista de Espera
         </Button>
 
         <Button
@@ -288,16 +276,7 @@ function LandingPage() {
                 onClick={handleWaitlistClick}
                 icon={ArrowRight}
               >
-                Teste Grátis (5 Candidatos)
-              </Button>
-
-              <Button
-                variant="outline"
-                size="lg"
-                onClick={handleWaitlistClick}
-                darkMode={darkMode}
-              >
-                Piloto Acadêmico (R$200)
+                Junte-se à Lista de Espera
               </Button>
             </div>
 
@@ -377,13 +356,13 @@ function LandingPage() {
                           <h3 className={`font-heading text-xl font-bold mb-2 transition-colors duration-300 ${
                             darkMode ? 'text-white' : 'text-triagen-dark-bg'
                           }`}>
-                            Comece a Ouvir Mais
+                            Junte-se à Lista de Espera
                           </h3>
 
                           <p className={`font-sans text-sm transition-colors duration-300 ${
                             darkMode ? 'text-gray-400' : 'text-triagen-text-light'
                           }`}>
-                            Teste grátis ou piloto acadêmico
+                            Seja um dos primeiros a testar nossa plataforma
                           </p>
                         </div>
 
@@ -574,7 +553,7 @@ function LandingPage() {
                           disabled={!formData.name || !formData.email || !newsletterConsent}
                           icon={MessageSquare}
                         >
-                          {isLoading ? 'Enviando...' : 'Começar Agora'}
+                          {isLoading ? 'Enviando...' : 'Junte-se à Lista de Espera'}
                         </Button>
                       </form>
 
