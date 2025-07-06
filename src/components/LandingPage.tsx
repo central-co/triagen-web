@@ -22,7 +22,8 @@ import {
   Download,
   Zap,
   UserPlus,
-  Play
+  Play,
+  LogIn
 } from 'lucide-react';
 import useDarkMode from '../hooks/useDarkMode';
 import { useAuth } from '../hooks/useAuth';
@@ -169,9 +170,20 @@ function LandingPage() {
       return <UserDropdown />;
     }
 
-    // Default state: show waitlist and interview buttons
+    // Default state: show login, waitlist and interview buttons
     return (
       <div className="flex items-center space-x-3">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => navigate('/auth/login')}
+          icon={LogIn}
+          iconPosition="left"
+          darkMode={darkMode}
+        >
+          Entrar
+        </Button>
+
         <Button
           variant="secondary"
           size="sm"
