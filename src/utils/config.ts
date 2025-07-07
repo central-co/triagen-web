@@ -174,12 +174,12 @@ export function isConfigLoading(): boolean {
   return configManager.isLoading();
 }
 
-export async function reloadConfig(): Promise<AppConfig> {
+async function reloadConfig(): Promise<AppConfig> {
   return configManager.reloadConfig();
 }
 
 // Legacy function for backward compatibility (deprecated)
-export function validateConfig(): AppConfig {
+function validateConfig(): AppConfig {
   console.warn('validateConfig() is deprecated. Use getConfig() instead.');
   throw new Error('validateConfig() is deprecated. Use async getConfig() instead.');
 }

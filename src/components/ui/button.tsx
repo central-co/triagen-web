@@ -1,7 +1,7 @@
 import React from 'react';
 import { Loader2, DivideIcon as LucideIcon } from 'lucide-react';
 
-export interface ButtonProps {
+interface ButtonProps {
   children: React.ReactNode;
   variant?: 'primary' | 'primary-solid' | 'secondary' | 'outline' | 'outline-purple' | 'ghost' | 'danger' | 'success' | 'green-test' | 'purple-test' | 'favorite-toggle';
   size?: 'sm' | 'md' | 'lg';

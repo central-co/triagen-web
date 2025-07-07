@@ -1,6 +1,6 @@
 import { CheckCircle, AlertCircle, AlertTriangle, Info, DivideIcon as LucideIcon } from 'lucide-react';
 
-export interface StatusMessageProps {
+interface StatusMessageProps {
   type: 'success' | 'error' | 'warning' | 'info';
   title?: string;
   message: React.ReactNode;

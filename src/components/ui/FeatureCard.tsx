@@ -1,6 +1,6 @@
 import { DivideIcon as LucideIcon } from 'lucide-react';
 
-export interface FeatureCardProps {
+interface FeatureCardProps {
   icon: typeof LucideIcon;
   title: string;
   description: string;

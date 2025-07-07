@@ -1,6 +1,6 @@
 import { DivideIcon as LucideIcon } from 'lucide-react';
 
-export interface SectionHeaderProps {
+interface SectionHeaderProps {
   icon?: typeof LucideIcon;
   label?: string;
   title: string;

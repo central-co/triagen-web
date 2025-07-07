@@ -1,12 +1,12 @@
 // Simplified API security utilities - headers only, validation on backend
 
-export interface ApiSecurityOptions {
+interface ApiSecurityOptions {
   requireAuth?: boolean;
   rateLimitType?: 'api' | 'auth' | 'interview' | 'waitlist';
   validateOrigin?: boolean;
 }
 
-export class ApiSecurityError extends Error {
+class ApiSecurityError extends Error {
   constructor(
     message: string,
     public statusCode: number = 400,
@@ -17,7 +17,7 @@ export class ApiSecurityError extends Error {
   }
 }
 
-export function getClientIdentifier(): string {
+function getClientIdentifier(): string {
   // Use multiple factors for client identification
   const factors = [
     navigator.userAgent,
@@ -74,7 +74,7 @@ export async function secureFetch(
 }
 
 // Legacy function wrapper for backward compatibility
-export function secureApiCall<T>(
+function secureApiCall<T>(
   apiCall: () => Promise<T>,
   options: ApiSecurityOptions = {}
 ): Promise<T> {

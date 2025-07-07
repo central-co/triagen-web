@@ -1,5 +1,5 @@
 
-export interface Company {
+interface Company {
   id: string;
   user_id: string;
   name: string;
@@ -11,7 +11,7 @@ export interface Company {
   updated_at: string;
 }
 
-export interface Job {
+interface Job {
   id: string;
   company_id: string;
   title: string;
@@ -75,7 +75,7 @@ export interface Candidate {
   updated_at: string;
 }
 
-export interface InterviewReport {
+interface InterviewReport {
   id: string;
   candidate_id: string;
   summary?: string;
@@ -99,7 +99,7 @@ export interface Report {
   category_scores: Record<string, number>;
 }
 
-export interface Plan {
+interface Plan {
   id: string;
   name: string;
   description?: string;
@@ -111,7 +111,7 @@ export interface Plan {
   created_at: string;
 }
 
-export interface Subscription {
+interface Subscription {
   id: string;
   company_id: string;
   plan_id: string;
@@ -123,7 +123,7 @@ export interface Subscription {
   updated_at: string;
 }
 
-export interface UsageTracking {
+interface UsageTracking {
   id: string;
   company_id: string;
   action_type: string;

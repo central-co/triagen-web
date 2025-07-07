@@ -1,6 +1,6 @@
 import React from 'react';
 
-export interface CardProps {
+interface CardProps {
   children: React.ReactNode;
   darkMode?: boolean;
   className?: string;

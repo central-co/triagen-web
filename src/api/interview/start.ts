@@ -1,6 +1,6 @@
 import { getConfig } from '../../utils/config';
 
-export interface AuthResponse {
+interface AuthResponse {
   token: string;
 }
 

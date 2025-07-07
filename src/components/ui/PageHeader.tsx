@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { Moon, Sun } from 'lucide-react';
 import Logo from './Logo';
 
-export interface PageHeaderProps {
+interface PageHeaderProps {
   darkMode: boolean;
   toggleDarkMode?: () => void;
   onLogoClick?: () => void;
