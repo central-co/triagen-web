@@ -1,4 +1,3 @@
-
 import { apiRateLimiter, authRateLimiter, interviewRateLimiter, waitlistRateLimiter } from '../middleware/rateLimiter';
 
 export interface ApiSecurityOptions {
@@ -40,15 +39,38 @@ export function getClientIdentifier(): string {
 }
 
 export function validateOrigin(): boolean {
+  const origin = window.location.origin;
+  
+  // Static allowed origins
   const allowedOrigins = [
     'http://localhost:8080',
     'http://localhost:3000',
-    'https://triagen.app',
-    'https://zp1v56uxy8rdx5ypatb0ockcb9tr6a-oci3--8080--96435430.local-credentialless.webcontainer-api.io'
+    'https://triagen.app'
   ];
   
-  const origin = window.location.origin;
-  return allowedOrigins.includes(origin);
+  // Check static origins first
+  if (allowedOrigins.includes(origin)) {
+    console.log('✅ Origin validation passed (static):', origin);
+    return true;
+  }
+  
+  // Check for dynamic webcontainer origins
+  if (origin.includes('.webcontainer-api.io')) {
+    console.log('✅ Origin validation passed (webcontainer):', origin);
+    return true;
+  }
+  
+  // Check for other development patterns
+  if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
+    console.log('✅ Origin validation passed (localhost):', origin);
+    return true;
+  }
+  
+  // Log blocked origin for debugging
+  console.warn('❌ Origin validation failed:', origin);
+  console.warn('Allowed patterns: static origins, *.webcontainer-api.io, localhost');
+  
+  return false;
 }
 
 export function checkRateLimit(type: 'api' | 'auth' | 'interview' | 'waitlist' = 'api'): void {
