@@ -129,6 +129,7 @@ function LandingPage() {
           newsletter_consent: newsletterConsent,
           recaptcha_token: recaptchaToken,
         }),
+        // Note: All security validation now happens on the backend
         security: {
           rateLimitType: 'waitlist',
           validateOrigin: true

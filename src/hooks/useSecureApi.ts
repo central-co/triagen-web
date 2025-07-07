@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { ApiSecurityError, secureApiCall, ApiSecurityOptions } from '../utils/apiSecurity';
+import { ApiSecurityError, secureFetch, ApiSecurityOptions } from '../utils/apiSecurity';
 
 interface UseSecureApiState<T> {
   data: T | null;
@@ -8,7 +8,7 @@ interface UseSecureApiState<T> {
 }
 
 interface UseSecureApiReturn<T> extends UseSecureApiState<T> {
-  execute: (apiCall: () => Promise<T>, options?: ApiSecurityOptions) => Promise<T>;
+  execute: (url: string, options?: RequestInit & { security?: ApiSecurityOptions }) => Promise<T>;
   reset: () => void;
 }
 
@@ -20,13 +20,23 @@ export function useSecureApi<T = any>(): UseSecureApiReturn<T> {
   });
 
   const execute = useCallback(async (
-    apiCall: () => Promise<T>,
-    options: ApiSecurityOptions = {}
+    url: string,
+    options: RequestInit & { security?: ApiSecurityOptions } = {}
   ): Promise<T> => {
     setState(prev => ({ ...prev, loading: true, error: null }));
 
     try {
-      const result = await secureApiCall(apiCall, options);
+      const response = await secureFetch(url, options);
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Request failed' }));
+        throw new ApiSecurityError(
+          errorData.error || `Request failed with status ${response.status}`,
+          response.status
+        );
+      }
+      
+      const result = await response.json();
       setState({ data: result, loading: false, error: null });
       return result;
     } catch (error) {
