@@ -43,8 +43,7 @@ export function validateOrigin(): boolean {
   const allowedOrigins = [
     'http://localhost:8080',
     'http://localhost:3000',
-    'https://triagen.com.br',
-    'https://www.triagen.com.br'
+    'https://triagen.app'
   ];
   
   const origin = window.location.origin;
