@@ -28,6 +28,7 @@ import {
 import useDarkMode from '../hooks/useDarkMode';
 import { useAuth } from '../hooks/useAuth';
 import { useAppConfig } from '../hooks/useAppConfig';
+import { secureFetch } from '../utils/apiSecurity';
 import AnimatedBackground from './ui/AnimatedBackground';
 import Button from './ui/button';
 import PageHeader from './ui/PageHeader';
@@ -115,11 +116,10 @@ function LandingPage() {
     setError('');
 
     try {
-      const response = await fetch(`${config.supabaseUrl}/functions/v1/waitlist-signup`, {
+      const response = await secureFetch(`${config.supabaseUrl}/functions/v1/waitlist-signup`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${config.supabaseAnonKey}`,
         },
         body: JSON.stringify({
           email: formData.email,
@@ -129,6 +129,10 @@ function LandingPage() {
           newsletter_consent: newsletterConsent,
           recaptcha_token: recaptchaToken,
         }),
+        security: {
+          rateLimitType: 'waitlist',
+          validateOrigin: true
+        }
       });
 
       if (response.ok) {
@@ -141,7 +145,11 @@ function LandingPage() {
       }
     } catch (err) {
       console.error('Waitlist submission error:', err);
-      setError('Erro de conexão. Verifique sua internet e tente novamente.');
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('Erro de conexão. Verifique sua internet e tente novamente.');
+      }
     } finally {
       setIsLoading(false);
       recaptchaRef.current?.reset();
