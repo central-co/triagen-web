@@ -1,6 +1,4 @@
-
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, ArrowRight } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import useDarkMode from '../../hooks/useDarkMode';
@@ -143,9 +141,9 @@ function LoginPage() {
               </Button>
             </form>
 
-            <div className="mt-6 text-center space-y-4">
-              <Link
-                to="/auth/forgot-password"
+            <div className="mt-6 text-center">
+              <a
+                href="#"
                 className={`font-sans text-sm transition-colors ${
                   darkMode
                     ? 'text-triagen-secondary-green hover:text-triagen-secondary-green/80'
@@ -153,21 +151,7 @@ function LoginPage() {
                 } underline`}
               >
                 Esqueceu sua senha?
-              </Link>
-
-              <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
-                Não tem uma conta?{' '}
-                <Link
-                  to="/auth/register"
-                  className={`font-medium transition-colors ${
-                    darkMode
-                      ? 'text-triagen-secondary-green hover:text-triagen-secondary-green/80'
-                      : 'text-triagen-primary-blue hover:text-triagen-primary-blue/80'
-                  } underline`}
-                >
-                  Cadastre-se
-                </Link>
-              </div>
+              </a>
             </div>
           </Card>
         </div>
