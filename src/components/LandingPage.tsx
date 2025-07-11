@@ -574,6 +574,7 @@ function LandingPage() {
                           isLoading={isLoading}
                           disabled={!formData.name || !formData.email || !newsletterConsent}
                           icon={MessageSquare}
+                          contentAlignment="center"
                         >
                           {isLoading ? 'Enviando...' : 'Junte-se à Lista de Espera'}
                         </Button>

@@ -14,6 +14,7 @@ interface ButtonProps {
   onClick?: () => void;
   type?: 'button' | 'submit' | 'reset';
   className?: string;
+  contentAlignment?: 'left' | 'center' | 'right';
 }
 
 function Button({
@@ -28,7 +29,8 @@ function Button({
   disabled = false,
   onClick,
   type = 'button',
-  className = ''
+  className = '',
+  contentAlignment = 'left'
 }: Readonly<ButtonProps>) {
   const baseClasses = 'group relative font-semibold transition-all duration-200 hover:scale-101 overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 focus:outline-none focus:ring-2 focus:ring-offset-2';
 
@@ -64,6 +66,12 @@ function Button({
 
   const widthClass = fullWidth ? 'w-full' : '';
 
+  const alignmentClasses = {
+    left: 'justify-start',
+    center: 'justify-center',
+    right: 'justify-end'
+  };
+
   const classes = `${baseClasses} ${sizeClasses[size]} ${variantClasses[variant]} ${widthClass} ${className}`;
 
   return (
@@ -73,7 +81,7 @@ function Button({
       onClick={onClick}
       type={type}
     >
-      <div className="relative flex items-center justify-start space-x-2">
+      <div className={`relative flex items-center ${alignmentClasses[contentAlignment]} space-x-2`}>
         {isLoading ? (
           <>
             <Loader2 className="h-5 w-5 animate-spin" />
