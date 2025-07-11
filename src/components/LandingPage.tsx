@@ -119,7 +119,7 @@ function LandingPage() {
       const response = await secureFetch(`${config.supabaseUrl}/functions/v1/waitlist-signup`, {
         method: 'POST',
         headers: {
-          `Authorization: Bearer ${config.supabaseAnonKey}`,
+          'Authorization': `Bearer ${config.supabaseAnonKey}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
