@@ -33,7 +33,7 @@ function Footer({ darkMode, onJoinWaitlist }: FooterProps) {
             <div className="space-y-4">
               <div className="flex items-start space-x-3">
                 <Mail className="h-5 w-5 text-triagen-secondary-green mt-0.5" />
-                <span className="font-sans text-gray-300">contato@triagen.com.br</span>
+                <span className="font-sans text-gray-300">contato@triagen.app</span>
               </div>
               <div className="flex items-start space-x-3">
                 <Phone className="h-5 w-5 text-triagen-secondary-green mt-0.5" />
