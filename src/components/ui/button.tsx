@@ -13,7 +13,6 @@ interface ButtonProps {
   disabled?: boolean;
   onClick?: () => void;
   type?: 'button' | 'submit' | 'reset';
-  className?: string;
   contentAlignment?: 'left' | 'center' | 'right';
 }
 
@@ -29,8 +28,7 @@ function Button({
   disabled = false,
   onClick,
   type = 'button',
-  className = '',
-  contentAlignment = 'left'
+  contentAlignment = 'center'
 }: Readonly<ButtonProps>) {
   const baseClasses = 'group relative font-semibold transition-all duration-200 hover:scale-101 overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 focus:outline-none focus:ring-2 focus:ring-offset-2';
 
@@ -72,7 +70,7 @@ function Button({
     right: 'justify-end'
   };
 
-  const classes = `${baseClasses} ${sizeClasses[size]} ${variantClasses[variant]} ${widthClass} ${className}`;
+  const classes = `${baseClasses} ${sizeClasses[size]} ${variantClasses[variant]} ${widthClass}`;
 
   return (
     <button

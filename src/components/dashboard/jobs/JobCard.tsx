@@ -98,7 +98,6 @@ function JobCard({ job, darkMode, onClick }: JobCardProps) {
                   onClick={copyApplicationLink}
                   icon={copied ? Check : Copy}
                   darkMode={darkMode}
-                  className="text-xs"
                 >
                   {copied ? 'Copiado!' : 'Copiar'}
                 </Button>
@@ -108,7 +107,6 @@ function JobCard({ job, darkMode, onClick }: JobCardProps) {
                   onClick={openApplicationPage}
                   icon={ExternalLink}
                   darkMode={darkMode}
-                  className="text-xs"
                 >
                   Abrir
                 </Button>

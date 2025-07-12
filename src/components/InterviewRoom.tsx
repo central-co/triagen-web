@@ -215,7 +215,6 @@ function InterviewRoom({ jwtToken, onLeave }: InterviewRoomProps) {
               size="lg"
               fullWidth
               onClick={() => window.location.reload()}
-              className="mt-4 bg-triagen-dark-bg hover:bg-triagen-primary-blue"
             >
               Tentar Novamente
             </Button>

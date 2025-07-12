@@ -461,7 +461,6 @@ function SettingsPage() {
             size="md"
             isLoading={isSaving}
             icon={Save}
-            className="h-12 px-6 text-base whitespace-nowrap bg-triagen-dark-bg hover:bg-triagen-primary-blue"
           >
             {isSaving ? 'Salvando...' : 'Salvar Configurações'}
           </Button>

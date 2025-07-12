@@ -73,7 +73,6 @@ function DashboardLayout() {
             icon={X}
             iconPosition="left"
             darkMode={darkMode}
-            className="lg:hidden"
           />
         </div>
 
@@ -96,7 +95,8 @@ function DashboardLayout() {
                 icon={Icon}
                 iconPosition="left"
                 darkMode={darkMode}
-                className={`justify-start text-left ${
+                contentAlignment="left"
+                className={`${
                   isActive
                     ? darkMode
                       ? 'bg-triagen-secondary-green/20 text-triagen-secondary-green border border-triagen-secondary-green/30'
@@ -120,7 +120,7 @@ function DashboardLayout() {
             icon={LogOut}
             iconPosition="left"
             darkMode={darkMode}
-            className="justify-start"
+            contentAlignment="left"
           >
             Sair
           </Button>
