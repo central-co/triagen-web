@@ -297,6 +297,7 @@ function LandingPage() {
                 size="lg"
                 onClick={handleWaitlistClick}
                 icon={ArrowRight}
+               contentAlignment="center"
               >
                 Junte-se à Lista de Espera
               </Button>
@@ -331,6 +332,7 @@ function LandingPage() {
                 onClick={handleStartInterview}
                 icon={Play}
                 iconPosition="left"
+               contentAlignment="center"
               >
                 Iniciar Minha Entrevista
               </Button>
@@ -363,6 +365,7 @@ function LandingPage() {
                         size="md"
                         onClick={handleCloseForm}
                         fullWidth
+                       contentAlignment="center"
                       >
                         Fechar
                       </Button>
@@ -574,7 +577,7 @@ function LandingPage() {
                           isLoading={isLoading}
                           disabled={!formData.name || !formData.email || !newsletterConsent}
                           icon={MessageSquare}
-                          contentAlignment="center"
+                         contentAlignment="center"
                         >
                           {isLoading ? 'Enviando...' : 'Junte-se à Lista de Espera'}
                         </Button>
@@ -716,6 +719,7 @@ function LandingPage() {
                       variant="primary"
                       size="sm"
                       icon={Download}
+                     contentAlignment="center"
                     >
                       Baixar PDF
                     </Button>
@@ -724,6 +728,7 @@ function LandingPage() {
                       size="sm"
                       icon={BarChart3}
                       darkMode={darkMode}
+                     contentAlignment="center"
                     >
                       Ver Detalhes
                     </Button>

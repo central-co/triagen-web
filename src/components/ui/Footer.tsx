@@ -60,6 +60,7 @@ function Footer({ darkMode, onJoinWaitlist }: FooterProps) {
                 fullWidth
                 onClick={onJoinWaitlist}
                 darkMode={true}
+               contentAlignment="center"
               >
                 Junte-se à Lista de Espera
               </Button>
