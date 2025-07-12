@@ -34,7 +34,7 @@ function PageHeader({
         ? 'bg-gray-900/80 border-triagen-border-dark' 
         : 'bg-triagen-light-bg/80 border-triagen-border-light'
     } ${className}`}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
+      <div className="px-4 sm:px-6 lg:px-8 h-full">
         <div className="flex justify-between items-center h-full">
           {/* Left side - Logo with fixed positioning */}
           <div className="flex items-center min-w-0 flex-shrink-0">
