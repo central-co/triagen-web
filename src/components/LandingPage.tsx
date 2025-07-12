@@ -184,17 +184,6 @@ function LandingPage() {
     return (
       <div className="flex items-center space-x-3">
         <Button
-          variant="outline"
-          size="sm"
-          onClick={() => navigate('/auth/login')}
-          icon={LogIn}
-          iconPosition="left"
-          darkMode={darkMode}
-        >
-          Entrar
-        </Button>
-
-        <Button
           variant="secondary"
           size="sm"
           darkMode={darkMode}
@@ -213,6 +202,16 @@ function LandingPage() {
           iconPosition="left"
         >
           Iniciar Entrevista
+        </Button>
+        <Button
+          variant="green-test"
+          size="sm"
+          onClick={() => navigate('/auth/login')}
+          icon={LogIn}
+          iconPosition="left"
+          darkMode={darkMode}
+        >
+          Entrar
         </Button>
       </div>
     );
