@@ -240,7 +240,7 @@ function JobDetailsPage() {
           </span>
         }
         rightContent={
-          <div className="flex items-center space-x-3">
+          <div className="flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-3 w-full sm:w-auto sm:flex-wrap">
             <Button
               variant="outline"
               size="sm"
@@ -250,7 +250,7 @@ function JobDetailsPage() {
             >
               Editar Vaga
             </Button>
-            
+
             <Button
               onClick={() => navigate('/dashboard/jobs')}
               variant="outline"
