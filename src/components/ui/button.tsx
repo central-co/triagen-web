@@ -39,27 +39,39 @@ function Button({
   };
 
   const variantClasses = {
-    primary: 'bg-triagen-dark-bg text-white hover:bg-triagen-primary-blue hover:shadow-xl focus:ring-triagen-primary-blue/50',
-    'primary-solid': 'bg-triagen-dark-bg text-white hover:bg-triagen-primary-blue focus:ring-triagen-primary-blue/50',
+    primary: darkMode
+      ? 'bg-triagen-primary-blue text-white hover:bg-triagen-primary-blue/90 hover:shadow-xl focus:ring-triagen-primary-blue/50'
+      : 'bg-triagen-dark-bg text-white hover:bg-triagen-primary-blue hover:shadow-xl focus:ring-triagen-primary-blue/50',
+    'primary-solid': darkMode
+      ? 'bg-triagen-primary-blue text-white hover:bg-triagen-primary-blue/90 focus:ring-triagen-primary-blue/50'
+      : 'bg-triagen-dark-bg text-white hover:bg-triagen-primary-blue focus:ring-triagen-primary-blue/50',
     secondary: darkMode
       ? 'bg-gray-800/70 text-gray-100 border border-triagen-border-dark hover:bg-gray-700/80 hover:border-gray-500/50 focus:ring-gray-500/50'
       : 'bg-white/70 text-triagen-dark-bg border border-triagen-border-light hover:bg-white/90 hover:border-triagen-text-light/50 focus:ring-triagen-primary-blue/50',
     outline: darkMode
       ? 'border-2 border-triagen-border-dark text-gray-300 hover:border-gray-500/50 hover:bg-gray-800/30 focus:ring-gray-500/50'
       : 'border-2 border-triagen-border-light text-triagen-dark-bg hover:border-triagen-text-light/50 hover:bg-white/30 focus:ring-triagen-primary-blue/50',
-    'outline-purple': 'border-2 border-triagen-highlight-purple text-triagen-highlight-purple hover:bg-triagen-highlight-purple/10 focus:ring-triagen-highlight-purple/50',
+    'outline-purple': darkMode
+      ? 'border-2 border-triagen-highlight-purple text-triagen-highlight-purple hover:bg-triagen-highlight-purple/10 hover:border-triagen-highlight-purple/70 focus:ring-triagen-highlight-purple/50'
+      : 'border-2 border-triagen-highlight-purple text-triagen-highlight-purple hover:bg-triagen-highlight-purple/10 focus:ring-triagen-highlight-purple/50',
     'green-test': darkMode
-      ? 'bg-triagen-secondary-green/10 border-triagen-secondary-green/30 text-triagen-secondary-green hover:bg-triagen-secondary-green/20 focus:ring-triagen-secondary-green/50'
-      : 'bg-triagen-secondary-green/10 border-triagen-secondary-green/30 text-triagen-secondary-green hover:bg-triagen-secondary-green/20 focus:ring-triagen-secondary-green/50',
-    'purple-test': 'bg-triagen-highlight-purple/10 border-triagen-highlight-purple/30 text-triagen-highlight-purple hover:bg-triagen-highlight-purple/20 focus:ring-triagen-highlight-purple/50',
-    'favorite-toggle': 'border-2 border-yellow-500 text-yellow-500 hover:bg-yellow-500/10 hover:border-yellow-600 hover:text-yellow-600 focus:ring-yellow-500/50',
+      ? 'bg-triagen-secondary-green/10 border border-triagen-secondary-green/40 text-triagen-secondary-green hover:bg-triagen-secondary-green/20 hover:border-triagen-secondary-green/60 focus:ring-triagen-secondary-green/50'
+      : 'bg-triagen-secondary-green/10 border border-triagen-secondary-green/30 text-triagen-secondary-green hover:bg-triagen-secondary-green/20 focus:ring-triagen-secondary-green/50',
+    'purple-test': darkMode
+      ? 'bg-triagen-highlight-purple/10 border border-triagen-highlight-purple/40 text-triagen-highlight-purple hover:bg-triagen-highlight-purple/20 hover:border-triagen-highlight-purple/60 focus:ring-triagen-highlight-purple/50'
+      : 'bg-triagen-highlight-purple/10 border border-triagen-highlight-purple/30 text-triagen-highlight-purple hover:bg-triagen-highlight-purple/20 focus:ring-triagen-highlight-purple/50',
+    'favorite-toggle': darkMode
+      ? 'border-2 border-yellow-400 text-yellow-400 hover:bg-yellow-400/10 hover:border-yellow-300 hover:text-yellow-300 focus:ring-yellow-400/50'
+      : 'border-2 border-yellow-500 text-yellow-500 hover:bg-yellow-500/10 hover:border-yellow-600 hover:text-yellow-600 focus:ring-yellow-500/50',
     ghost: darkMode
-      ? 'text-gray-300 hover:bg-gray-800/30 focus:ring-gray-500/50'
-      : 'text-triagen-dark-bg hover:bg-white/30 focus:ring-triagen-primary-blue/50',
+      ? 'text-gray-300 hover:bg-gray-800/30 hover:text-gray-200 focus:ring-gray-500/50'
+      : 'text-triagen-dark-bg hover:bg-white/30 hover:text-triagen-primary-blue focus:ring-triagen-primary-blue/50',
     danger: darkMode
-      ? 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500/50'
-      : 'bg-red-500 text-white hover:bg-red-600 focus:ring-red-500/50',
-    success: 'bg-triagen-secondary-green text-white hover:bg-triagen-secondary-green/90 focus:ring-triagen-secondary-green/50'
+      ? 'bg-red-600 text-white hover:bg-red-700 hover:shadow-lg focus:ring-red-500/50'
+      : 'bg-red-500 text-white hover:bg-red-600 hover:shadow-lg focus:ring-red-500/50',
+    success: darkMode
+      ? 'bg-triagen-secondary-green text-white hover:bg-triagen-secondary-green/90 hover:shadow-lg focus:ring-triagen-secondary-green/50'
+      : 'bg-triagen-secondary-green text-white hover:bg-triagen-secondary-green/90 hover:shadow-lg focus:ring-triagen-secondary-green/50'
   };
 
   const widthClass = fullWidth ? 'w-full' : '';
