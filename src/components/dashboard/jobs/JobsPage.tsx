@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Plus } from 'lucide-react';
 import useDarkMode from '../../../hooks/useDarkMode';
 import StatusMessage from '../../ui/StatusMessage';
-import JobsHeader from './JobsHeader';
+import Button from '../../ui/button';
+import DashboardHeader from '../DashboardHeader';
 import JobsSearchFilter from './JobsSearchFilter';
 import JobsEmptyState from './JobsEmptyState';
 import JobsList from './JobsList';
@@ -15,7 +17,7 @@ function JobsPage() {
   const navigate = useNavigate();
 
   const filteredJobs = jobs.filter(job => {
-    const matchesSearch = 
+    const matchesSearch =
       job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       job.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (job.location && job.location.toLowerCase().includes(searchTerm.toLowerCase()));
@@ -36,9 +38,22 @@ function JobsPage() {
 
   return (
     <div className="space-y-8">
-      <JobsHeader darkMode={darkMode} />
-      
-      <JobsSearchFilter 
+      <DashboardHeader
+        title="Vagas"
+        description="Gerencie suas oportunidades de emprego"
+        darkMode={darkMode}
+        rightContent={
+          <Button
+            onClick={() => navigate('/dashboard/jobs/new')}
+            variant="primary-solid"
+            icon={Plus}
+          >
+            Nova Vaga
+          </Button>
+        }
+      />
+
+      <JobsSearchFilter
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
         darkMode={darkMode}

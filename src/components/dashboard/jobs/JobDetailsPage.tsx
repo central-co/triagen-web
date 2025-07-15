@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { 
-  ArrowLeft, 
-  Edit, 
-  MapPin, 
-  Users, 
+import {
+  ArrowLeft,
+  Edit,
+  MapPin,
+  Users,
   Calendar,
   DollarSign,
   Gift,
@@ -22,6 +22,7 @@ import { supabase } from '../../../integrations/supabase/client';
 import Button from '../../ui/button';
 import Card from '../../ui/Card';
 import StatusMessage from '../../ui/StatusMessage';
+import DashboardHeader from '../DashboardHeader';
 import { JobWithStats } from '../../../types/company';
 import { Candidate } from '../../../types/company';
 
@@ -57,11 +58,11 @@ function JobDetailsPage() {
   const fetchJobDetails = async () => {
     try {
       setLoading(true);
-      
+
       if (!user?.id || !jobId) {
         throw new Error('Dados necessários não encontrados');
       }
-      
+
       // First get the user's company
       const { data: companies, error: companyError } = await supabase
         .from('companies')
@@ -210,7 +211,7 @@ function JobDetailsPage() {
             Voltar
           </Button>
         </div>
-        
+
         <StatusMessage
           type="error"
           title="Vaga não encontrada"
@@ -223,50 +224,44 @@ function JobDetailsPage() {
 
   return (
     <div className="space-y-8">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <Button
-            onClick={() => navigate('/dashboard/jobs')}
-            variant="outline"
-            size="sm"
-            icon={ArrowLeft}
-            darkMode={darkMode}
-          >
-            Voltar
-          </Button>
-          <div>
-            <h1 className={`font-heading text-3xl font-bold ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
-              {job.title}
-            </h1>
-            <p className={`font-sans mt-2 ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
-              {job.company.name} • {job.candidatesCount} candidatos
-            </p>
+      <DashboardHeader
+        title={job.title}
+        description={`${job.company.name} • ${job.candidatesCount} candidatos`}
+        darkMode={darkMode}
+        rightContent={
+          <div className="flex items-center space-x-3">
+            <Button
+              onClick={() => navigate('/dashboard/jobs')}
+              variant="outline"
+              size="sm"
+              icon={ArrowLeft}
+              darkMode={darkMode}
+            >
+              Voltar
+            </Button>
+
+            <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+              job.status === 'open'
+                ? 'bg-green-100 text-green-800'
+                : job.status === 'paused'
+                ? 'bg-yellow-100 text-yellow-800'
+                : 'bg-red-100 text-red-800'
+            }`}>
+              {job.status === 'open' ? 'Aberta' : job.status === 'paused' ? 'Pausada' : 'Fechada'}
+            </span>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => alert('Funcionalidade de edição será implementada em breve')}
+              icon={Edit}
+              darkMode={darkMode}
+            >
+              Editar Vaga
+            </Button>
           </div>
-        </div>
-
-        <div className="flex items-center space-x-3">
-          <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-            job.status === 'open'
-              ? 'bg-green-100 text-green-800'
-              : job.status === 'paused'
-              ? 'bg-yellow-100 text-yellow-800'
-              : 'bg-red-100 text-red-800'
-          }`}>
-            {job.status === 'open' ? 'Aberta' : job.status === 'paused' ? 'Pausada' : 'Fechada'}
-          </span>
-
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => alert('Funcionalidade de edição será implementada em breve')}
-            icon={Edit}
-            darkMode={darkMode}
-          >
-            Editar Vaga
-          </Button>
-        </div>
-      </div>
+        }
+      />
 
       {/* Job Details */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -453,13 +448,13 @@ function JobDetailsPage() {
               <div className="space-y-3">
                 {candidates.slice(0, 5).map((candidate) => {
                   const StatusIcon = getStatusIcon(candidate.status);
-                  
+
                   return (
                     <div
                       key={candidate.id}
                       className={`p-3 rounded-xl border cursor-pointer transition-all duration-200 hover:scale-101 ${
-                        darkMode 
-                          ? 'border-triagen-border-dark bg-gray-800/30 hover:bg-gray-800/50' 
+                        darkMode
+                          ? 'border-triagen-border-dark bg-gray-800/30 hover:bg-gray-800/50'
                           : 'border-triagen-border-light bg-triagen-light-bg/30 hover:bg-triagen-light-bg/50'
                       }`}
                       onClick={() => navigate(`/dashboard/candidates/${candidate.id}`)}
@@ -488,7 +483,7 @@ function JobDetailsPage() {
                     </div>
                   );
                 })}
-                
+
                 {candidates.length > 5 && (
                   <div className="text-center pt-2">
                     <Button
@@ -510,7 +505,7 @@ function JobDetailsPage() {
             <h3 className={`font-heading text-lg font-semibold mb-4 ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
               Ações Rápidas
             </h3>
-            
+
             <div className="space-y-3">
               <Button
                 variant="outline"

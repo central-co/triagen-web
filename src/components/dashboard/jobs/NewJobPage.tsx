@@ -17,6 +17,7 @@ import { supabase } from '../../../integrations/supabase/client';
 import Button from '../../ui/button';
 import Card from '../../ui/Card';
 import StatusMessage from '../../ui/StatusMessage';
+import DashboardHeader from '../DashboardHeader';
 
 interface CustomQuestion {
   id: string;
@@ -105,36 +106,36 @@ function NewJobPage() {
   };
 
   const updateCustomQuestion = (id: string, field: keyof CustomQuestion, value: any) => {
-    setCustomQuestions(prev => prev.map(q => 
+    setCustomQuestions(prev => prev.map(q =>
       q.id === id ? { ...q, [field]: value } : q
     ));
   };
 
   const addQuestionOption = (questionId: string) => {
-    setCustomQuestions(prev => prev.map(q => 
-      q.id === questionId 
+    setCustomQuestions(prev => prev.map(q =>
+      q.id === questionId
         ? { ...q, options: [...(q.options || []), ''] }
         : q
     ));
   };
 
   const updateQuestionOption = (questionId: string, optionIndex: number, value: string) => {
-    setCustomQuestions(prev => prev.map(q => 
-      q.id === questionId 
-        ? { 
-            ...q, 
-            options: q.options?.map((opt, i) => i === optionIndex ? value : opt) 
+    setCustomQuestions(prev => prev.map(q =>
+      q.id === questionId
+        ? {
+            ...q,
+            options: q.options?.map((opt, i) => i === optionIndex ? value : opt)
           }
         : q
     ));
   };
 
   const removeQuestionOption = (questionId: string, optionIndex: number) => {
-    setCustomQuestions(prev => prev.map(q => 
-      q.id === questionId 
-        ? { 
-            ...q, 
-            options: q.options?.filter((_, i) => i !== optionIndex) 
+    setCustomQuestions(prev => prev.map(q =>
+      q.id === questionId
+        ? {
+            ...q,
+            options: q.options?.filter((_, i) => i !== optionIndex)
           }
         : q
     ));
@@ -211,26 +212,22 @@ function NewJobPage() {
 
   return (
     <div className="space-y-8">
-      {/* Header */}
-      <div className="flex items-center space-x-4">
-        <Button
-          onClick={() => navigate('/dashboard/jobs')}
-          variant="outline"
-          size="sm"
-          icon={ArrowLeft}
-          darkMode={darkMode}
-        >
-          Voltar
-        </Button>
-        <div>
-          <h1 className={`font-heading text-3xl font-bold ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
-            Nova Vaga
-          </h1>
-          <p className={`font-sans mt-2 ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
-            Crie uma nova oportunidade de emprego
-          </p>
-        </div>
-      </div>
+      <DashboardHeader
+        title="Nova Vaga"
+        description="Crie uma nova oportunidade de emprego"
+        darkMode={darkMode}
+        rightContent={
+          <Button
+            onClick={() => navigate('/dashboard/jobs')}
+            variant="outline"
+            size="sm"
+            icon={ArrowLeft}
+            darkMode={darkMode}
+          >
+            Voltar
+          </Button>
+        }
+      />
 
       <form onSubmit={handleSubmit} className="space-y-8">
         {/* Basic Information */}
@@ -514,8 +511,8 @@ function NewJobPage() {
 
           {/* Subtle development message */}
           <div className={`inline-flex items-center space-x-2 px-3 py-1 rounded-full text-sm font-medium mb-4 ${
-            darkMode 
-              ? 'bg-gray-800/50 text-gray-400 border border-gray-700/50' 
+            darkMode
+              ? 'bg-gray-800/50 text-gray-400 border border-gray-700/50'
               : 'bg-gray-100/50 text-gray-600 border border-gray-200/50'
           }`}>
             <Lock className="h-3 w-3" />

@@ -7,6 +7,7 @@ import { supabase } from '../../../integrations/supabase/client';
 import Button from '../../ui/button';
 import Card from '../../ui/Card';
 import StatusMessage from '../../ui/StatusMessage';
+import DashboardHeader from '../DashboardHeader';
 import { Candidate } from '../../../types/company';
 
 interface Job {
@@ -40,12 +41,12 @@ function CandidatesPage() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      
+
       if (!user?.id) {
         setError('Usuário não encontrado');
         return;
       }
-      
+
       // First get the user's company
       const { data: companies, error: companyError } = await supabase
         .from('companies')
@@ -128,8 +129,8 @@ function CandidatesPage() {
         throw error;
       }
 
-      setCandidates(prev => prev.map(candidate => 
-        candidate.id === candidateId 
+      setCandidates(prev => prev.map(candidate =>
+        candidate.id === candidateId
           ? { ...candidate, is_favorite: !currentFavorite }
           : candidate
       ));
@@ -145,7 +146,7 @@ function CandidatesPage() {
     const matchesStatus = statusFilter === 'all' || candidate.status === statusFilter;
     const matchesJob = jobFilter === 'all' || candidate.job_id === jobFilter;
     const matchesFavorite = favoriteFilter === null || candidate.is_favorite === favoriteFilter;
-    
+
     return matchesSearch && matchesStatus && matchesJob && matchesFavorite;
   });
 
@@ -192,15 +193,11 @@ function CandidatesPage() {
 
   return (
     <div className="space-y-8">
-      {/* Header */}
-      <div>
-        <h1 className={`font-heading text-3xl font-bold ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
-          Candidatos
-        </h1>
-        <p className={`font-sans mt-2 ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
-          Gerencie e avalie todos os candidatos das suas vagas
-        </p>
-      </div>
+      <DashboardHeader
+        title="Candidatos"
+        description="Gerencie e avalie todos os candidatos das suas vagas"
+        darkMode={darkMode}
+      />
 
       {/* Filters */}
       <Card darkMode={darkMode}>
@@ -308,8 +305,8 @@ function CandidatesPage() {
           <div className="text-center py-12">
             <Users className={`h-16 w-16 mx-auto mb-4 ${darkMode ? 'text-gray-600' : 'text-triagen-text-light'}`} />
             <h3 className={`font-heading text-xl font-semibold mb-2 ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
-              {searchTerm || statusFilter !== 'all' || jobFilter !== 'all' || favoriteFilter !== null 
-                ? 'Nenhum candidato encontrado' 
+              {searchTerm || statusFilter !== 'all' || jobFilter !== 'all' || favoriteFilter !== null
+                ? 'Nenhum candidato encontrado'
                 : 'Nenhum candidato ainda'
               }
             </h3>
@@ -325,11 +322,11 @@ function CandidatesPage() {
         <div className="space-y-4">
           {filteredCandidates.map((candidate) => {
             const StatusIcon = getStatusIcon(candidate.status);
-            
+
             return (
-              <Card 
-                key={candidate.id} 
-                darkMode={darkMode} 
+              <Card
+                key={candidate.id}
+                darkMode={darkMode}
                 hoverEffect
                 onClick={() => navigate(`/dashboard/candidates/${candidate.id}`)}
                 className="w-full"
@@ -347,17 +344,17 @@ function CandidatesPage() {
                             toggleFavorite(candidate.id, candidate.is_favorite);
                           }}
                           className={`p-1 rounded-full transition-colors ${
-                            candidate.is_favorite 
-                              ? 'text-yellow-500 hover:text-yellow-600' 
-                              : darkMode 
-                                ? 'text-gray-400 hover:text-yellow-500' 
+                            candidate.is_favorite
+                              ? 'text-yellow-500 hover:text-yellow-600'
+                              : darkMode
+                                ? 'text-gray-400 hover:text-yellow-500'
                                 : 'text-triagen-text-light hover:text-yellow-500'
                           }`}
                         >
                           {candidate.is_favorite ? <Star className="h-4 w-4 fill-current" /> : <StarOff className="h-4 w-4" />}
                         </button>
                       </div>
-                      
+
                       <div className="flex items-center space-x-4 text-sm">
                         <span className={`${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
                           {candidate.email}

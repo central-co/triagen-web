@@ -6,6 +6,7 @@ import { supabase } from '../../../integrations/supabase/client';
 import Button from '../../ui/button';
 import Card from '../../ui/Card';
 import StatusMessage from '../../ui/StatusMessage';
+import DashboardHeader from '../DashboardHeader';
 
 interface UserProfile {
   name: string;
@@ -25,7 +26,7 @@ function SettingsPage() {
     name: '',
     email: ''
   });
-  
+
   const [companyProfile, setCompanyProfile] = useState<CompanyProfile>({
     name: '',
     cnpj: '',
@@ -57,7 +58,7 @@ function SettingsPage() {
   const loadUserData = async () => {
     try {
       setLoading(true);
-      
+
       if (!user?.id) {
         throw new Error('User not found');
       }
@@ -167,15 +168,11 @@ function SettingsPage() {
 
   return (
     <div className="space-y-8">
-      {/* Header */}
-      <div>
-        <h1 className={`font-heading text-3xl font-bold ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
-          Configurações
-        </h1>
-        <p className={`font-sans mt-2 ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
-          Gerencie suas informações de perfil e preferências
-        </p>
-      </div>
+      <DashboardHeader
+        title="Configurações"
+        description="Gerencie suas informações de perfil e preferências"
+        darkMode={darkMode}
+      />
 
       <form onSubmit={handleSubmit} className="space-y-8">
         {/* User Profile */}

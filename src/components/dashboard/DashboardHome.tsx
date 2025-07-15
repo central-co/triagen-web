@@ -7,6 +7,7 @@ import { useDashboardStats } from '../../hooks/useDashboardStats';
 import Card from '../ui/Card';
 import StatCard from '../ui/StatCard';
 import Button from '../ui/button';
+import DashboardHeader from './DashboardHeader';
 
 function DashboardHome() {
   const { darkMode } = useDarkMode(true);
@@ -24,15 +25,11 @@ function DashboardHome() {
 
   return (
     <div className="space-y-8">
-      {/* Header */}
-      <div>
-        <h1 className={`font-heading text-3xl font-bold ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
-          Dashboard
-        </h1>
-        <p className={`font-sans mt-2 ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
-          Bem-vindo de volta, {user?.email}
-        </p>
-      </div>
+      <DashboardHeader
+        title="Dashboard"
+        description={`Bem-vindo de volta, ${user?.email}`}
+        darkMode={darkMode}
+      />
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -90,7 +87,7 @@ function DashboardHome() {
               Criar Vaga
             </Button>
           </div>
-          
+
           <div className={`p-4 rounded-xl border transition-colors ${
             darkMode ? 'border-triagen-border-dark bg-gray-800/30' : 'border-triagen-border-light bg-triagen-light-bg/30'
           }`}>
@@ -113,7 +110,7 @@ function DashboardHome() {
               Ver Candidatos
             </Button>
           </div>
-          
+
           <div className={`p-4 rounded-xl border transition-colors ${
             darkMode ? 'border-triagen-border-dark bg-gray-800/30' : 'border-triagen-border-light bg-triagen-light-bg/30'
           }`}>

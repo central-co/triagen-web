@@ -13,6 +13,7 @@ import { supabase } from '../../../integrations/supabase/client';
 import Button from '../../ui/button';
 import Card from '../../ui/Card';
 import StatusMessage from '../../ui/StatusMessage';
+import DashboardHeader from '../DashboardHeader';
 import { Report } from '../../../types/company';
 
 function ReportsPage() {
@@ -33,11 +34,11 @@ function ReportsPage() {
   const fetchReports = async () => {
     try {
       setLoading(true);
-      
+
       if (!user?.id) {
         throw new Error('User not found');
       }
-      
+
       // Get reports for user's company jobs
       const { data: companies, error: companyError } = await supabase
         .from('companies')
@@ -79,7 +80,7 @@ function ReportsPage() {
         created_at: report.created_at || '',
         alignment_analysis: report.alignment_analysis || '',
         summary: report.summary || '',
-        category_scores: typeof report.category_scores === 'object' && report.category_scores !== null 
+        category_scores: typeof report.category_scores === 'object' && report.category_scores !== null
           ? report.category_scores as Record<string, number>
           : {}
       }));
@@ -110,17 +111,11 @@ function ReportsPage() {
 
   return (
     <div className="space-y-8">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className={`font-heading text-3xl font-bold ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
-            Relatórios
-          </h1>
-          <p className={`font-sans mt-2 ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
-            Visualize análises e relatórios das entrevistas
-          </p>
-        </div>
-      </div>
+      <DashboardHeader
+        title="Relatórios"
+        description="Visualize análises e relatórios das entrevistas"
+        darkMode={darkMode}
+      />
 
       {/* Filters */}
       <Card darkMode={darkMode}>
