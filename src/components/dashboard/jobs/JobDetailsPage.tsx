@@ -228,28 +228,19 @@ function JobDetailsPage() {
         title={job.title}
         description={`${job.company.name} • ${job.candidatesCount} candidatos`}
         darkMode={darkMode}
+        statusContent={
+          <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+            job.status === 'open'
+              ? 'bg-green-100 text-green-800'
+              : job.status === 'paused'
+              ? 'bg-yellow-100 text-yellow-800'
+              : 'bg-red-100 text-red-800'
+          }`}>
+            {job.status === 'open' ? 'Aberta' : job.status === 'paused' ? 'Pausada' : 'Fechada'}
+          </span>
+        }
         rightContent={
           <div className="flex items-center space-x-3">
-            <Button
-              onClick={() => navigate('/dashboard/jobs')}
-              variant="outline"
-              size="sm"
-              icon={ArrowLeft}
-              darkMode={darkMode}
-            >
-              Voltar
-            </Button>
-
-            <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-              job.status === 'open'
-                ? 'bg-green-100 text-green-800'
-                : job.status === 'paused'
-                ? 'bg-yellow-100 text-yellow-800'
-                : 'bg-red-100 text-red-800'
-            }`}>
-              {job.status === 'open' ? 'Aberta' : job.status === 'paused' ? 'Pausada' : 'Fechada'}
-            </span>
-
             <Button
               variant="outline"
               size="sm"
@@ -258,6 +249,16 @@ function JobDetailsPage() {
               darkMode={darkMode}
             >
               Editar Vaga
+            </Button>
+            
+            <Button
+              onClick={() => navigate('/dashboard/jobs')}
+              variant="outline"
+              size="sm"
+              icon={ArrowLeft}
+              darkMode={darkMode}
+            >
+              Voltar
             </Button>
           </div>
         }
