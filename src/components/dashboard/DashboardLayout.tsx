@@ -7,6 +7,7 @@ import {
   BarChart3,
   Settings,
   LogOut,
+  Menu,
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import useDarkMode from '../../hooks/useDarkMode';
@@ -113,7 +114,19 @@ function DashboardLayout() {
       {/* Main content */}
       <div className="lg:ml-64">
         {/* Top bar */}
-
+        <div className="lg:hidden flex items-center justify-between p-4 border-b border-triagen-border-light dark:border-triagen-border-dark bg-white dark:bg-gray-800">
+          <Button
+            variant="ghost"
+            size="md"
+            onClick={() => setSidebarOpen(true)}
+            icon={Menu}
+            iconPosition="left"
+            darkMode={darkMode}
+            aria-label="Abrir menu"
+          >
+            Menu
+          </Button>
+        </div>
 
         {/* Page content */}
         <main className="p-6">
