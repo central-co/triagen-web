@@ -37,15 +37,31 @@ function JobApplicationPage() {
     }
   }, [jobId]);
 
+  useEffect(() => {
+    console.log('JobApplicationPage mounted');
+    console.log('jobId from URL:', jobId);
+    console.log('Supabase URL:', import.meta.env.VITE_SUPABASE_URL);
+    console.log('Has Supabase Key:', !!import.meta.env.VITE_SUPABASE_ANON_KEY);
+    console.log('API URL from env:', import.meta.env.VITE_API_URL);
+    if (config) {
+      console.log('Config loaded - API URL:', config.apiUrl);
+    }
+  }, [config]);
+
   const fetchJob = async () => {
+    console.log('Fetching job with ID:', jobId);
+
+    if (!jobId) {
+      setError('ID da vaga não fornecido na URL');
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
-      
-      if (!jobId) {
-        throw new Error('Job ID is required');
-      }
-      
-      const { data: jobData, error: jobError } = await supabase
+
+      // Buscar vaga com dados da empresa (JOIN)
+      const { data, error } = await supabase
         .from('jobs')
         .select(`
           *,
@@ -58,36 +74,61 @@ function JobApplicationPage() {
         `)
         .eq('id', jobId)
         .eq('status', 'open')
-        .single();
+        .maybeSingle();
 
-      if (jobError) {
-        throw jobError;
+      console.log('Supabase response:', { data, error });
+
+      if (error) {
+        console.error('Supabase error:', error);
+        setError(`Erro ao carregar vaga: ${error.message}`);
+        return;
       }
 
-      // Transform the data to match our interface
+      if (!data) {
+        setError('Vaga não encontrada ou não está mais disponível.');
+        return;
+      }
+
+      // Transform to match JobWithCompany interface
+      // Parse JSONB fields that might be stored as strings
+      const parseJsonbField = (field: any): any[] | null => {
+        if (!field) return null;
+        if (Array.isArray(field)) return field;
+        if (typeof field === 'string') {
+          try {
+            const parsed = JSON.parse(field);
+            return Array.isArray(parsed) ? parsed : null;
+          } catch {
+            return null;
+          }
+        }
+        return null;
+      };
+
       const transformedJob: JobWithCompany = {
-        id: jobData.id,
-        title: jobData.title,
-        description: jobData.description,
-        location: jobData.location,
-        work_model: jobData.work_model,
-        requirements: jobData.requirements as string[] | null,
-        differentials: jobData.differentials as string[] | null,
-        salary_range: jobData.salary_range,
-        benefits: jobData.benefits,
-        custom_questions: jobData.custom_questions as any[] | null,
-        company: {
-          id: jobData.company.id,
-          name: jobData.company.name,
-          contact_email: jobData.company.contact_email || undefined,
-          address: jobData.company.address || undefined
+        id: data.id,
+        title: data.title,
+        description: data.description,
+        location: data.location || undefined,
+        work_model: data.work_model,
+        requirements: parseJsonbField(data.requirements),
+        differentials: parseJsonbField(data.differentials),
+        salary_range: data.salary_range || undefined,
+        benefits: data.benefits || undefined,
+        custom_questions: parseJsonbField(data.custom_questions),
+        company: data.company as {
+          id: string;
+          name: string;
+          contact_email?: string;
+          address?: string;
         }
       };
 
+      console.log('Job loaded successfully:', transformedJob);
       setJob(transformedJob);
     } catch (err) {
       console.error('Error fetching job:', err);
-      setError('Vaga não encontrada ou não está mais disponível');
+      setError('Erro inesperado ao carregar vaga.');
     } finally {
       setLoading(false);
     }
@@ -100,7 +141,7 @@ function JobApplicationPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.name || !formData.email) {
       setError('Nome e email são obrigatórios');
       return;
@@ -131,20 +172,20 @@ function JobApplicationPage() {
     setError('');
 
     try {
-      // Preparar payload simplificado para sua API
+      // Preparar payload no formato esperado pelo backend (flat structure com snake_case)
       const payload = {
-        jobId: jobId,
-        candidate: {
-          name: formData.name,
-          email: formData.email,
-          phone: formData.phone || null,
-          resume_text: formData.resume_text || null
-        }
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone || undefined,
+        job_id: jobId,
+        resume_text: formData.resume_text || undefined
       };
 
       console.log('Enviando payload para API:', payload);
 
-      const response = await fetch(`${config.apiUrl}/api/application/create`, {
+      // Remove trailing slash from apiUrl to avoid double slashes
+      const apiUrl = config.apiUrl.endsWith('/') ? config.apiUrl.slice(0, -1) : config.apiUrl;
+      const response = await fetch(`${apiUrl}/api/application/create`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -153,8 +194,18 @@ function JobApplicationPage() {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Erro ao processar candidatura');
+        const errorText = await response.text();
+        console.error('Backend error response:', errorText);
+
+        let errorMessage = 'Erro ao processar candidatura';
+        try {
+          const errorData = JSON.parse(errorText);
+          errorMessage = errorData.error || errorData.detail || errorData.message || errorText;
+        } catch {
+          errorMessage = errorText || `Erro ${response.status}`;
+        }
+
+        throw new Error(errorMessage);
       }
 
       if (response.status === 201) {
@@ -162,7 +213,6 @@ function JobApplicationPage() {
       } else {
         throw new Error('Resposta inesperada da API');
       }
-
     } catch (err) {
       console.error('Error submitting application:', err);
       if (err instanceof Error) {
@@ -207,7 +257,6 @@ function JobApplicationPage() {
               onClick={() => navigate('/')}
               icon={ArrowLeft}
               iconPosition="left"
-              className="mt-4 bg-triagen-dark-bg hover:bg-triagen-primary-blue"
             >
               Voltar ao Início
             </Button>
@@ -235,7 +284,6 @@ function JobApplicationPage() {
               size="lg"
               fullWidth
               onClick={() => window.location.reload()}
-              className="mt-4 bg-triagen-dark-bg hover:bg-triagen-primary-blue"
             >
               Tentar Novamente
             </Button>
@@ -256,11 +304,11 @@ function JobApplicationPage() {
               <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-triagen-secondary-green flex items-center justify-center">
                 <Send className="h-10 w-10 text-white" />
               </div>
-              
+
               <h1 className={`font-heading text-2xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
                 Candidatura Enviada!
               </h1>
-              
+
               <p className={`font-sans mb-6 ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
                 Sua candidatura foi processada com sucesso! Nossa IA está preparando uma entrevista personalizada para você.
               </p>
@@ -279,7 +327,6 @@ function JobApplicationPage() {
                 onClick={() => navigate('/')}
                 icon={ArrowLeft}
                 iconPosition="left"
-                className="mt-6 bg-triagen-dark-bg hover:bg-triagen-primary-blue"
               >
                 Voltar ao Início
               </Button>
@@ -294,7 +341,7 @@ function JobApplicationPage() {
     <div className={`min-h-screen transition-all duration-500 ${darkMode ? 'dark bg-gray-900' : 'bg-triagen-light-bg'}`}>
       <AnimatedBackground darkMode={darkMode} />
       <PageHeader darkMode={darkMode} />
-      
+
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Job Info */}
         <Card darkMode={darkMode} className="mb-8">
@@ -502,7 +549,6 @@ function JobApplicationPage() {
               disabled={!formData.name || !formData.email}
               icon={Send}
               iconPosition="left"
-              className="bg-triagen-dark-bg hover:bg-triagen-primary-blue"
             >
               {submitting ? 'Processando...' : 'Enviar Candidatura'}
             </Button>

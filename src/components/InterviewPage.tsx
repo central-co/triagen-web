@@ -3,12 +3,18 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Bot, Lock, ArrowRight } from 'lucide-react';
 import InterviewRoom from './InterviewRoom';
 import useDarkMode from '../hooks/useDarkMode';
+import { useAppConfig } from '../hooks/useAppConfig';
 import AnimatedBackground from './ui/AnimatedBackground';
 import Button from './ui/button';
 import Card from './ui/Card';
 import StatusMessage from './ui/StatusMessage';
 import PageHeader from './ui/PageHeader';
-import { startInterview } from '../api/interview/start';
+import {
+  getCandidateByShortCode,
+  startInterviewSession,
+  getInterviewStatus,
+  planInterview,
+} from '../api/interview';
 
 function InterviewPage() {
   const { token: urlToken } = useParams();
@@ -18,18 +24,30 @@ function InterviewPage() {
   const [error, setError] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [jwtToken, setJwtToken] = useState('');
+  const [candidateId, setCandidateId] = useState('');
   const { darkMode } = useDarkMode(true);
+  const { config, loading: configLoading, error: configError } = useAppConfig();
 
   useEffect(() => {
-    // Auto-authenticate if token is in URL
-    if (urlToken) {
+    // Auto-authenticate if token is in URL and config is loaded
+    if (urlToken && config && !configLoading) {
       handleAuthentication(urlToken);
     }
-  }, [urlToken]);
+  }, [urlToken, config, configLoading]);
 
-  const handleAuthentication = async (authToken: string) => {
-    if (!authToken.trim()) {
+  const handleAuthentication = async (shortCode: string) => {
+    if (!shortCode.trim()) {
       setError('Por favor, insira o código da entrevista');
+      return;
+    }
+
+    if (configLoading) {
+      setError('Aguardando configuração...');
+      return;
+    }
+
+    if (configError || !config) {
+      setError('Erro ao carregar configuração. Recarregue a página.');
       return;
     }
 
@@ -37,17 +55,39 @@ function InterviewPage() {
     setError('');
 
     try {
-      const jwt = await startInterview(authToken);
-      setJwtToken(jwt);
+      console.log('🔍 Starting authentication with shortCode:', shortCode);
+      console.log('🌐 API URL:', config.apiUrl);
+
+      // 1. Get candidate ID from short code
+      const candidateData = await getCandidateByShortCode(shortCode, config.apiUrl);
+      console.log('✅ Candidate data received:', candidateData);
+      const candidateIdValue = candidateData.candidate_id;
+      setCandidateId(candidateIdValue);
+
+      // 2. Check if report already exists (interview completed)
+      const report = await getInterviewStatus(candidateIdValue, config.apiUrl);
+      if (report.status === 'completed') {
+        console.log('✅ Interview already completed, redirecting to report');
+        navigate(`/report/${candidateIdValue}`);
+        return;
+      }
+
+      // 3. Generate interview plan (backend should handle idempotency/caching)
+      console.log('📋 Ensuring interview plan exists...');
+      await planInterview(candidateIdValue, config.apiUrl);
+
+      // 4. Start LiveKit session
+      const session = await startInterviewSession(candidateIdValue, config.apiUrl);
+      console.log('✅ Session started:', session);
+      setJwtToken(session.token);
       setIsAuthenticated(true);
     } catch (err) {
+      console.error('❌ Authentication error:', err);
       setError(err instanceof Error ? err.message : 'Erro ao validar código');
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
+  };  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     handleAuthentication(token);
   };
@@ -56,6 +96,7 @@ function InterviewPage() {
     return (
       <InterviewRoom
         jwtToken={jwtToken}
+        candidateId={candidateId}
         onLeave={() => {
           setIsAuthenticated(false);
           setJwtToken('');
