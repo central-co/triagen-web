@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Room,
   RoomEvent,
@@ -8,7 +9,7 @@ import {
   RemoteAudioTrack,
   TrackPublication
 } from 'livekit-client';
-import { Mic, MicOff, PhoneOff, Volume2, VolumeX } from 'lucide-react';
+import { Mic, MicOff, PhoneOff, Volume2, VolumeX, Users, Bot, User } from 'lucide-react';
 import useDarkMode from '../hooks/useDarkMode';
 import useAudioLevel from '../hooks/useAudioLevel';
 import { useAppConfig } from '../hooks/useAppConfig';
@@ -16,13 +17,22 @@ import AnimatedBackground from './ui/AnimatedBackground';
 import Button from './ui/button';
 import Card from './ui/Card';
 import StatusMessage from './ui/StatusMessage';
+import RemoteAudioTrackComponent from './RemoteAudioTrack';
 
 interface InterviewRoomProps {
   jwtToken: string;
+  candidateId: string;
   onLeave: () => void;
 }
 
-function InterviewRoom({ jwtToken, onLeave }: InterviewRoomProps) {
+interface ParticipantInfo {
+  identity: string;
+  type: 'local' | 'agent' | 'remote';
+  isLocal: boolean;
+}
+
+function InterviewRoom({ jwtToken, candidateId, onLeave }: InterviewRoomProps) {
+  const navigate = useNavigate();
   const [room, setRoom] = useState<Room | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
@@ -31,9 +41,11 @@ function InterviewRoom({ jwtToken, onLeave }: InterviewRoomProps) {
   const [isSpeakerMuted, setIsSpeakerMuted] = useState(false);
   const [localAudioTrack, setLocalAudioTrack] = useState<LocalAudioTrack | null>(null);
   const [participants, setParticipants] = useState<RemoteParticipant[]>([]);
+  const [remoteAudioTracks, setRemoteAudioTracks] = useState<RemoteAudioTrack[]>([]);
+  const [localParticipantIdentity, setLocalParticipantIdentity] = useState<string>('');
   const { darkMode } = useDarkMode(true);
   const audioLevel = useAudioLevel(localAudioTrack);
-  const audioRef = useRef<HTMLAudioElement>(null);
+  const roomRef = useRef<Room | null>(null);
   const { config, loading: configLoading, error: configError } = useAppConfig();
 
   useEffect(() => {
@@ -45,7 +57,43 @@ function InterviewRoom({ jwtToken, onLeave }: InterviewRoomProps) {
         room.disconnect();
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [config, configLoading]);
+
+  // Helper function to determine participant type
+  const getParticipantType = (identity: string): 'agent' | 'remote' => {
+    // Check if identity contains 'agent' or 'bot' (case-insensitive)
+    const lowerIdentity = identity.toLowerCase();
+    if (lowerIdentity.includes('agent') || lowerIdentity.includes('bot')) {
+      return 'agent';
+    }
+    return 'remote';
+  };
+
+  // Get all participants with their types
+  const getAllParticipants = (): ParticipantInfo[] => {
+    const allParticipants: ParticipantInfo[] = [];
+
+    // Add local participant
+    if (localParticipantIdentity) {
+      allParticipants.push({
+        identity: localParticipantIdentity,
+        type: 'local',
+        isLocal: true
+      });
+    }
+
+    // Add remote participants
+    participants.forEach(participant => {
+      allParticipants.push({
+        identity: participant.identity,
+        type: getParticipantType(participant.identity),
+        isLocal: false
+      });
+    });
+
+    return allParticipants;
+  };
 
   const connectToRoom = async () => {
     if (isConnecting || !config) return;
@@ -55,7 +103,7 @@ function InterviewRoom({ jwtToken, onLeave }: InterviewRoomProps) {
 
     try {
       const livekitUrl = config.livekitUrl;
-      
+
       if (!livekitUrl) {
         throw new Error('LiveKit server URL not configured. Please check your configuration.');
       }
@@ -66,7 +114,10 @@ function InterviewRoom({ jwtToken, onLeave }: InterviewRoomProps) {
       }
 
       const roomInstance = new Room();
-      
+
+      // Store in ref BEFORE setting up event listeners so handlers can access it
+      roomRef.current = roomInstance;
+
       // Event listeners
       roomInstance.on(RoomEvent.Connected, handleRoomConnected);
       roomInstance.on(RoomEvent.Disconnected, handleRoomDisconnected);
@@ -80,10 +131,10 @@ function InterviewRoom({ jwtToken, onLeave }: InterviewRoomProps) {
       await roomInstance.connect(livekitUrl, jwtToken, {
         autoSubscribe: true,
       });
-      
+
       // Enable audio
       await roomInstance.localParticipant.enableCameraAndMicrophone();
-      
+
       // Get local audio track
       const audioTrackPubs = Array.from(roomInstance.localParticipant.audioTrackPublications.values());
       if (audioTrackPubs.length > 0 && audioTrackPubs[0].track) {
@@ -91,6 +142,8 @@ function InterviewRoom({ jwtToken, onLeave }: InterviewRoomProps) {
       }
 
       setRoom(roomInstance);
+
+      console.log('✅ Connected to room - Local:', roomInstance.localParticipant.identity, '| Remote:', roomInstance.remoteParticipants.size);
     } catch (err) {
       console.error('Failed to connect to room:', err);
       if (err instanceof Error) {
@@ -104,21 +157,47 @@ function InterviewRoom({ jwtToken, onLeave }: InterviewRoomProps) {
   };
 
   const handleRoomConnected = () => {
-    console.log('Connected to room');
     setIsConnected(true);
+
+    // Store local participant identity using roomRef
+    if (roomRef.current?.localParticipant) {
+      const identity = roomRef.current.localParticipant.identity;
+      setLocalParticipantIdentity(identity);
+
+      // Also capture any remote participants already in the room
+      const remoteParticipants = Array.from(roomRef.current.remoteParticipants.values());
+      if (remoteParticipants.length > 0) {
+        setParticipants(remoteParticipants);
+
+        // Capture existing tracks
+        remoteParticipants.forEach(p => {
+          p.audioTrackPublications.forEach(pub => {
+            if (pub.track && pub.track.kind === Track.Kind.Audio) {
+              handleTrackSubscribed(pub.track);
+            }
+          });
+        });
+      }
+
+      console.log('✅ Room ready - You:', identity, '| Others:', remoteParticipants.length);
+    }
   };
 
   const handleRoomDisconnected = () => {
-    console.log('Disconnected from room');
     setIsConnected(false);
     setLocalAudioTrack(null);
     setParticipants([]);
+    setLocalParticipantIdentity('');
+    roomRef.current = null;
+
+    // Redirect to processing page
+    navigate(`/interview/${candidateId}/processing`);
   };
 
   const handleParticipantConnected = (participant: RemoteParticipant) => {
-    console.log('Participant connected:', participant.identity);
+    console.log('➕ Participant joined:', participant.identity);
     setParticipants(prev => [...prev, participant]);
-    
+
     // Subscribe to audio tracks
     const audioTrackPubs = Array.from(participant.audioTrackPublications.values());
     audioTrackPubs.forEach((pub: TrackPublication) => {
@@ -129,25 +208,24 @@ function InterviewRoom({ jwtToken, onLeave }: InterviewRoomProps) {
   };
 
   const handleParticipantDisconnected = (participant: RemoteParticipant) => {
-    console.log('Participant disconnected:', participant.identity);
+    console.log('➖ Participant left:', participant.identity);
     setParticipants(prev => prev.filter(p => p.identity !== participant.identity));
   };
 
   const handleTrackSubscribed = (track: Track) => {
     if (track.kind === Track.Kind.Audio) {
       const audioTrack = track as RemoteAudioTrack;
-      
-      if (audioRef.current) {
-        audioTrack.attach(audioRef.current);
-      }
+      setRemoteAudioTracks(prev => {
+        if (prev.some(t => t.sid === audioTrack.sid)) return prev;
+        return [...prev, audioTrack];
+      });
     }
   };
 
   const handleTrackUnsubscribed = (track: Track) => {
     if (track.kind === Track.Kind.Audio) {
-      if (audioRef.current) {
-        track.detach(audioRef.current);
-      }
+      const audioTrack = track as RemoteAudioTrack;
+      setRemoteAudioTracks(prev => prev.filter(t => t.sid !== audioTrack.sid));
     }
   };
 
@@ -166,9 +244,6 @@ function InterviewRoom({ jwtToken, onLeave }: InterviewRoomProps) {
 
   const toggleSpeaker = () => {
     setIsSpeakerMuted(!isSpeakerMuted);
-    if (audioRef.current) {
-      audioRef.current.muted = !isSpeakerMuted;
-    }
   };
 
   const handleLeave = () => {
@@ -241,7 +316,6 @@ function InterviewRoom({ jwtToken, onLeave }: InterviewRoomProps) {
               size="lg"
               fullWidth
               onClick={connectToRoom}
-              className="mt-4 bg-triagen-dark-bg hover:bg-triagen-primary-blue"
             >
               Reconectar
             </Button>
@@ -272,7 +346,7 @@ function InterviewRoom({ jwtToken, onLeave }: InterviewRoomProps) {
   return (
     <div className={`min-h-screen transition-all duration-500 ${darkMode ? 'dark bg-gray-900' : 'bg-triagen-light-bg'}`}>
       <AnimatedBackground darkMode={darkMode} isRoom />
-      
+
       <div className="flex items-center justify-center min-h-screen px-4">
         <Card darkMode={darkMode} className="max-w-2xl w-full">
           <div className="text-center mb-8">
@@ -282,6 +356,57 @@ function InterviewRoom({ jwtToken, onLeave }: InterviewRoomProps) {
             <p className={`${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
               Participantes conectados: {participants.length + 1}
             </p>
+          </div>
+
+          {/* Participants List */}
+          <div className="mb-8">
+            <div className="flex items-center space-x-2 mb-4">
+              <Users className={`h-5 w-5 ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`} />
+              <h2 className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
+                Participantes na Sala
+              </h2>
+            </div>
+            <div className="space-y-2">
+              {getAllParticipants().map((participant, index) => {
+                const isAgent = participant.type === 'agent';
+                const isLocal = participant.type === 'local';
+                const Icon = isAgent ? Bot : User;
+
+                return (
+                  <div
+                    key={`${participant.identity}-${index}`}
+                    className={`flex items-center space-x-3 p-3 rounded-lg ${darkMode
+                        ? 'bg-gray-800 border border-gray-700'
+                        : 'bg-white border border-triagen-border-light'
+                      }`}
+                  >
+                    <div className={`p-2 rounded-full ${isLocal
+                        ? 'bg-triagen-primary-blue/20'
+                        : isAgent
+                          ? 'bg-triagen-secondary-green/20'
+                          : 'bg-gray-500/20'
+                      }`}>
+                      <Icon className={`h-5 w-5 ${isLocal
+                          ? 'text-triagen-primary-blue'
+                          : isAgent
+                            ? 'text-triagen-secondary-green'
+                            : darkMode ? 'text-gray-400' : 'text-gray-600'
+                        }`} />
+                    </div>
+                    <div className="flex-1">
+                      <p className={`font-medium ${darkMode ? 'text-white' : 'text-triagen-dark-bg'
+                        }`}>
+                        {participant.identity}
+                      </p>
+                      <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'
+                        }`}>
+                        {isLocal ? 'Você' : isAgent ? 'Agente IA' : 'Participante Remoto'}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
           {/* Audio level indicator */}
@@ -325,7 +450,6 @@ function InterviewRoom({ jwtToken, onLeave }: InterviewRoomProps) {
               onClick={handleLeave}
               icon={PhoneOff}
               darkMode={darkMode}
-              className="border-triagen-error text-triagen-error hover:bg-triagen-error hover:text-white"
             >
               Sair
             </Button>
@@ -341,8 +465,14 @@ function InterviewRoom({ jwtToken, onLeave }: InterviewRoomProps) {
         </Card>
       </div>
 
-      {/* Hidden audio element for remote audio */}
-      <audio ref={audioRef} autoPlay playsInline />
+      {/* Remote Audio Tracks */}
+      {remoteAudioTracks.map(track => (
+        <RemoteAudioTrackComponent
+          key={track.sid}
+          track={track}
+          volume={isSpeakerMuted ? 0 : 1.0}
+        />
+      ))}
     </div>
   );
 }

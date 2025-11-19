@@ -2,6 +2,9 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './hooks/useAuth';
 import LandingPage from './components/LandingPage';
 import InterviewPage from './components/InterviewPage';
+import TestInterviewRoom from './components/TestInterviewRoom';
+import ProcessingPage from './components/ProcessingPage';
+import ReportDetailPage from './components/ReportDetailPage';
 import NotFoundPage from './components/NotFoundPage';
 import LoginPage from './components/auth/LoginPage';
 import DashboardLayout from './components/dashboard/DashboardLayout';
@@ -18,7 +21,7 @@ import SettingsPage from './components/dashboard/settings/SettingsPage';
 // Protected Route component
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
-  
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -26,18 +29,18 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
       </div>
     );
   }
-  
+
   if (!user) {
     return <Navigate to="/auth/login" replace />;
   }
-  
+
   return <>{children}</>;
 }
 
 // Public Route component (redirect to dashboard if authenticated)
 function PublicRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
-  
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -45,11 +48,11 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
       </div>
     );
   }
-  
+
   if (user) {
     return <Navigate to="/dashboard" replace />;
   }
-  
+
   return <>{children}</>;
 }
 
@@ -60,15 +63,20 @@ function App() {
       <Route path="/" element={<LandingPage />} />
       <Route path="/interview" element={<InterviewPage />} />
       <Route path="/interview/:token" element={<InterviewPage />} />
+      <Route path="/interview/:candidateId/processing" element={<ProcessingPage />} />
+      <Route path="/report/:candidateId" element={<ReportDetailPage />} />
       <Route path="/apply/:jobId" element={<JobApplicationPage />} />
-      
+
+      {/* 🧪 TEST MODE ROUTE - Direct LiveKit connection with JWT token */}
+      <Route path="/test-interview" element={<TestInterviewRoom />} />
+
       {/* Auth routes - only login, no register */}
       <Route path="/auth/login" element={
         <PublicRoute>
           <LoginPage />
         </PublicRoute>
       } />
-      
+
       {/* Protected dashboard routes */}
       <Route path="/dashboard" element={
         <ProtectedRoute>
@@ -84,7 +92,7 @@ function App() {
         <Route path="reports" element={<ReportsPage />} />
         <Route path="settings" element={<SettingsPage />} />
       </Route>
-      
+
       {/* 404 */}
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
