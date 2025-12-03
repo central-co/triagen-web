@@ -87,7 +87,7 @@ function InterviewPage() {
     } finally {
       setIsLoading(false);
     }
-  };  const handleSubmit = (e: React.FormEvent) => {
+  }; const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     handleAuthentication(token);
   };
@@ -100,7 +100,7 @@ function InterviewPage() {
         onLeave={() => {
           setIsAuthenticated(false);
           setJwtToken('');
-          navigate('/');
+          navigate(`/interview/${candidateId}/finished`);
         }}
       />
     );
@@ -146,11 +146,10 @@ function InterviewPage() {
                   value={token}
                   onChange={(e) => setToken(e.target.value)}
                   placeholder="Digite o código recebido por email"
-                  className={`font-sans w-full px-4 py-4 rounded-2xl border transition-all duration-300 focus:ring-2 focus:ring-triagen-secondary-green/50 focus:border-triagen-secondary-green ${
-                    darkMode
+                  className={`font-sans w-full px-4 py-4 rounded-2xl border transition-all duration-300 focus:ring-2 focus:ring-triagen-secondary-green/50 focus:border-triagen-secondary-green ${darkMode
                       ? 'bg-gray-800/50 border-triagen-border-dark text-white placeholder-gray-400'
                       : 'bg-white/70 border-triagen-border-light text-triagen-dark-bg placeholder-triagen-text-light'
-                  }`}
+                    }`}
                   disabled={isLoading}
                 />
               </div>

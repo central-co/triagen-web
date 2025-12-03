@@ -3,7 +3,7 @@ import { useAuth } from './hooks/useAuth';
 import LandingPage from './components/LandingPage';
 import InterviewPage from './components/InterviewPage';
 import TestInterviewRoom from './components/TestInterviewRoom';
-import ProcessingPage from './components/ProcessingPage';
+import InterviewFinishedPage from './components/InterviewFinishedPage';
 import ReportDetailPage from './components/ReportDetailPage';
 import NotFoundPage from './components/NotFoundPage';
 import LoginPage from './components/auth/LoginPage';
@@ -63,7 +63,7 @@ function App() {
       <Route path="/" element={<LandingPage />} />
       <Route path="/interview" element={<InterviewPage />} />
       <Route path="/interview/:token" element={<InterviewPage />} />
-      <Route path="/interview/:candidateId/processing" element={<ProcessingPage />} />
+      <Route path="/interview/:candidateId/finished" element={<InterviewFinishedPage />} />
       <Route path="/report/:candidateId" element={<ReportDetailPage />} />
       <Route path="/apply/:jobId" element={<JobApplicationPage />} />
 

@@ -86,6 +86,7 @@ interface InterviewReport {
   transcript_url?: string;
   recording_url?: string;
   created_at: string;
+  status: 'pending' | 'processing' | 'completed' | 'failed';
 }
 
 export interface Report {
@@ -97,6 +98,7 @@ export interface Report {
   alignment_analysis: string;
   summary: string;
   category_scores: Record<string, number>;
+  status: 'pending' | 'processing' | 'completed' | 'failed';
 }
 
 interface Plan {
