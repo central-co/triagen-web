@@ -65,8 +65,8 @@ curl http://localhost:3000/api/application/Kb04VBy
 {
     "id": "86a035e1-58bf-4831-95b0-7014463cdb98",
     "candidate_id": "86a035e1-58bf-4831-95b0-7014463cdb98",
-    "name": "Felipe Gameleira",
-    "email": "gameleirafelipe@gmail.com",
+    "name": "Fulano de Tal",
+    "email": "fulanodetal@gmail.com",
     "job_id": "83b548a4-53b7-4673-899e-23c5c9570bdc"
 }
 ```
@@ -93,7 +93,7 @@ async createApplication(@Body() dto: CreateApplicationDto): Promise<string> {
 {
   candidate_id: "86a035e1-...",
   short_code: "Kb04VBy",
-  email: "gameleirafelipe@gmail.com"
+  email: "fulanodetal@gmail.com"
 }
 ```
 
@@ -309,7 +309,7 @@ return "Kb04VBy";
 {
   candidate_id: "86a035e1-58bf-4831-95b0-7014463cdb98",
   short_code: "Kb04VBy",
-  email: "gameleirafelipe@gmail.com"
+  email: "fulanodetal@gmail.com"
 }
 ```
 
@@ -576,8 +576,8 @@ curl http://localhost:3000/api/application/Kb04VBy
 {
     "id": "86a035e1-58bf-4831-95b0-7014463cdb98",
     "candidate_id": "86a035e1-58bf-4831-95b0-7014463cdb98",
-    "name": "Felipe Gameleira",
-    "email": "gameleirafelipe@gmail.com",
+    "name": "Fulano de Tal",
+    "email": "fulanodetal@gmail.com",
     "job_id": "83b548a4-53b7-4673-899e-23c5c9570bdc"
 }
 ```
