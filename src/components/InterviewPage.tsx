@@ -74,7 +74,15 @@ function InterviewPage() {
 
       // 3. Generate interview plan (backend should handle idempotency/caching)
       console.log('📋 Ensuring interview plan exists...');
-      await planInterview(candidateIdValue, config.apiUrl);
+      try {
+        await planInterview(candidateIdValue, config.apiUrl);
+      } catch (planError) {
+        // If rate limit error, show helpful message
+        if (planError instanceof Error && planError.message.includes('429')) {
+          throw new Error('The AI service is currently busy. Please wait a moment and try again.');
+        }
+        throw planError;
+      }
 
       // 4. Start LiveKit session
       const session = await startInterviewSession(candidateIdValue, config.apiUrl);
