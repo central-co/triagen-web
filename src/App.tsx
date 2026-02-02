@@ -16,10 +16,11 @@ import JobApplicationPage from './components/dashboard/jobs/JobApplicationPage';
 import CandidatesPage from './components/dashboard/candidates/CandidatesPage';
 import CandidateProfilePage from './components/dashboard/candidates/CandidateProfilePage';
 import ReportsPage from './components/dashboard/reports/ReportsPage';
+import DashboardReportDetailPage from './components/dashboard/reports/DashboardReportDetailPage';
 import SettingsPage from './components/dashboard/settings/SettingsPage';
 
 // Protected Route component
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
+function ProtectedRoute({ children }: Readonly<{ children: React.ReactNode }>) {
   const { user, loading } = useAuth();
 
   if (loading) {
@@ -38,7 +39,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 }
 
 // Public Route component (redirect to dashboard if authenticated)
-function PublicRoute({ children }: { children: React.ReactNode }) {
+function PublicRoute({ children }: Readonly<{ children: React.ReactNode }>) {
   const { user, loading } = useAuth();
 
   if (loading) {
@@ -89,7 +90,9 @@ function App() {
         <Route path="jobs/:jobId" element={<JobDetailsPage />} />
         <Route path="candidates" element={<CandidatesPage />} />
         <Route path="candidates/:candidateId" element={<CandidateProfilePage />} />
+        <Route path="candidates/:candidateId/report" element={<DashboardReportDetailPage />} />
         <Route path="reports" element={<ReportsPage />} />
+        <Route path="reports/:reportId" element={<DashboardReportDetailPage />} />
         <Route path="settings" element={<SettingsPage />} />
       </Route>
 
