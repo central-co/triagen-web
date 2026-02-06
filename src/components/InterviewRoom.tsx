@@ -190,8 +190,8 @@ function InterviewRoom({ jwtToken, candidateId, onLeave }: InterviewRoomProps) {
     setLocalParticipantIdentity('');
     roomRef.current = null;
 
-    // Redirect to processing page
-    navigate(`/interview/${candidateId}/processing`);
+    // Redirect to finished page
+    navigate(`/interview/${candidateId}/finished`);
   };
 
   const handleParticipantConnected = (participant: RemoteParticipant) => {
@@ -246,11 +246,28 @@ function InterviewRoom({ jwtToken, candidateId, onLeave }: InterviewRoomProps) {
     setIsSpeakerMuted(!isSpeakerMuted);
   };
 
-  const handleLeave = () => {
-    if (room) {
-      room.disconnect();
+  const handleLeave = async () => {
+    try {
+      // Call backend to finish session before disconnecting
+      if (config?.apiUrl && candidateId) {
+        await fetch(`${config.apiUrl}/api/interviews/finish-session/${candidateId}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }).catch(err => {
+          console.error('Failed to finish session:', err);
+          // Continue with disconnect even if API call fails
+        });
+      }
+    } finally {
+      // Always disconnect and navigate to finished page
+      if (room) {
+        room.disconnect();
+      }
+      // Navigate to finished page instead of calling onLeave
+      navigate(`/interview/${candidateId}/finished`);
     }
-    onLeave();
   };
 
   // Show loading while config is loading
