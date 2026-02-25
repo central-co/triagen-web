@@ -1,177 +1,99 @@
-// Unified interview API service
-// NOTE: API_URL should be passed as parameter, not hardcoded from env
-// This allows dynamic configuration from Edge Functions
+/**
+ * Interview API module
+ *
+ * All backend calls related to interview lifecycle:
+ * candidate lookup, plan generation, session start/finish, and report polling.
+ */
 
-export interface InterviewReport {
-    status: "not_found" | "processing" | "completed";
-    overallScore?: number;
-    criteriaScores?: Record<string, {
-        score: number;
-        justification: string;
-    }>;
-    summary?: string;
-    strengths?: string[];
-    weaknesses?: string[];
-    recommendation?: "approve" | "reject" | "technical_test";
-    alignment_analysis?: string;
-    category_scores?: Record<string, number>;
-}
+import { apiClient, ApiError } from "../client";
+import type {
+    CandidateData,
+    FinishSessionResult,
+    InterviewPlanResult,
+    InterviewReport,
+    InterviewSession,
+} from "../types";
 
-export interface CandidateData {
-    id: string;
-    candidate_id: string;
-    name: string;
-    email: string;
-    job_id: string;
-}
-
-export interface InterviewSession {
-    token: string;
-    roomName: string;
-    sessionId: string;
-}
+// Re-export types that consumers previously imported from this module
+export type {
+    CandidateData,
+    InterviewReport,
+    InterviewSession,
+} from "../types";
 
 /**
- * Get candidate data by short code
- * TODO: Backend needs to implement GET /api/application/:shortCode
- * For now, this will fail with 404 until backend implements it
+ * Get candidate data by short code.
+ * Endpoint: GET /api/application/:shortCode
  */
 export async function getCandidateByShortCode(
     shortCode: string,
-    apiUrl: string,
 ): Promise<CandidateData> {
-    // Remove trailing slash
-    const baseUrl = apiUrl.endsWith("/") ? apiUrl.slice(0, -1) : apiUrl;
-
-    // TODO: Backend precisa implementar este endpoint
-    // Endpoint esperado: GET /api/application/:shortCode
-    // Response esperado: { id, candidate_id, name, email, job_id, job: {...} }
-    const response = await fetch(`${baseUrl}/api/application/${shortCode}`, {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-    });
-
-    if (!response.ok) {
-        const text = await response.text();
-        throw new Error(
-            text ||
-                "Código inválido ou não encontrado. Endpoint ainda não implementado no backend.",
-        );
-    }
-
-    return response.json();
+    const { data } = await apiClient.get<CandidateData>(
+        `/api/application/${shortCode}`,
+    );
+    return data;
 }
 
 /**
- * Get interview status and report
+ * Get interview status and report.
+ * Endpoint: GET /api/interviews/:candidateId/report
  */
 export async function getInterviewStatus(
     candidateId: string,
-    apiUrl: string,
 ): Promise<InterviewReport> {
-    const baseUrl = apiUrl.endsWith("/") ? apiUrl.slice(0, -1) : apiUrl;
-    const response = await fetch(
-        `${baseUrl}/api/interviews/${candidateId}/report`,
-        {
-            method: "GET",
-            headers: { "Content-Type": "application/json" },
-        },
-    );
+    try {
+        const { data } = await apiClient.get<InterviewReport>(
+            `/api/interviews/${candidateId}/report`,
+        );
 
-    if (response.status === 404) {
-        return { status: "not_found" };
-    }
+        if (!data.overallScore && !data.summary) {
+            return { status: "processing" };
+        }
 
-    if (!response.ok) {
+        return { status: "completed", ...data };
+    } catch (err: unknown) {
+        if (err instanceof ApiError && err.status === 404) {
+            return { status: "not_found" };
+        }
         throw new Error("Erro ao buscar relatório");
     }
-
-    const data = await response.json();
-
-    // Check if report is still processing
-    if (!data.overallScore && !data.summary) {
-        return { status: "processing" };
-    }
-
-    return {
-        status: "completed",
-        ...data,
-    };
 }
 
 /**
- * Generate interview plan
+ * Generate interview plan.
+ * Endpoint: POST /api/interviews/plan/:candidateId
  */
 export async function planInterview(
     candidateId: string,
-    apiUrl: string,
-): Promise<{ planId: string; status: string }> {
-    const baseUrl = apiUrl.endsWith("/") ? apiUrl.slice(0, -1) : apiUrl;
-    const response = await fetch(
-        `${baseUrl}/api/interviews/plan/${candidateId}`,
-        {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-        },
+): Promise<InterviewPlanResult> {
+    const { data } = await apiClient.post<InterviewPlanResult>(
+        `/api/interviews/plan/${candidateId}`,
     );
-
-    if (!response.ok) {
-        const text = await response.text();
-        throw new Error(text || "Erro ao gerar plano de entrevista");
-    }
-
-    return response.json();
+    return data;
 }
 
 /**
- * Start interview session (get LiveKit token)
+ * Start interview session and get LiveKit token.
+ * Endpoint: POST /api/interviews/start/:candidateId
  */
 export async function startInterviewSession(
     candidateId: string,
-    apiUrl: string,
 ): Promise<InterviewSession> {
-    const baseUrl = apiUrl.endsWith("/") ? apiUrl.slice(0, -1) : apiUrl;
-    const response = await fetch(
-        `${baseUrl}/api/interviews/start/${candidateId}`,
-        {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-        },
+    const { data } = await apiClient.post<InterviewSession>(
+        `/api/interviews/start/${candidateId}`,
     );
-
-    if (!response.ok) {
-        const text = await response.text();
-        throw new Error(text || "Erro ao iniciar sessão de entrevista");
-    }
-
-    return response.json();
+    return data;
 }
 
 /**
- * Submit application (create candidate)
+ * Finish interview session.
+ * Endpoint: POST /api/interviews/finish-session/:candidateId
  */
-export async function submitApplication(data: {
-    name: string;
-    email: string;
-    phone?: string;
-    job_id: string;
-    resume_text?: string;
-}, apiUrl: string): Promise<{ candidateId: string; shortCode: string }> {
-    const baseUrl = apiUrl.endsWith("/") ? apiUrl.slice(0, -1) : apiUrl;
-    const response = await fetch(`${baseUrl}/api/applications`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-    });
-
-    if (!response.ok) {
-        const text = await response.text();
-        throw new Error(text || "Erro ao enviar candidatura");
-    }
-
-    const result = await response.json();
-    return {
-        candidateId: result.candidate_id,
-        shortCode: result.short_code,
-    };
+export async function finishInterviewSession(
+    candidateId: string,
+): Promise<FinishSessionResult> {
+    const { data } = await apiClient.post<FinishSessionResult>(
+        `/api/interviews/finish-session/${candidateId}`,
+    );
+    return data;
 }

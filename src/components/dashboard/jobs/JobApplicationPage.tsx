@@ -4,6 +4,7 @@ import { Send, ArrowLeft, FileText } from 'lucide-react';
 import useDarkMode from '../../../hooks/useDarkMode';
 import { useAppConfig } from '../../../hooks/useAppConfig';
 import { supabase } from '../../../integrations/supabase/client';
+import { createApplication } from '../../../api/application';
 import Button from '../../ui/button';
 import Card from '../../ui/Card';
 import StatusMessage from '../../ui/StatusMessage';
@@ -183,36 +184,8 @@ function JobApplicationPage() {
 
       console.log('Enviando payload para API:', payload);
 
-      // Remove trailing slash from apiUrl to avoid double slashes
-      const apiUrl = config.apiUrl.endsWith('/') ? config.apiUrl.slice(0, -1) : config.apiUrl;
-      const response = await fetch(`${apiUrl}/api/application/create`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Backend error response:', errorText);
-
-        let errorMessage = 'Erro ao processar candidatura';
-        try {
-          const errorData = JSON.parse(errorText);
-          errorMessage = errorData.error || errorData.detail || errorData.message || errorText;
-        } catch {
-          errorMessage = errorText || `Erro ${response.status}`;
-        }
-
-        throw new Error(errorMessage);
-      }
-
-      if (response.status === 201) {
-        setSuccess(true);
-      } else {
-        throw new Error('Resposta inesperada da API');
-      }
+      await createApplication(payload);
+      setSuccess(true);
     } catch (err) {
       console.error('Error submitting application:', err);
       if (err instanceof Error) {

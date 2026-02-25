@@ -12,25 +12,9 @@ import {
   ArrowLeft,
   Loader2
 } from 'lucide-react';
-import { getConfig } from '../../../utils/config';
+import { getInterviewReport, DashboardReportData } from '../../../api/reports';
 
-interface CriteriaScore {
-  score: number;
-  justification: string;
-}
-
-interface DashboardReportData {
-  id: string;
-  candidateId: string;
-  status: string;
-  overallScore?: number;
-  criteriaScores?: Record<string, number | CriteriaScore>;
-  summary?: string;
-  strengths?: string[];
-  weaknesses?: string[];
-  recommendation?: 'approve' | 'reject' | 'technical_test';
-  createdAt?: string;
-}
+type CriteriaScore = { score: number; justification: string };
 
 export default function DashboardReportDetailPage() {
   const { candidateId, reportId } = useParams<{ candidateId?: string; reportId?: string }>();
@@ -48,22 +32,11 @@ export default function DashboardReportDetailPage() {
     const fetchReport = async () => {
       try {
         setLoading(true);
-        const config = await getConfig();
         const id = candidateId || reportId;
 
-        const response = await fetch(`${config.apiUrl}/api/interviews/${id}/report`, {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
+        const data = await getInterviewReport(id!);
 
-        if (!response.ok) {
-          throw new Error('Failed to fetch report');
-        }
-
-        const data = await response.json();
-
-        if (data.status === 'not_found') {
+        if (data === null || data.status === 'not_found') {
           setError('Relatório ainda não está disponível. Por favor, aguarde alguns minutos.');
           return;
         }

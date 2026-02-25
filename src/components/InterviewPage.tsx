@@ -59,13 +59,13 @@ function InterviewPage() {
       console.log('🌐 API URL:', config.apiUrl);
 
       // 1. Get candidate ID from short code
-      const candidateData = await getCandidateByShortCode(shortCode, config.apiUrl);
+      const candidateData = await getCandidateByShortCode(shortCode);
       console.log('✅ Candidate data received:', candidateData);
       const candidateIdValue = candidateData.candidate_id;
       setCandidateId(candidateIdValue);
 
       // 2. Check if report already exists (interview completed)
-      const report = await getInterviewStatus(candidateIdValue, config.apiUrl);
+      const report = await getInterviewStatus(candidateIdValue);
       if (report.status === 'completed') {
         console.log('✅ Interview already completed, redirecting to report');
         navigate(`/report/${candidateIdValue}`);
@@ -75,7 +75,7 @@ function InterviewPage() {
       // 3. Generate interview plan (backend should handle idempotency/caching)
       console.log('📋 Ensuring interview plan exists...');
       try {
-        await planInterview(candidateIdValue, config.apiUrl);
+        await planInterview(candidateIdValue);
       } catch (planError) {
         // If rate limit error, show helpful message
         if (planError instanceof Error && planError.message.includes('429')) {
@@ -85,7 +85,7 @@ function InterviewPage() {
       }
 
       // 4. Start LiveKit session
-      const session = await startInterviewSession(candidateIdValue, config.apiUrl);
+      const session = await startInterviewSession(candidateIdValue);
       console.log('✅ Session started:', session);
       setJwtToken(session.token);
       setIsAuthenticated(true);

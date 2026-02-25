@@ -18,6 +18,7 @@ import Button from './ui/button';
 import Card from './ui/Card';
 import StatusMessage from './ui/StatusMessage';
 import RemoteAudioTrackComponent from './RemoteAudioTrack';
+import { finishInterviewSession } from '../api/interview';
 
 interface InterviewRoomProps {
   jwtToken: string;
@@ -249,13 +250,8 @@ function InterviewRoom({ jwtToken, candidateId, onLeave }: InterviewRoomProps) {
   const handleLeave = async () => {
     try {
       // Call backend to finish session before disconnecting
-      if (config?.apiUrl && candidateId) {
-        await fetch(`${config.apiUrl}/api/interviews/finish-session/${candidateId}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }).catch(err => {
+      if (candidateId) {
+        await finishInterviewSession(candidateId).catch(err => {
           console.error('Failed to finish session:', err);
           // Continue with disconnect even if API call fails
         });

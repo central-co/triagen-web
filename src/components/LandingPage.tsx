@@ -28,7 +28,7 @@ import {
 import useDarkMode from '../hooks/useDarkMode';
 import { useAuth } from '../hooks/useAuth';
 import { useAppConfig } from '../hooks/useAppConfig';
-import { secureFetch } from '../utils/apiSecurity';
+import { submitWaitlistSignup } from '../api/config';
 import AnimatedBackground from './ui/AnimatedBackground';
 import Button from './ui/button';
 import PageHeader from './ui/PageHeader';
@@ -116,35 +116,18 @@ function LandingPage() {
     setError('');
 
     try {
-      const response = await secureFetch(`${config.supabaseUrl}/functions/v1/waitlist-signup`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${config.supabaseAnonKey}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          email: formData.email,
-          name: formData.name,
-          company: formData.company || null,
-          job_title: formData.job_title || null,
-          newsletter_consent: newsletterConsent,
-          recaptcha_token: recaptchaToken,
-        }),
-        // Note: All security validation now happens on the backend
-        security: {
-          rateLimitType: 'waitlist',
-          validateOrigin: true
-        }
+      await submitWaitlistSignup({
+        email: formData.email,
+        name: formData.name,
+        company: formData.company || null,
+        job_title: formData.job_title || null,
+        newsletter_consent: newsletterConsent,
+        recaptcha_token: recaptchaToken,
       });
 
-      if (response.ok) {
-        setIsSubmitted(true);
-        setFormData({ name: '', email: '', company: '', job_title: '' });
-        setNewsletterConsent(false);
-      } else {
-        const errorData = await response.json();
-        setError(errorData.error || 'Erro ao enviar formulário. Tente novamente.');
-      }
+      setIsSubmitted(true);
+      setFormData({ name: '', email: '', company: '', job_title: '' });
+      setNewsletterConsent(false);
     } catch (err) {
       console.error('Waitlist submission error:', err);
       if (err instanceof Error) {
