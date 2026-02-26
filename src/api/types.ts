@@ -1,7 +1,7 @@
 // Shared API types across all modules
 
 export interface InterviewReport {
-    status: "not_found" | "processing" | "completed";
+    status: "not_found" | "processing" | "completed" | "failed";
     overallScore?: number;
     criteriaScores?: Record<string, {
         score: number;

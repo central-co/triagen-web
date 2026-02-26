@@ -45,12 +45,7 @@ export async function getInterviewStatus(
         const { data } = await apiClient.get<InterviewReport>(
             `/api/interviews/${candidateId}/report`,
         );
-
-        if (!data.overallScore && !data.summary) {
-            return { status: "processing" };
-        }
-
-        return { status: "completed", ...data };
+        return data;
     } catch (err: unknown) {
         if (err instanceof ApiError && err.status === 404) {
             return { status: "not_found" };
