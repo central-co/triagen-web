@@ -9,6 +9,7 @@
  */
 
 import { apiClient } from "../client";
+import { config } from "../../utils/config";
 import type { WaitlistPayload, WaitlistResult } from "../types";
 
 export type { WaitlistPayload, WaitlistResult } from "../types";
@@ -22,16 +23,13 @@ export type { WaitlistPayload, WaitlistResult } from "../types";
 export async function submitWaitlistSignup(
     payload: WaitlistPayload,
 ): Promise<WaitlistResult> {
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
-    const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
-
     const { data } = await apiClient.post<WaitlistResult>(
         "/functions/v1/waitlist-signup",
         payload,
         {
-            baseUrl: supabaseUrl,
+            baseUrl: config.supabaseUrl,
             headers: {
-                Authorization: `Bearer ${supabaseAnonKey}`,
+                Authorization: `Bearer ${config.supabasePublishableKey}`,
             },
         },
     );

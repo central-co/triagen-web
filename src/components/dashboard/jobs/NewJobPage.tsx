@@ -190,9 +190,9 @@ function NewJobPage() {
           salary_range: formData.salaryRange || null,
           salary_info: formData.salaryInfo || null,
           benefits: formData.benefits || null,
-          requirements: JSON.stringify(formData.requirements.filter(req => req.trim() !== '')),
-          differentials: JSON.stringify(formData.differentials.filter(diff => diff.trim() !== '')),
-          custom_questions: JSON.stringify(validCustomQuestions),
+          requirements: formData.requirements.filter(req => req.trim() !== ''),
+          differentials: formData.differentials.filter(diff => diff.trim() !== ''),
+          custom_questions: validCustomQuestions as unknown as import('../../../integrations/supabase/types').Database['public']['Tables']['jobs']['Insert']['custom_questions'],
           deadline: formData.deadline || null,
           status: 'open'
         });
@@ -440,7 +440,7 @@ function NewJobPage() {
                     size="sm"
                     icon={Minus}
                     darkMode={darkMode}
-                  />
+                  >Remover</Button>
                 )}
               </div>
             ))}
@@ -485,7 +485,7 @@ function NewJobPage() {
                     size="sm"
                     icon={Minus}
                     darkMode={darkMode}
-                  />
+                  >Remover</Button>
                 )}
               </div>
             ))}
@@ -536,7 +536,7 @@ function NewJobPage() {
                     icon={Minus}
                     darkMode={darkMode}
                     disabled
-                  />
+                  >Remover</Button>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -622,7 +622,7 @@ function NewJobPage() {
                             icon={Minus}
                             darkMode={darkMode}
                             disabled
-                          />
+                          >Remover</Button>
                         </div>
                       ))}
                       <Button

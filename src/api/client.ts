@@ -9,7 +9,7 @@
  * Use this client for all backend API calls so headers are injected consistently.
  */
 
-import { getConfig } from "../utils/config";
+import { config } from "../utils/config";
 import { observability } from "../observability";
 
 function getClientIdentifier(): string {
@@ -79,7 +79,7 @@ async function request<T>(
     const method = fetchOptions.method || "GET";
 
     // Resolve base URL
-    const resolvedBase = baseUrl ?? (await getConfig()).apiUrl;
+    const resolvedBase = baseUrl ?? config.apiUrl;
     const normalizedBase = resolvedBase.endsWith("/")
         ? resolvedBase.slice(0, -1)
         : resolvedBase;

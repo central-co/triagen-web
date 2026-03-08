@@ -12,7 +12,7 @@ import {
 import { Mic, MicOff, PhoneOff, Volume2, VolumeX, Users, Bot, User } from 'lucide-react';
 import useDarkMode from '../hooks/useDarkMode';
 import useAudioLevel from '../hooks/useAudioLevel';
-import { useAppConfig } from '../hooks/useAppConfig';
+import { config } from '../utils/config';
 import AnimatedBackground from './ui/AnimatedBackground';
 import Button from './ui/button';
 import Card from './ui/Card';
@@ -47,19 +47,15 @@ function InterviewRoom({ jwtToken, candidateId, onLeave }: InterviewRoomProps) {
   const { darkMode } = useDarkMode(true);
   const audioLevel = useAudioLevel(localAudioTrack);
   const roomRef = useRef<Room | null>(null);
-  const { config, loading: configLoading, error: configError } = useAppConfig();
-
   useEffect(() => {
-    if (config && !configLoading) {
-      connectToRoom();
-    }
+    connectToRoom();
     return () => {
       if (room) {
         room.disconnect();
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [config, configLoading]);
+  }, []);
 
   // Helper function to determine participant type
   const getParticipantType = (identity: string): 'agent' | 'remote' => {

@@ -27,8 +27,7 @@ import {
 } from 'lucide-react';
 import useDarkMode from '../hooks/useDarkMode';
 import { useAuth } from '../hooks/useAuth';
-import { useAppConfig } from '../hooks/useAppConfig';
-import { submitWaitlistSignup } from '../api/config';
+import { config } from '../utils/config';
 import AnimatedBackground from './ui/AnimatedBackground';
 import Button from './ui/button';
 import PageHeader from './ui/PageHeader';
@@ -55,7 +54,6 @@ function LandingPage() {
   const [error, setError] = useState('');
   const { darkMode, toggleDarkMode } = useDarkMode();
   const { user, loading } = useAuth();
-  const { config, loading: configLoading } = useAppConfig();
   const navigate = useNavigate();
   const recaptchaRef = useRef<ReCAPTCHA>(null);
 
@@ -107,11 +105,6 @@ function LandingPage() {
       return;
     }
 
-    if (!config) {
-      setError('Configuração não carregada. Tente recarregar a página.');
-      return;
-    }
-
     setIsLoading(true);
     setError('');
 
@@ -153,7 +146,7 @@ function LandingPage() {
   // Create right content based on authentication status
   const rightContent = (() => {
     // Only show loading when auth is actually being processed
-    if (loading || configLoading) {
+    if (loading) {
       return (
         <div className="w-8 h-8 rounded-full border-2 border-triagen-primary-blue border-t-transparent animate-spin"></div>
       );
@@ -512,7 +505,7 @@ function LandingPage() {
                         <div className="flex justify-center">
                           <ReCAPTCHA
                             ref={recaptchaRef}
-                            sitekey={config?.recaptchaSiteKey || ''}
+                            sitekey={config.recaptchaSiteKey || ''}
                             size="invisible"
                             theme={darkMode ? 'dark' : 'light'}
                           />

@@ -42,6 +42,7 @@ function SettingsPage() {
     marketingEmails: false
   });
 
+  const [companyId, setCompanyId] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
@@ -81,6 +82,7 @@ function SettingsPage() {
       }
 
       if (companies) {
+        setCompanyId(companies.id);
         setCompanyProfile({
           name: companies.name || '',
           cnpj: companies.cnpj || '',
@@ -133,17 +135,19 @@ function SettingsPage() {
       }
 
       // Update or create company profile
-      const { error: companyError } = await supabase
-        .from('companies')
-        .upsert({
-          user_id: user.id,
-          name: companyProfile.name,
-          cnpj: companyProfile.cnpj || null,
-          contact_email: companyProfile.contact_email || null,
-          contact_phone: companyProfile.contact_phone || null,
-          address: companyProfile.address || null,
-          updated_at: new Date().toISOString()
-        });
+      const companyData = {
+        user_id: user.id,
+        name: companyProfile.name,
+        cnpj: companyProfile.cnpj || null,
+        contact_email: companyProfile.contact_email || null,
+        contact_phone: companyProfile.contact_phone || null,
+        address: companyProfile.address || null,
+        updated_at: new Date().toISOString()
+      };
+
+      const { error: companyError } = companyId
+        ? await supabase.from('companies').update(companyData).eq('id', companyId)
+        : await supabase.from('companies').insert(companyData);
 
       if (companyError) {
         throw companyError;

@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Bot, Lock, ArrowRight } from 'lucide-react';
 import InterviewRoom from './InterviewRoom';
 import useDarkMode from '../hooks/useDarkMode';
-import { useAppConfig } from '../hooks/useAppConfig';
+import { config } from '../utils/config';
 import AnimatedBackground from './ui/AnimatedBackground';
 import Button from './ui/button';
 import Card from './ui/Card';
@@ -26,28 +26,16 @@ function InterviewPage() {
   const [jwtToken, setJwtToken] = useState('');
   const [candidateId, setCandidateId] = useState('');
   const { darkMode } = useDarkMode(true);
-  const { config, loading: configLoading, error: configError } = useAppConfig();
 
   useEffect(() => {
-    // Auto-authenticate if token is in URL and config is loaded
-    if (urlToken && config && !configLoading) {
+    if (urlToken) {
       handleAuthentication(urlToken);
     }
-  }, [urlToken, config, configLoading]);
+  }, [urlToken]);
 
   const handleAuthentication = async (shortCode: string) => {
     if (!shortCode.trim()) {
       setError('Por favor, insira o código da entrevista');
-      return;
-    }
-
-    if (configLoading) {
-      setError('Aguardando configuração...');
-      return;
-    }
-
-    if (configError || !config) {
-      setError('Erro ao carregar configuração. Recarregue a página.');
       return;
     }
 

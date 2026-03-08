@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Send, ArrowLeft, FileText } from 'lucide-react';
 import useDarkMode from '../../../hooks/useDarkMode';
-import { useAppConfig } from '../../../hooks/useAppConfig';
 import { supabase } from '../../../integrations/supabase/client';
 import { createApplication } from '../../../api/application';
 import Button from '../../ui/button';
@@ -21,7 +20,6 @@ function JobApplicationPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const { darkMode } = useDarkMode(true);
-  const { config, loading: configLoading, error: configError } = useAppConfig();
 
   const [formData, setFormData] = useState({
     name: '',
@@ -42,12 +40,8 @@ function JobApplicationPage() {
     console.log('JobApplicationPage mounted');
     console.log('jobId from URL:', jobId);
     console.log('Supabase URL:', import.meta.env.VITE_SUPABASE_URL);
-    console.log('Has Supabase Key:', !!import.meta.env.VITE_SUPABASE_ANON_KEY);
     console.log('API URL from env:', import.meta.env.VITE_API_URL);
-    if (config) {
-      console.log('Config loaded - API URL:', config.apiUrl);
-    }
-  }, [config]);
+  }, []);
 
   const fetchJob = async () => {
     console.log('Fetching job with ID:', jobId);
@@ -159,21 +153,13 @@ function JobApplicationPage() {
       }
     }
 
-    if (configLoading) {
-      setError('Aguarde o carregamento da configuração');
-      return;
-    }
-
-    if (configError || !config) {
-      setError('Erro na configuração do sistema. Tente recarregar a página.');
-      return;
-    }
-
     setSubmitting(true);
     setError('');
 
     try {
       // Preparar payload no formato esperado pelo backend (flat structure com snake_case)
+      if (!jobId) throw new Error('ID da vaga não encontrado');
+
       const payload = {
         name: formData.name,
         email: formData.email,
@@ -198,7 +184,7 @@ function JobApplicationPage() {
     }
   };
 
-  if (loading || configLoading) {
+  if (loading) {
     return (
       <div className={`min-h-screen transition-all duration-500 ${darkMode ? 'dark bg-gray-900' : 'bg-triagen-light-bg'}`}>
         <AnimatedBackground darkMode={darkMode} />
@@ -232,33 +218,6 @@ function JobApplicationPage() {
               iconPosition="left"
             >
               Voltar ao Início
-            </Button>
-          </Card>
-        </div>
-      </div>
-    );
-  }
-
-  if (configError) {
-    return (
-      <div className={`min-h-screen transition-all duration-500 ${darkMode ? 'dark bg-gray-900' : 'bg-triagen-light-bg'}`}>
-        <AnimatedBackground darkMode={darkMode} />
-        <PageHeader darkMode={darkMode} />
-        <div className="flex items-center justify-center min-h-[calc(100vh-80px)] px-4">
-          <Card darkMode={darkMode}>
-            <StatusMessage
-              type="error"
-              title="Erro de configuração"
-              message={configError}
-              darkMode={darkMode}
-            />
-            <Button
-              variant="primary"
-              size="lg"
-              fullWidth
-              onClick={() => window.location.reload()}
-            >
-              Tentar Novamente
             </Button>
           </Card>
         </div>
