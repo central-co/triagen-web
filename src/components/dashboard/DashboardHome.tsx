@@ -5,8 +5,7 @@ import { Users, Briefcase, FileText, TrendingUp, Plus, Eye, BarChart3, Loader2, 
 import useDarkMode from '../../hooks/useDarkMode';
 import { useAuth } from '../../hooks/useAuth';
 import { useDashboardStats } from '../../hooks/useDashboardStats';
-import { supabase } from '../../integrations/supabase/client';
-import { Report } from '../../types/company';
+import { DashboardReportListItem, fetchDashboardReports } from '../../api/reports/dashboardReports';
 import Card from '../ui/Card';
 import StatCard from '../ui/StatCard';
 import Button from '../ui/button';
@@ -17,7 +16,7 @@ function DashboardHome() {
   const { user } = useAuth();
   const { stats, loading } = useDashboardStats();
   const navigate = useNavigate();
-  const [recentReports, setRecentReports] = useState<Report[]>([]);
+  const [recentReports, setRecentReports] = useState<DashboardReportListItem[]>([]);
   const [reportsLoading, setReportsLoading] = useState(true);
 
   useEffect(() => {
@@ -30,36 +29,7 @@ function DashboardHome() {
     try {
       if (!user?.id) return;
 
-      const { data: reportsData, error: reportsError } = await supabase
-        .from('interview_reports')
-        .select(`
-          *,
-          candidate:candidates(
-            name,
-            job:jobs(
-              title
-            )
-          )
-        `)
-        .order('created_at', { ascending: false })
-        .limit(5);
-
-      if (reportsError) throw reportsError;
-
-      const transformedReports: Report[] = (reportsData || []).map((report: any) => ({
-        id: report.id,
-        candidate_name: report.candidate?.name || 'N/A',
-        job_title: report.candidate?.job?.title || 'N/A',
-        overall_score: report.overall_score || 0,
-        created_at: report.created_at || '',
-        alignment_analysis: report.alignment_analysis || '',
-        summary: report.summary || '',
-        category_scores: typeof report.category_scores === 'object' && report.category_scores !== null
-          ? report.category_scores as Record<string, number>
-          : {},
-        status: report.status as 'pending' | 'processing' | 'completed' | 'failed' || 'completed'
-      }));
-
+      const transformedReports = await fetchDashboardReports(user.id, 5);
       setRecentReports(transformedReports);
     } catch (err) {
       console.error('Error fetching recent reports:', err);
@@ -241,7 +211,18 @@ function DashboardHome() {
                   ? 'border-triagen-border-dark bg-gray-800/30 hover:bg-gray-800/50'
                   : 'border-triagen-border-light bg-triagen-light-bg/30 hover:bg-triagen-light-bg/50'
                   }`}
-                onClick={() => report.status === 'completed' && navigate(`/dashboard/reports/${report.id}`)}
+                onClick={() => {
+                  if (report.status !== 'completed') {
+                    return;
+                  }
+
+                  if (report.candidate_id) {
+                    navigate(`/dashboard/candidates/${report.candidate_id}/report`);
+                    return;
+                  }
+
+                  navigate(`/dashboard/reports/${report.id}`);
+                }}
               >
                 <div className="flex items-center space-x-4">
                   <div className={`p-2 rounded-full ${darkMode ? 'bg-gray-700' : 'bg-white'

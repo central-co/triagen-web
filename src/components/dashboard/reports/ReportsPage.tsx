@@ -9,15 +9,14 @@ import {
 } from 'lucide-react';
 import useDarkMode from '../../../hooks/useDarkMode';
 import { useAuth } from '../../../hooks/useAuth';
-import { supabase } from '../../../integrations/supabase/client';
 import Button from '../../ui/button';
 import Card from '../../ui/Card';
 import StatusMessage from '../../ui/StatusMessage';
 import DashboardHeader from '../DashboardHeader';
-import { Report } from '../../../types/company';
+import { fetchDashboardReports, DashboardReportListItem } from '../../../api/reports/dashboardReports';
 
 function ReportsPage() {
-  const [reports, setReports] = useState<Report[]>([]);
+  const [reports, setReports] = useState<DashboardReportListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
@@ -39,53 +38,8 @@ function ReportsPage() {
         throw new Error('User not found');
       }
 
-      // Get reports for user's company jobs
-      const { data: companies, error: companyError } = await supabase
-        .from('companies')
-        .select('id')
-        .eq('user_id', user.id);
-
-      if (companyError) {
-        throw companyError;
-      }
-
-      if (!companies || companies.length === 0) {
-        setReports([]);
-        return;
-      }
-
-      const { data: reportsData, error: reportsError } = await supabase
-        .from('interview_reports')
-        .select(`
-          *,
-          candidate:candidates(
-            name,
-            job:jobs(
-              title
-            )
-          )
-        `)
-        .order('created_at', { ascending: false });
-
-      if (reportsError) {
-        throw reportsError;
-      }
-
-      // Transform the data
-      const transformedReports: Report[] = (reportsData || []).map(report => ({
-        id: report.id,
-        candidate_name: report.candidate?.name || 'N/A',
-        job_title: report.candidate?.job?.title || 'N/A',
-        overall_score: report.overall_score || 0,
-        created_at: report.created_at || '',
-        alignment_analysis: report.alignment_analysis || '',
-        summary: report.summary || '',
-        category_scores: typeof report.category_scores === 'object' && report.category_scores !== null
-          ? report.category_scores as Record<string, number>
-          : {}
-      }));
-
-      setReports(transformedReports);
+      const dashboardReports = await fetchDashboardReports(user.id);
+      setReports(dashboardReports);
     } catch (err) {
       console.error('Error fetching reports:', err);
       setError('Erro ao carregar relatórios');
@@ -193,7 +147,13 @@ function ReportsPage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => navigate(`/dashboard/reports/${report.id}`)}
+                    onClick={() => {
+                      if (report.candidate_id) {
+                        navigate(`/dashboard/candidates/${report.candidate_id}/report`);
+                        return;
+                      }
+                      navigate(`/dashboard/reports/${report.id}`);
+                    }}
                     icon={Eye}
                     darkMode={darkMode}
                   >
