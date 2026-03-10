@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Star, StarOff, Eye, Download, Users, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { Search, Star, StarOff, Download, Users } from 'lucide-react';
 import useDarkMode from '../../../hooks/useDarkMode';
 import { useAuth } from '../../../hooks/useAuth';
 import { supabase } from '../../../integrations/supabase/client';
-import Button from '../../ui/button';
+import Button from '../../ui/Button';
 import Card from '../../ui/Card';
 import StatusMessage from '../../ui/StatusMessage';
 import DashboardHeader from '../DashboardHeader';
+import { getStatusColor, getStatusText, getStatusIcon } from '../../../utils/candidateStatus';
+import LoadingSpinner from '../../ui/LoadingSpinner';
 import { Candidate } from '../../../types/company';
 
 interface Job {
@@ -104,6 +106,7 @@ function CandidatesPage() {
         interview_completed_at: candidate.interview_completed_at || undefined, // Convert null to undefined
         status: (candidate.status || 'pending') as 'pending' | 'interviewed' | 'completed' | 'rejected' | 'hired', // Convert null to 'pending' and cast to proper type
         is_favorite: candidate.is_favorite || false, // Convert null to false
+        custom_answers: candidate.custom_answers as Record<string, unknown> | null,
         created_at: candidate.created_at || new Date().toISOString(), // Convert null to current timestamp
         updated_at: candidate.updated_at || new Date().toISOString(), // Convert null to current timestamp
         job: candidate.job
@@ -150,45 +153,8 @@ function CandidatesPage() {
     return matchesSearch && matchesStatus && matchesJob && matchesFavorite;
   });
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'completed': return 'bg-triagen-secondary-green/20 text-triagen-secondary-green';
-      case 'interviewed': return 'bg-triagen-primary-blue/20 text-triagen-primary-blue';
-      case 'pending': return 'bg-orange-500/20 text-orange-500';
-      case 'rejected': return 'bg-red-500/20 text-red-500';
-      case 'hired': return 'bg-purple-500/20 text-purple-500';
-      default: return 'bg-gray-500/20 text-gray-500';
-    }
-  };
-
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'completed': return 'Concluído';
-      case 'interviewed': return 'Entrevistado';
-      case 'pending': return 'Pendente';
-      case 'rejected': return 'Rejeitado';
-      case 'hired': return 'Contratado';
-      default: return status;
-    }
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'completed': return CheckCircle;
-      case 'interviewed': return Eye;
-      case 'pending': return Clock;
-      case 'rejected': return XCircle;
-      case 'hired': return CheckCircle;
-      default: return Clock;
-    }
-  };
-
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-triagen-primary-blue"></div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   return (
@@ -378,18 +344,17 @@ function CandidatesPage() {
                     </div>
 
                     {candidate.status === 'completed' && (
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigate(`/dashboard/candidates/${candidate.id}/report`);
-                        }}
-                        icon={Download}
-                        darkMode={darkMode}
-                      >
-                        Relatório
-                      </Button>
+                      <div onClick={(e) => e.stopPropagation()}>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => navigate(`/dashboard/candidates/${candidate.id}/report`)}
+                          icon={Download}
+                          darkMode={darkMode}
+                        >
+                          Relatório
+                        </Button>
+                      </div>
                     )}
                   </div>
                 </div>

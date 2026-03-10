@@ -8,8 +8,9 @@ import { useDashboardStats } from '../../hooks/useDashboardStats';
 import { DashboardReportListItem, fetchDashboardReports } from '../../api/reports/dashboardReports';
 import Card from '../ui/Card';
 import StatCard from '../ui/StatCard';
-import Button from '../ui/button';
+import Button from '../ui/Button';
 import DashboardHeader from './DashboardHeader';
+import LoadingSpinner from '../ui/LoadingSpinner';
 
 function DashboardHome() {
   const { darkMode } = useDarkMode(true);
@@ -61,11 +62,7 @@ function DashboardHome() {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-triagen-primary-blue"></div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   return (

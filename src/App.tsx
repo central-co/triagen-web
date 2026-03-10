@@ -1,9 +1,9 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './hooks/useAuth';
+import LoadingSpinner from './components/ui/LoadingSpinner';
 import LandingPage from './components/LandingPage';
 import InterviewPage from './components/InterviewPage';
 import TestInterviewRoom from './components/TestInterviewRoom';
-import InterviewFinishedPage from './components/InterviewFinishedPage';
 import ReportDetailPage from './components/ReportDetailPage';
 import NotFoundPage from './components/NotFoundPage';
 import LoginPage from './components/auth/LoginPage';
@@ -24,11 +24,7 @@ function ProtectedRoute({ children }: Readonly<{ children: React.ReactNode }>) {
   const { user, loading } = useAuth();
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-triagen-primary-blue"></div>
-      </div>
-    );
+    return <LoadingSpinner fullScreen />;
   }
 
   if (!user) {
@@ -43,11 +39,7 @@ function PublicRoute({ children }: Readonly<{ children: React.ReactNode }>) {
   const { user, loading } = useAuth();
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-triagen-primary-blue"></div>
-      </div>
-    );
+    return <LoadingSpinner fullScreen />;
   }
 
   if (user) {
@@ -64,7 +56,6 @@ function App() {
       <Route path="/" element={<LandingPage />} />
       <Route path="/interview" element={<InterviewPage />} />
       <Route path="/interview/:token" element={<InterviewPage />} />
-      <Route path="/interview/:candidateId/finished" element={<InterviewFinishedPage />} />
       <Route path="/report/:candidateId" element={<ReportDetailPage />} />
       <Route path="/apply/:jobId" element={<JobApplicationPage />} />
 

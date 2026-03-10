@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import useDarkMode from '../../../hooks/useDarkMode';
 import StatusMessage from '../../ui/StatusMessage';
-import Button from '../../ui/button';
+import Button from '../../ui/Button';
+import LoadingSpinner from '../../ui/LoadingSpinner';
 import DashboardHeader from '../DashboardHeader';
 import JobsSearchFilter from './JobsSearchFilter';
 import JobsEmptyState from './JobsEmptyState';
@@ -29,11 +30,7 @@ function JobsPage() {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-triagen-primary-blue"></div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   return (

@@ -11,15 +11,14 @@ import {
   Target,
   Star,
   Clock,
-  CheckCircle,
-  XCircle,
-  Eye,
   Download
 } from 'lucide-react';
+import { getStatusColor, getStatusText, getStatusIcon } from '../../../utils/candidateStatus';
+import LoadingSpinner from '../../ui/LoadingSpinner';
 import useDarkMode from '../../../hooks/useDarkMode';
 import { useAuth } from '../../../hooks/useAuth';
 import { supabase } from '../../../integrations/supabase/client';
-import Button from '../../ui/button';
+import Button from '../../ui/Button';
 import Card from '../../ui/Card';
 import StatusMessage from '../../ui/StatusMessage';
 import DashboardHeader from '../DashboardHeader';
@@ -142,6 +141,7 @@ function JobDetailsPage() {
         interview_completed_at: candidate.interview_completed_at || undefined,
         status: (candidate.status || 'pending') as 'pending' | 'interviewed' | 'completed' | 'rejected' | 'hired',
         is_favorite: candidate.is_favorite || false,
+        custom_answers: candidate.custom_answers as Record<string, unknown> | null,
         created_at: candidate.created_at || new Date().toISOString(),
         updated_at: candidate.updated_at || new Date().toISOString(),
         job: candidate.job
@@ -156,45 +156,8 @@ function JobDetailsPage() {
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'completed': return 'bg-triagen-secondary-green/20 text-triagen-secondary-green';
-      case 'interviewed': return 'bg-triagen-primary-blue/20 text-triagen-primary-blue';
-      case 'pending': return 'bg-orange-500/20 text-orange-500';
-      case 'rejected': return 'bg-red-500/20 text-red-500';
-      case 'hired': return 'bg-purple-500/20 text-purple-500';
-      default: return 'bg-gray-500/20 text-gray-500';
-    }
-  };
-
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'completed': return 'Concluído';
-      case 'interviewed': return 'Entrevistado';
-      case 'pending': return 'Pendente';
-      case 'rejected': return 'Rejeitado';
-      case 'hired': return 'Contratado';
-      default: return status;
-    }
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'completed': return CheckCircle;
-      case 'interviewed': return Eye;
-      case 'pending': return Clock;
-      case 'rejected': return XCircle;
-      case 'hired': return CheckCircle;
-      default: return Clock;
-    }
-  };
-
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-triagen-primary-blue"></div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   if (error || !job) {

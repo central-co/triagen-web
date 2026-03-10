@@ -1,6 +1,6 @@
 import { Mail, Phone, MapPin, Heart } from 'lucide-react';
 import Logo from './Logo';
-import Button from './button';
+import Button from './Button';
 
 interface FooterProps {
   darkMode: boolean;

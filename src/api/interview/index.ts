@@ -23,27 +23,27 @@ export type {
 
 /**
  * Get candidate data by short code.
- * Endpoint: GET /api/application/:shortCode
+ * Endpoint: GET /application/:shortCode
  */
 export async function getCandidateByShortCode(
     shortCode: string,
 ): Promise<CandidateData> {
     const { data } = await apiClient.get<CandidateData>(
-        `/api/application/${shortCode}`,
+        `/application/${shortCode}`,
     );
     return data;
 }
 
 /**
  * Get interview status and report.
- * Endpoint: GET /api/interviews/:candidateId/report
+ * Endpoint: GET /interviews/:candidateId/report
  */
 export async function getInterviewStatus(
     candidateId: string,
 ): Promise<InterviewReport> {
     try {
         const { data } = await apiClient.get<InterviewReport>(
-            `/api/interviews/${candidateId}/report`,
+            `/interviews/${candidateId}/report`,
         );
         return data;
     } catch (err: unknown) {
@@ -56,39 +56,42 @@ export async function getInterviewStatus(
 
 /**
  * Generate interview plan.
- * Endpoint: POST /api/interviews/plan/:candidateId
+ * Endpoint: POST /interviews/plan/:candidateId
  */
 export async function planInterview(
     candidateId: string,
 ): Promise<InterviewPlanResult> {
     const { data } = await apiClient.post<InterviewPlanResult>(
-        `/api/interviews/plan/${candidateId}`,
+        `/interviews/plan/${candidateId}`,
     );
     return data;
 }
 
 /**
  * Start interview session and get LiveKit token.
- * Endpoint: POST /api/interviews/start/:candidateId
+ * Endpoint: POST /interview/start/:interview_id
  */
 export async function startInterviewSession(
-    candidateId: string,
+    interviewId: string,
 ): Promise<InterviewSession> {
-    const { data } = await apiClient.post<InterviewSession>(
-        `/api/interviews/start/${candidateId}`,
+    const { data } = await apiClient.post<{ token: string; room_name: string }>(
+        `/interview/start/${interviewId}`,
     );
-    return data;
+    return {
+        token: data.token,
+        roomName: data.room_name,
+    };
 }
 
 /**
  * Finish interview session.
- * Endpoint: POST /api/interviews/finish-session/:candidateId
+ * Endpoint: POST /interviews/finish-session/:candidateId
  */
 export async function finishInterviewSession(
     candidateId: string,
 ): Promise<FinishSessionResult> {
     const { data } = await apiClient.post<FinishSessionResult>(
-        `/api/interviews/finish-session/${candidateId}`,
+        `/interviews/finish-session/${candidateId}`,
     );
     return data;
 }

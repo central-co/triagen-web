@@ -16,7 +16,7 @@ import AnimatedBackground from './ui/AnimatedBackground';
 import Card from './ui/Card';
 import StatusMessage from './ui/StatusMessage';
 import PageHeader from './ui/PageHeader';
-import Button from './ui/button';
+import Button from './ui/Button';
 import { getInterviewStatus, InterviewReport } from '../api/interview';
 
 function ReportDetailPage() {

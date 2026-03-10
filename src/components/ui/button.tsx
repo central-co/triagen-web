@@ -2,7 +2,7 @@ import React from 'react';
 import { Loader2, DivideIcon as LucideIcon } from 'lucide-react';
 
 interface ButtonProps {
-  children: React.ReactNode;
+  children?: React.ReactNode;
   variant?: 'primary' | 'primary-solid' | 'secondary' | 'outline' | 'outline-purple' | 'ghost' | 'danger' | 'success' | 'green-test' | 'purple-test' | 'favorite-toggle';
   size?: 'sm' | 'md' | 'lg';
   isLoading?: boolean;
@@ -104,7 +104,7 @@ function Button({
             )}
             {children && <span>{children}</span>}
             {Icon && iconPosition === 'right' && (
-              <Icon className="h-5 w-5 group-hover:translate-x-1 transition-transform duration-200" />
+              <Icon className="h-5 w-5 group-hover:scale-105 transition-transform duration-200" />
             )}
           </>
         )}

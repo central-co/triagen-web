@@ -12,7 +12,7 @@ import {
 import { useAuth } from '../../hooks/useAuth';
 import useDarkMode from '../../hooks/useDarkMode';
 import Logo from '../ui/Logo';
-import Button from '../ui/button';
+import Button from '../ui/Button';
 
 interface SidebarItem {
   icon: typeof LayoutDashboard;
