@@ -1,30 +1,27 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { Bot, Lock, ArrowRight } from 'lucide-react';
 import InterviewRoom from './InterviewRoom';
+import InterviewFinishedPage from './InterviewFinishedPage';
+import PreInterviewRoom from './PreInterviewRoom';
 import useDarkMode from '../hooks/useDarkMode';
-import { config } from '../utils/config';
 import AnimatedBackground from './ui/AnimatedBackground';
-import Button from './ui/button';
+import Button from './ui/Button';
 import Card from './ui/Card';
 import StatusMessage from './ui/StatusMessage';
 import PageHeader from './ui/PageHeader';
 import {
-  getCandidateByShortCode,
   startInterviewSession,
-  getInterviewStatus,
-  planInterview,
 } from '../api/interview';
-
 function InterviewPage() {
   const { token: urlToken } = useParams();
-  const navigate = useNavigate();
   const [token, setToken] = useState(urlToken || '');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [isPrechecking, setIsPrechecking] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isFinished, setIsFinished] = useState(false);
   const [jwtToken, setJwtToken] = useState('');
-  const [candidateId, setCandidateId] = useState('');
   const { darkMode } = useDarkMode(true);
 
   useEffect(() => {
@@ -33,8 +30,8 @@ function InterviewPage() {
     }
   }, [urlToken]);
 
-  const handleAuthentication = async (shortCode: string) => {
-    if (!shortCode.trim()) {
+  const handleAuthentication = async (interviewId: string) => {
+    if (!interviewId.trim()) {
       setError('Por favor, insira o código da entrevista');
       return;
     }
@@ -43,61 +40,39 @@ function InterviewPage() {
     setError('');
 
     try {
-      console.log('🔍 Starting authentication with shortCode:', shortCode);
-      console.log('🌐 API URL:', config.apiUrl);
-
-      // 1. Get candidate ID from short code
-      const candidateData = await getCandidateByShortCode(shortCode);
-      console.log('✅ Candidate data received:', candidateData);
-      const candidateIdValue = candidateData.candidate_id;
-      setCandidateId(candidateIdValue);
-
-      // 2. Check if report already exists (interview completed)
-      const report = await getInterviewStatus(candidateIdValue);
-      if (report.status === 'completed') {
-        console.log('✅ Interview already completed, redirecting to report');
-        navigate(`/report/${candidateIdValue}`);
-        return;
-      }
-
-      // 3. Generate interview plan (backend should handle idempotency/caching)
-      console.log('📋 Ensuring interview plan exists...');
-      try {
-        await planInterview(candidateIdValue);
-      } catch (planError) {
-        // If rate limit error, show helpful message
-        if (planError instanceof Error && planError.message.includes('429')) {
-          throw new Error('The AI service is currently busy. Please wait a moment and try again.');
-        }
-        throw planError;
-      }
-
-      // 4. Start LiveKit session
-      const session = await startInterviewSession(candidateIdValue);
-      console.log('✅ Session started:', session);
+      const session = await startInterviewSession(interviewId);
       setJwtToken(session.token);
       setIsAuthenticated(true);
     } catch (err) {
-      console.error('❌ Authentication error:', err);
       setError(err instanceof Error ? err.message : 'Erro ao validar código');
     } finally {
       setIsLoading(false);
     }
-  }; const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    handleAuthentication(token);
   };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsPrechecking(true);
+  };
+
+  if (isPrechecking && !isAuthenticated && !isFinished) {
+    return (
+      <PreInterviewRoom
+        onConfirm={() => { setIsPrechecking(false); handleAuthentication(token); }}
+        onBack={() => setIsPrechecking(false)}
+      />
+    );
+  }
+
+  if (isFinished) {
+    return <InterviewFinishedPage />;
+  }
 
   if (isAuthenticated) {
     return (
       <InterviewRoom
         jwtToken={jwtToken}
-        candidateId={candidateId}
-        onLeave={() => {
-          setIsAuthenticated(false);
-          setJwtToken('');
-          navigate(`/interview/${candidateId}/finished`);
-        }}
+        onFinished={() => setIsFinished(true)}
       />
     );
   }

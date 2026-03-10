@@ -4,7 +4,7 @@ import { Send, ArrowLeft, FileText } from 'lucide-react';
 import useDarkMode from '../../../hooks/useDarkMode';
 import { supabase } from '../../../integrations/supabase/client';
 import { createApplication } from '../../../api/application';
-import Button from '../../ui/button';
+import Button from '../../ui/Button';
 import Card from '../../ui/Card';
 import StatusMessage from '../../ui/StatusMessage';
 import AnimatedBackground from '../../ui/AnimatedBackground';
@@ -132,6 +132,21 @@ function JobApplicationPage() {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const digits = e.target.value.replace(/\D/g, '').slice(0, 11);
+    let formatted = digits;
+    if (digits.length > 10) {
+      formatted = `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+    } else if (digits.length > 6) {
+      formatted = `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
+    } else if (digits.length > 2) {
+      formatted = `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+    } else if (digits.length > 0) {
+      formatted = `(${digits}`;
+    }
+    setFormData(prev => ({ ...prev, phone: formatted }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -423,7 +438,7 @@ function JobApplicationPage() {
                 id="phone"
                 name="phone"
                 value={formData.phone}
-                onChange={handleInputChange}
+                onChange={handlePhoneChange}
                 placeholder="(11) 99999-9999"
                 className={`font-sans w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-triagen-secondary-green/50 focus:border-triagen-secondary-green ${
                   darkMode

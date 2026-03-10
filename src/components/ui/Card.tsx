@@ -20,7 +20,7 @@ function Card({
   onClick
 }: CardProps) {
   const baseClasses = 'rounded-3xl border transition-all duration-300';
-  
+
   const variantClasses = {
     default: darkMode
       ? 'bg-gray-800/30 border-gray-700/50'
@@ -32,25 +32,25 @@ function Card({
       ? 'bg-gray-800 border-gray-700'
       : 'bg-white border-triagen-light-text/20'
   };
-  
+
   const paddingClasses = {
     sm: 'p-4',
     md: 'p-6',
     lg: 'p-8'
   };
-  
-  const hoverClasses = hoverEffect 
-    ? onClick 
+
+  const hoverClasses = hoverEffect
+    ? onClick
       ? 'hover:scale-[1.005] hover:shadow-lg cursor-pointer' + (darkMode ? ' hover:bg-gray-800/60' : ' hover:bg-white/70')
       : 'hover:scale-[1.005] hover:shadow-lg' + (darkMode ? ' hover:bg-gray-800/50' : ' hover:bg-white/60')
     : '';
-  
+
   const classes = `${baseClasses} ${variantClasses[variant]} ${paddingClasses[padding]} ${hoverClasses} ${className}`;
 
   const Component = onClick ? 'button' : 'div';
 
   return (
-    <Component className={classes} onClick={onClick}>
+    <Component className={classes} onClick={onClick} {...(onClick ? { type: 'button' as const } : {})}>
       {children}
     </Component>
   );

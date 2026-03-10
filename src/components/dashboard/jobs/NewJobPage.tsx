@@ -14,7 +14,7 @@ import {
 import useDarkMode from '../../../hooks/useDarkMode';
 import { useAuth } from '../../../hooks/useAuth';
 import { supabase } from '../../../integrations/supabase/client';
-import Button from '../../ui/button';
+import Button from '../../ui/Button';
 import Card from '../../ui/Card';
 import StatusMessage from '../../ui/StatusMessage';
 import DashboardHeader from '../DashboardHeader';

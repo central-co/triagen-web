@@ -29,7 +29,7 @@ import useDarkMode from '../hooks/useDarkMode';
 import { useAuth } from '../hooks/useAuth';
 import { config } from '../utils/config';
 import AnimatedBackground from './ui/AnimatedBackground';
-import Button from './ui/button';
+import Button from './ui/Button';
 import PageHeader from './ui/PageHeader';
 import SectionHeader from './ui/SectionHeader';
 import FeatureCard from './ui/FeatureCard';

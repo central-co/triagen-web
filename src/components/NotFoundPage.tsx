@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import useDarkMode from '../hooks/useDarkMode';
 import AnimatedBackground from './ui/AnimatedBackground';
 import PageHeader from './ui/PageHeader';
-import Button from './ui/button';
+import Button from './ui/Button';
 import Card from './ui/Card';
 
 function NotFoundPage() {

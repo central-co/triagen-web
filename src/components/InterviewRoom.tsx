@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
 import {
   Room,
   RoomEvent,
@@ -14,16 +13,14 @@ import useDarkMode from '../hooks/useDarkMode';
 import useAudioLevel from '../hooks/useAudioLevel';
 import { config } from '../utils/config';
 import AnimatedBackground from './ui/AnimatedBackground';
-import Button from './ui/button';
+import Button from './ui/Button';
 import Card from './ui/Card';
 import StatusMessage from './ui/StatusMessage';
 import RemoteAudioTrackComponent from './RemoteAudioTrack';
-import { finishInterviewSession } from '../api/interview';
 
 interface InterviewRoomProps {
   jwtToken: string;
-  candidateId: string;
-  onLeave: () => void;
+  onFinished: () => void;
 }
 
 interface ParticipantInfo {
@@ -32,8 +29,7 @@ interface ParticipantInfo {
   isLocal: boolean;
 }
 
-function InterviewRoom({ jwtToken, candidateId, onLeave }: InterviewRoomProps) {
-  const navigate = useNavigate();
+function InterviewRoom({ jwtToken, onFinished }: InterviewRoomProps) {
   const [room, setRoom] = useState<Room | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
@@ -50,8 +46,8 @@ function InterviewRoom({ jwtToken, candidateId, onLeave }: InterviewRoomProps) {
   useEffect(() => {
     connectToRoom();
     return () => {
-      if (room) {
-        room.disconnect();
+      if (roomRef.current) {
+        roomRef.current.disconnect();
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -129,8 +125,8 @@ function InterviewRoom({ jwtToken, candidateId, onLeave }: InterviewRoomProps) {
         autoSubscribe: true,
       });
 
-      // Enable audio
-      await roomInstance.localParticipant.enableCameraAndMicrophone();
+      // Enable microphone only (audio-only interview)
+      await roomInstance.localParticipant.setMicrophoneEnabled(true);
 
       // Get local audio track
       const audioTrackPubs = Array.from(roomInstance.localParticipant.audioTrackPublications.values());
@@ -144,7 +140,13 @@ function InterviewRoom({ jwtToken, candidateId, onLeave }: InterviewRoomProps) {
     } catch (err) {
       console.error('Failed to connect to room:', err);
       if (err instanceof Error) {
-        setError(err.message);
+        if (err.name === 'NotAllowedError' || err.message.toLowerCase().includes('permission')) {
+          setError('Acesso ao microfone negado. Por favor, permita o acesso ao microfone nas configurações do seu browser e tente novamente.');
+        } else if (err.name === 'NotFoundError') {
+          setError('Nenhum microfone encontrado. Verifique se um microfone está conectado ao seu dispositivo.');
+        } else {
+          setError(err.message);
+        }
       } else {
         setError('Falha ao conectar na sala de entrevista');
       }
@@ -187,8 +189,8 @@ function InterviewRoom({ jwtToken, candidateId, onLeave }: InterviewRoomProps) {
     setLocalParticipantIdentity('');
     roomRef.current = null;
 
-    // Redirect to finished page
-    navigate(`/interview/${candidateId}/finished`);
+    // Notify parent that interview is finished
+    onFinished();
   };
 
   const handleParticipantConnected = (participant: RemoteParticipant) => {
@@ -232,10 +234,11 @@ function InterviewRoom({ jwtToken, candidateId, onLeave }: InterviewRoomProps) {
     }
   };
 
-  const toggleMute = () => {
-    if (localAudioTrack) {
-      localAudioTrack.mute();
-      setIsMuted(!isMuted);
+  const toggleMute = async () => {
+    if (room) {
+      const newMuted = !isMuted;
+      await room.localParticipant.setMicrophoneEnabled(!newMuted);
+      setIsMuted(newMuted);
     }
   };
 
@@ -244,69 +247,14 @@ function InterviewRoom({ jwtToken, candidateId, onLeave }: InterviewRoomProps) {
   };
 
   const handleLeave = async () => {
-    try {
-      // Call backend to finish session before disconnecting
-      if (candidateId) {
-        await finishInterviewSession(candidateId).catch(err => {
-          console.error('Failed to finish session:', err);
-          // Continue with disconnect even if API call fails
-        });
-      }
-    } finally {
-      // Always disconnect and navigate to finished page
-      if (room) {
-        room.disconnect();
-      }
-      // Navigate to finished page instead of calling onLeave
-      navigate(`/interview/${candidateId}/finished`);
+    if (room) {
+      room.disconnect();
+      // onFinished() will be called by handleRoomDisconnected via RoomEvent.Disconnected
+    } else {
+      onFinished();
     }
   };
 
-  // Show loading while config is loading
-  if (configLoading) {
-    return (
-      <div className={`min-h-screen transition-all duration-500 ${darkMode ? 'dark bg-gray-900' : 'bg-triagen-light-bg'}`}>
-        <AnimatedBackground darkMode={darkMode} isRoom />
-        <div className="flex items-center justify-center min-h-screen px-4">
-          <Card darkMode={darkMode}>
-            <StatusMessage
-              type="info"
-              title="Carregando configuração..."
-              message="Obtendo configurações do servidor."
-              darkMode={darkMode}
-            />
-          </Card>
-        </div>
-      </div>
-    );
-  }
-
-  // Show error if config failed to load
-  if (configError) {
-    return (
-      <div className={`min-h-screen transition-all duration-500 ${darkMode ? 'dark bg-gray-900' : 'bg-triagen-light-bg'}`}>
-        <AnimatedBackground darkMode={darkMode} isRoom />
-        <div className="flex items-center justify-center min-h-screen px-4">
-          <Card darkMode={darkMode}>
-            <StatusMessage
-              type="error"
-              title="Erro de configuração"
-              message={configError}
-              darkMode={darkMode}
-            />
-            <Button
-              variant="primary"
-              size="lg"
-              fullWidth
-              onClick={() => window.location.reload()}
-            >
-              Tentar Novamente
-            </Button>
-          </Card>
-        </div>
-      </div>
-    );
-  }
 
   if (!isConnected && !isConnecting) {
     return (
@@ -422,8 +370,8 @@ function InterviewRoom({ jwtToken, candidateId, onLeave }: InterviewRoomProps) {
           <div className="mb-8">
             <div className={`h-2 rounded-full ${darkMode ? 'bg-gray-700' : 'bg-triagen-border-light'}`}>
               <div
-                className="h-full bg-gradient-to-r from-triagen-secondary-green to-triagen-primary-blue rounded-full transition-all duration-100"
-                style={{ width: `${Math.min(audioLevel * 100, 100)}%` }}
+                className="h-full bg-gradient-to-r from-triagen-secondary-green to-triagen-primary-blue rounded-full"
+                style={{ width: `${audioLevel}%` }}
               />
             </div>
             <p className={`text-sm mt-2 ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
@@ -439,9 +387,7 @@ function InterviewRoom({ jwtToken, candidateId, onLeave }: InterviewRoomProps) {
               onClick={toggleMute}
               icon={isMuted ? MicOff : Mic}
               darkMode={darkMode}
-            >
-              {isMuted ? 'Desmutar' : 'Mutar'}
-            </Button>
+            />
 
             <Button
               variant={isSpeakerMuted ? "outline" : "secondary"}
@@ -449,19 +395,15 @@ function InterviewRoom({ jwtToken, candidateId, onLeave }: InterviewRoomProps) {
               onClick={toggleSpeaker}
               icon={isSpeakerMuted ? VolumeX : Volume2}
               darkMode={darkMode}
-            >
-              {isSpeakerMuted ? 'Ativar Som' : 'Mutar Som'}
-            </Button>
+            />
 
             <Button
-              variant="outline"
+              variant="danger"
               size="lg"
               onClick={handleLeave}
               icon={PhoneOff}
               darkMode={darkMode}
-            >
-              Sair
-            </Button>
+            />
           </div>
 
           {error && (

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Mail, Lock, Eye, EyeOff, ArrowRight } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import useDarkMode from '../../hooks/useDarkMode';
-import Button from '../ui/button';
+import Button from '../ui/Button';
 import Card from '../ui/Card';
 import StatusMessage from '../ui/StatusMessage';
 import AnimatedBackground from '../ui/AnimatedBackground';

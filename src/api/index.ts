@@ -33,7 +33,7 @@ export {
 } from "./interview";
 
 // Application domain
-export { createApplication, submitApplication } from "./application";
+export { createApplication } from "./application";
 
 // Reports domain
 export { getInterviewReport } from "./reports";

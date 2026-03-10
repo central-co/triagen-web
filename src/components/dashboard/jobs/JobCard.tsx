@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { MapPin, Clock, Users, ExternalLink, Copy, Check } from 'lucide-react';
 import { useState } from 'react';
-import Button from '../../ui/button';
+import Button from '../../ui/Button';
 import Card from '../../ui/Card';
 import { JobWithStats } from '../../../types/company';
 
@@ -34,9 +34,9 @@ function JobCard({ job, darkMode, onClick }: JobCardProps) {
   };
 
   return (
-    <Card 
-      key={job.id} 
-      darkMode={darkMode} 
+    <Card
+      key={job.id}
+      darkMode={darkMode}
       hoverEffect
       onClick={() => onClick(job.id)}
     >

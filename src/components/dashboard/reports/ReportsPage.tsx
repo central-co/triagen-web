@@ -9,11 +9,13 @@ import {
 } from 'lucide-react';
 import useDarkMode from '../../../hooks/useDarkMode';
 import { useAuth } from '../../../hooks/useAuth';
-import Button from '../../ui/button';
+import { supabase } from '../../../integrations/supabase/client';
+import Button from '../../ui/Button';
 import Card from '../../ui/Card';
 import StatusMessage from '../../ui/StatusMessage';
 import DashboardHeader from '../DashboardHeader';
 import { fetchDashboardReports, DashboardReportListItem } from '../../../api/reports/dashboardReports';
+import LoadingSpinner from '../../ui/LoadingSpinner';
 
 function ReportsPage() {
   const [reports, setReports] = useState<DashboardReportListItem[]>([]);
@@ -56,11 +58,7 @@ function ReportsPage() {
   });
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-triagen-primary-blue"></div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   return (

@@ -36,7 +36,7 @@ export function useAuth() {
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
         if (error) throw error;
-        
+
         if (mounted) {
           console.log('Initial session:', session?.user?.email);
           setAuthState({
@@ -67,15 +67,15 @@ export function useAuth() {
 
   const signIn = async (email: string, password: string) => {
     setAuthState(prev => ({ ...prev, loading: true, error: null }));
-    
+
     try {
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password
       });
-      
+
       if (error) throw error;
-      
+
       console.log('Sign in successful');
       // Não fazemos setAuthState aqui, deixamos o onAuthStateChange cuidar disso
       return { error: null };
@@ -93,7 +93,7 @@ export function useAuth() {
 
   const signOut = async () => {
     setAuthState(prev => ({ ...prev, loading: true, error: null }));
-    
+
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
@@ -109,9 +109,9 @@ export function useAuth() {
     }
   };
 
-  const signUp = async (email: string, password: string, metadata?: any) => {
+  const signUp = async (email: string, password: string, metadata?: Record<string, unknown>) => {
     setAuthState(prev => ({ ...prev, loading: true, error: null }));
-    
+
     try {
       const { error } = await supabase.auth.signUp({
         email,
@@ -121,7 +121,7 @@ export function useAuth() {
           emailRedirectTo: `${window.location.origin}/`
         }
       });
-      
+
       if (error) throw error;
       return { error: null };
     } catch (error) {

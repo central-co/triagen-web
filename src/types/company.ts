@@ -65,6 +65,8 @@ export interface Candidate {
   email: string;
   phone?: string | null;
   resume_url?: string;
+  resume_text?: string | null;
+  custom_answers?: Record<string, unknown> | null;
   status: 'pending' | 'interviewed' | 'completed' | 'rejected' | 'hired';
   is_favorite: boolean;
   notes?: string;

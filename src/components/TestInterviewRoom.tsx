@@ -5,7 +5,7 @@ import useDarkMode from '../hooks/useDarkMode';
 import AnimatedBackground from './ui/AnimatedBackground';
 import Card from './ui/Card';
 import StatusMessage from './ui/StatusMessage';
-import Button from './ui/button';
+import Button from './ui/Button';
 import { AlertCircle, ArrowRight } from 'lucide-react';
 
 /**

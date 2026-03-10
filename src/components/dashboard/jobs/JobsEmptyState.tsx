@@ -1,7 +1,7 @@
 
 import { useNavigate } from 'react-router-dom';
 import { Briefcase, Plus } from 'lucide-react';
-import Button from '../../ui/button';
+import Button from '../../ui/Button';
 import Card from '../../ui/Card';
 
 interface JobsEmptyStateProps {

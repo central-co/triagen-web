@@ -26,7 +26,6 @@ export interface CandidateData {
 export interface InterviewSession {
     token: string;
     roomName: string;
-    sessionId: string;
 }
 
 export interface InterviewPlanResult {

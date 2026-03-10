@@ -1,28 +1,27 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { 
-  ArrowLeft, 
-  User, 
-  Mail, 
-  Phone, 
-  FileText, 
+import {
+  ArrowLeft,
+  User,
+  Mail,
+  Phone,
+  FileText,
   Briefcase,
   Calendar,
   Star,
   StarOff,
   Edit,
   MessageSquare,
-  Clock,
   CheckCircle,
-  XCircle,
-  Eye
 } from 'lucide-react';
+import { getStatusColor, getStatusText, getStatusIcon } from '../../../utils/candidateStatus';
 import useDarkMode from '../../../hooks/useDarkMode';
 import { useAuth } from '../../../hooks/useAuth';
 import { supabase } from '../../../integrations/supabase/client';
-import Button from '../../ui/button';
+import Button from '../../ui/Button';
 import Card from '../../ui/Card';
 import StatusMessage from '../../ui/StatusMessage';
+import LoadingSpinner from '../../ui/LoadingSpinner';
 import { Candidate } from '../../../types/company';
 
 interface Job {
@@ -58,11 +57,11 @@ function CandidateProfilePage() {
   const fetchCandidate = async () => {
     try {
       setLoading(true);
-      
+
       if (!user?.id || !candidateId) {
         throw new Error('Dados necessários não encontrados');
       }
-      
+
       // First get the user's company
       const { data: companies, error: companyError } = await supabase
         .from('companies')
@@ -119,6 +118,7 @@ function CandidateProfilePage() {
         interview_completed_at: candidateData.interview_completed_at || undefined,
         status: (candidateData.status || 'pending') as 'pending' | 'interviewed' | 'completed' | 'rejected' | 'hired',
         is_favorite: candidateData.is_favorite || false,
+        custom_answers: candidateData.custom_answers as Record<string, unknown> | null,
         created_at: candidateData.created_at || new Date().toISOString(),
         updated_at: candidateData.updated_at || new Date().toISOString(),
         job: candidateData.job
@@ -135,7 +135,7 @@ function CandidateProfilePage() {
 
   const toggleFavorite = async () => {
     if (!candidate) return;
-    
+
     setIsUpdatingFavorite(true);
     try {
       const { error } = await supabase
@@ -155,45 +155,8 @@ function CandidateProfilePage() {
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'completed': return 'bg-triagen-secondary-green/20 text-triagen-secondary-green';
-      case 'interviewed': return 'bg-triagen-primary-blue/20 text-triagen-primary-blue';
-      case 'pending': return 'bg-orange-500/20 text-orange-500';
-      case 'rejected': return 'bg-red-500/20 text-red-500';
-      case 'hired': return 'bg-purple-500/20 text-purple-500';
-      default: return 'bg-gray-500/20 text-gray-500';
-    }
-  };
-
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'completed': return 'Concluído';
-      case 'interviewed': return 'Entrevistado';
-      case 'pending': return 'Pendente';
-      case 'rejected': return 'Rejeitado';
-      case 'hired': return 'Contratado';
-      default: return status;
-    }
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'completed': return CheckCircle;
-      case 'interviewed': return Eye;
-      case 'pending': return Clock;
-      case 'rejected': return XCircle;
-      case 'hired': return CheckCircle;
-      default: return Clock;
-    }
-  };
-
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-triagen-primary-blue"></div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   if (error || !candidate) {
@@ -210,7 +173,7 @@ function CandidateProfilePage() {
             Voltar
           </Button>
         </div>
-        
+
         <StatusMessage
           type="error"
           title="Candidato não encontrado"
@@ -433,7 +396,7 @@ function CandidateProfilePage() {
                 Informações da Vaga
               </h3>
             </div>
-            
+
             <div className="space-y-4">
               <div>
                 <p className={`font-sans text-sm ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
@@ -443,7 +406,7 @@ function CandidateProfilePage() {
                   {candidate.job.title}
                 </p>
               </div>
-              
+
               <div>
                 <p className={`font-sans text-sm ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
                   Empresa
@@ -452,7 +415,7 @@ function CandidateProfilePage() {
                   {candidate.job.company.name}
                 </p>
               </div>
-              
+
               <div>
                 <p className={`font-sans text-sm mb-2 ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
                   Descrição
@@ -469,7 +432,7 @@ function CandidateProfilePage() {
             <h3 className={`font-heading text-lg font-semibold mb-4 ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
               Ações Rápidas
             </h3>
-            
+
             <div className="space-y-3">
               <Button
                 variant="outline"
@@ -481,7 +444,7 @@ function CandidateProfilePage() {
               >
                 Ver Vaga Completa
               </Button>
-              
+
               <Button
                 variant="outline"
                 size="md"
@@ -492,7 +455,7 @@ function CandidateProfilePage() {
               >
                 Outros Candidatos
               </Button>
-              
+
               {candidate.status === 'completed' && (
                 <Button
                   variant="primary"
