@@ -85,13 +85,13 @@ export async function startInterviewSession(
 
 /**
  * Finish interview session.
- * Endpoint: POST /interviews/finish-session/:candidateId
+ * Endpoint: POST /interview/analyze/:candidateId
  */
 export async function finishInterviewSession(
     candidateId: string,
 ): Promise<FinishSessionResult> {
     const { data } = await apiClient.post<FinishSessionResult>(
-        `/interviews/finish-session/${candidateId}`,
+        `/interview/analyze/${candidateId}`,
     );
     return data;
 }

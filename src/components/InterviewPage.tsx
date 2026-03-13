@@ -64,15 +64,31 @@ function InterviewPage() {
     );
   }
 
+
   if (isFinished) {
     return <InterviewFinishedPage />;
   }
+
+  // Função para finalizar entrevista e notificar backend
+  const handleInterviewFinished = async () => {
+    if (token) {
+      try {
+        // Chama o endpoint de finalizar sessão
+        const { finishInterviewSession } = await import('../api/interview');
+        await finishInterviewSession(token);
+      } catch (e) {
+        // Silencia erro, mas pode logar se quiser
+        // console.error('Erro ao finalizar entrevista', e);
+      }
+    }
+    setIsFinished(true);
+  };
 
   if (isAuthenticated) {
     return (
       <InterviewRoom
         jwtToken={jwtToken}
-        onFinished={() => setIsFinished(true)}
+        onFinished={handleInterviewFinished}
       />
     );
   }
