@@ -19,7 +19,6 @@ import useDarkMode from '../../../hooks/useDarkMode';
 import { useAuth } from '../../../hooks/useAuth';
 import { supabase } from '../../../integrations/supabase/client';
 import Button from '../../ui/Button';
-import Card from '../../ui/Card';
 import StatusMessage from '../../ui/StatusMessage';
 import LoadingSpinner from '../../ui/LoadingSpinner';
 import { Candidate } from '../../../types/company';
@@ -29,13 +28,15 @@ interface Job {
   title: string;
   description: string;
   company: {
-    id: string; // Added id field
+    id: string;
     name: string;
   };
 }
 
 interface CandidateWithJob extends Candidate {
   job: Job;
+  score?: number;
+  reportId?: string;
 }
 
 function CandidateProfilePage() {
@@ -76,7 +77,6 @@ function CandidateProfilePage() {
         throw new Error('Empresa não encontrada');
       }
 
-      // Get candidate with job information - FIXED: Added company id to the query
       const { data: candidateData, error: candidateError } = await supabase
         .from('candidates')
         .select(`
@@ -85,11 +85,9 @@ function CandidateProfilePage() {
             id,
             title,
             description,
-            company:companies(
-              id,
-              name
-            )
-          )
+            company:companies(id, name)
+          ),
+          interview_reports(id, overall_score, created_at)
         `)
         .eq('id', candidateId)
         .single();
@@ -107,6 +105,9 @@ function CandidateProfilePage() {
         throw new Error('Acesso negado');
       }
 
+      const report = candidateData.interview_reports && candidateData.interview_reports.length > 0 
+                     ? candidateData.interview_reports[0] : null;
+
       // Transform the data to match our interface
       const transformedCandidate: CandidateWithJob = {
         ...candidateData,
@@ -121,7 +122,9 @@ function CandidateProfilePage() {
         custom_answers: candidateData.custom_answers as Record<string, unknown> | null,
         created_at: candidateData.created_at || new Date().toISOString(),
         updated_at: candidateData.updated_at || new Date().toISOString(),
-        job: candidateData.job
+        job: candidateData.job,
+        score: report ? report.overall_score : undefined,
+        reportId: report ? report.id : undefined,
       };
 
       setCandidate(transformedCandidate);
@@ -161,315 +164,197 @@ function CandidateProfilePage() {
 
   if (error || !candidate) {
     return (
-      <div className="space-y-8">
-        <div className="flex items-center space-x-4">
-          <Button
-            onClick={() => navigate('/dashboard/candidates')}
-            variant="outline"
-            size="sm"
-            icon={ArrowLeft}
-            darkMode={darkMode}
-          >
-            Voltar
-          </Button>
+      <div className="max-w-6xl mx-auto py-12 px-4">
+        <Button onClick={() => navigate('/dashboard/candidates')} variant="outline" size="sm" icon={ArrowLeft} darkMode={darkMode}>Back to Pipeline</Button>
+        <div className="mt-8">
+           <StatusMessage type="error" title="Candidato não encontrado" message={error || 'O candidato solicitado não foi encontrado'} darkMode={darkMode} />
         </div>
-
-        <StatusMessage
-          type="error"
-          title="Candidato não encontrado"
-          message={error || 'O candidato solicitado não foi encontrado'}
-          darkMode={darkMode}
-        />
       </div>
     );
   }
 
-  const StatusIcon = getStatusIcon(candidate.status);
-
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <Button
-            onClick={() => navigate('/dashboard/candidates')}
-            variant="outline"
-            size="sm"
-            icon={ArrowLeft}
-            darkMode={darkMode}
-          >
-            Voltar
-          </Button>
-          <div>
-            <h1 className={`font-heading text-3xl font-bold ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
-              Perfil do Candidato
-            </h1>
-            <p className={`font-sans mt-2 ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
-              Informações detalhadas e histórico
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center space-x-3">
-          <Button
-            variant={candidate.is_favorite ? "favorite-toggle" : "outline"}
-            size="sm"
-            onClick={toggleFavorite}
-            isLoading={isUpdatingFavorite}
-            icon={candidate.is_favorite ? Star : StarOff}
-            darkMode={darkMode}
-          >
-            {candidate.is_favorite ? 'Favorito' : 'Favoritar'}
-          </Button>
-
-          {candidate.status === 'completed' && (
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={() => navigate(`/dashboard/candidates/${candidate.id}/report`)}
-              icon={FileText}
-            >
-              Ver Relatório
-            </Button>
-          )}
+    <div className="flex flex-col max-w-6xl mx-auto pb-16">
+      
+      {/* Breadcrumb / Top Bar */}
+      <div className="flex items-center justify-between px-2 pt-6 mb-12">
+        <button 
+          onClick={() => navigate('/dashboard/candidates')}
+          className={`flex items-center gap-2 text-xs uppercase tracking-widest font-semibold hover:opacity-70 transition-opacity ${darkMode ? 'text-gray-400' : 'text-triagen-secondary'}`}
+        >
+          <ArrowLeft className="w-4 h-4" /> Pipeline
+        </button>
+        <div className="flex items-center justify-end gap-3">
+           <Button
+             variant={candidate.is_favorite ? "primary-solid" : "secondary"}
+             size="sm"
+             onClick={toggleFavorite}
+             isLoading={isUpdatingFavorite}
+             icon={candidate.is_favorite ? Star : StarOff}
+             darkMode={darkMode}
+           >
+             {candidate.is_favorite ? 'Shortlisted' : 'Shortlist'}
+           </Button>
+           {candidate.reportId && (
+             <Button
+               variant="primary-solid"
+               size="sm"
+               onClick={() => navigate(`/dashboard/candidates/${candidate.id}/report`)}
+               icon={FileText}
+               darkMode={darkMode}
+             >
+               View Report
+             </Button>
+           )}
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left Column - Main Info */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Basic Information */}
-          <Card darkMode={darkMode}>
-            <div className="flex items-start justify-between mb-6">
-              <div className="flex items-center space-x-4">
-                <div className={`w-16 h-16 rounded-full flex items-center justify-center ${
-                  darkMode ? 'bg-triagen-secondary-green' : 'bg-triagen-dark-bg'
-                }`}>
-                  <User className="h-8 w-8 text-white" />
-                </div>
-                <div>
-                  <h2 className={`font-heading text-2xl font-bold ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
-                    {candidate.name}
-                  </h2>
-                  <p className={`font-sans ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
-                    Candidato para: {candidate.job.title}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <StatusIcon className="h-5 w-5" />
-                <span className={`px-3 py-1 rounded-lg text-sm font-medium ${getStatusColor(candidate.status)}`}>
-                  {getStatusText(candidate.status)}
-                </span>
-              </div>
+      {/* Profile Header */}
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-8 px-2 mb-12 items-end">
+         <div className="md:col-span-8 flex flex-col gap-4">
+            <div className="flex items-center gap-4">
+              <span className={`px-2.5 py-1 rounded-sm text-[0.65rem] font-bold tracking-widest uppercase ${darkMode ? 'bg-gray-800 text-gray-300' : 'bg-neutral-200 text-triagen-secondary'}`}>
+                {candidate.status}
+              </span>
+              <span className={`text-[0.65rem] uppercase tracking-widest font-semibold ${darkMode ? 'text-gray-400' : 'text-triagen-secondary'}`}>
+                {candidate.job.title}
+              </span>
             </div>
+            <h1 className={`text-5xl md:text-7xl font-heading font-normal tracking-tight leading-none ${darkMode ? 'text-white' : 'text-triagen-primary'}`}>
+              {candidate.name}
+            </h1>
+         </div>
+         <div className="md:col-span-4 flex md:justify-end">
+            <div className={`flex flex-col items-start md:items-end w-full md:w-auto p-6 border rounded ${darkMode ? 'border-gray-800 bg-gray-900/50' : 'border-neutral-200 bg-[#f8f9fa]'}`}>
+               <span className={`text-[0.65rem] tracking-widest uppercase font-semibold mb-2 ${darkMode ? 'text-gray-500' : 'text-triagen-secondary'}`}>AI Intelligence Score</span>
+               <div className="flex items-baseline gap-2">
+                 <span className={`text-5xl font-heading ${darkMode ? 'text-white' : 'text-triagen-primary'}`}>{Math.round(candidate.score || 0) || '--'}</span>
+                 {candidate.score && <span className={`text-lg font-heading ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>/ 100</span>}
+               </div>
+            </div>
+         </div>
+      </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="flex items-center space-x-3">
-                <Mail className={`h-5 w-5 ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`} />
-                <div>
-                  <p className={`font-sans text-sm ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
-                    Email
-                  </p>
-                  <p className={`font-sans font-medium ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
-                    {candidate.email}
-                  </p>
-                </div>
-              </div>
-
-              {candidate.phone && (
-                <div className="flex items-center space-x-3">
-                  <Phone className={`h-5 w-5 ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`} />
-                  <div>
-                    <p className={`font-sans text-sm ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
-                      Telefone
-                    </p>
-                    <p className={`font-sans font-medium ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
-                      {candidate.phone}
-                    </p>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 px-2">
+         {/* Left Sidebar: Contact & Metadata */}
+         <div className="lg:col-span-4 flex flex-col gap-8">
+            <div className={`p-6 rounded border ${darkMode ? 'border-gray-800 bg-gray-900/50' : 'border-neutral-200 bg-white'}`}>
+               <h3 className={`text-xs uppercase tracking-widest font-bold mb-6 ${darkMode ? 'text-gray-500' : 'text-triagen-secondary'}`}>Applicant Details</h3>
+               <div className="flex flex-col gap-5">
+                  <div className="flex items-start gap-3">
+                     <Mail className={`w-4 h-4 mt-0.5 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`} />
+                     <div className="flex flex-col">
+                        <span className={`text-[0.65rem] uppercase tracking-wider font-semibold mb-0.5 ${darkMode ? 'text-gray-500' : 'text-triagen-secondary'}`}>Email</span>
+                        <span className={`text-sm font-medium ${darkMode ? 'text-gray-200' : 'text-triagen-primary'}`}>{candidate.email}</span>
+                     </div>
                   </div>
-                </div>
-              )}
-
-              <div className="flex items-center space-x-3">
-                <Calendar className={`h-5 w-5 ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`} />
-                <div>
-                  <p className={`font-sans text-sm ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
-                    Data de Candidatura
-                  </p>
-                  <p className={`font-sans font-medium ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
-                    {new Date(candidate.created_at).toLocaleDateString('pt-BR')}
-                  </p>
-                </div>
-              </div>
-
-              {candidate.interview_completed_at && (
-                <div className="flex items-center space-x-3">
-                  <CheckCircle className={`h-5 w-5 ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`} />
-                  <div>
-                    <p className={`font-sans text-sm ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
-                      Entrevista Concluída
-                    </p>
-                    <p className={`font-sans font-medium ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
-                      {new Date(candidate.interview_completed_at).toLocaleDateString('pt-BR')}
-                    </p>
+                  {candidate.phone && (
+                     <div className="flex items-start gap-3">
+                        <Phone className={`w-4 h-4 mt-0.5 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`} />
+                        <div className="flex flex-col">
+                           <span className={`text-[0.65rem] uppercase tracking-wider font-semibold mb-0.5 ${darkMode ? 'text-gray-500' : 'text-triagen-secondary'}`}>Phone</span>
+                           <span className={`text-sm font-medium ${darkMode ? 'text-gray-200' : 'text-triagen-primary'}`}>{candidate.phone}</span>
+                        </div>
+                     </div>
+                  )}
+                  <div className="flex items-start gap-3">
+                     <Calendar className={`w-4 h-4 mt-0.5 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`} />
+                     <div className="flex flex-col">
+                        <span className={`text-[0.65rem] uppercase tracking-wider font-semibold mb-0.5 ${darkMode ? 'text-gray-500' : 'text-triagen-secondary'}`}>Date Applied</span>
+                        <span className={`text-sm font-medium ${darkMode ? 'text-gray-200' : 'text-triagen-primary'}`}>{new Date(candidate.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                     </div>
                   </div>
-                </div>
-              )}
+                  {candidate.interview_completed_at && (
+                     <div className="flex items-start gap-3">
+                        <CheckCircle className={`w-4 h-4 mt-0.5 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`} />
+                        <div className="flex flex-col">
+                           <span className={`text-[0.65rem] uppercase tracking-wider font-semibold mb-0.5 ${darkMode ? 'text-gray-500' : 'text-triagen-secondary'}`}>Interview Completed</span>
+                           <span className={`text-sm font-medium ${darkMode ? 'text-gray-200' : 'text-triagen-primary'}`}>{new Date(candidate.interview_completed_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                        </div>
+                     </div>
+                  )}
+               </div>
             </div>
-          </Card>
 
-          {/* Resume Text */}
-          {candidate.resume_text && (
-            <Card darkMode={darkMode}>
-              <div className="flex items-center space-x-3 mb-4">
-                <FileText className={`h-5 w-5 ${darkMode ? 'text-triagen-secondary-green' : 'text-triagen-primary-blue'}`} />
-                <h3 className={`font-heading text-lg font-semibold ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
-                  Resumo do Currículo
-                </h3>
-              </div>
-              <div className={`p-4 rounded-xl ${
-                darkMode ? 'bg-gray-800/30' : 'bg-triagen-light-bg/30'
-              }`}>
-                <p className={`font-sans leading-relaxed ${darkMode ? 'text-gray-300' : 'text-triagen-text-dark'}`}>
-                  {candidate.resume_text}
-                </p>
-              </div>
-            </Card>
-          )}
-
-          {/* Custom Answers */}
-          {candidate.custom_answers && Object.keys(candidate.custom_answers).length > 0 && (
-            <Card darkMode={darkMode}>
-              <div className="flex items-center space-x-3 mb-4">
-                <MessageSquare className={`h-5 w-5 ${darkMode ? 'text-triagen-secondary-green' : 'text-triagen-primary-blue'}`} />
-                <h3 className={`font-heading text-lg font-semibold ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
-                  Respostas Personalizadas
-                </h3>
-              </div>
-              <div className="space-y-4">
-                {Object.entries(candidate.custom_answers as Record<string, any>).map(([question, answer], index) => (
-                  <div key={index} className={`p-4 rounded-xl ${
-                    darkMode ? 'bg-gray-800/30' : 'bg-triagen-light-bg/30'
-                  }`}>
-                    <p className={`font-sans font-medium mb-2 ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
-                      {question}
-                    </p>
-                    <p className={`font-sans ${darkMode ? 'text-gray-300' : 'text-triagen-text-dark'}`}>
-                      {typeof answer === 'string' ? answer : JSON.stringify(answer)}
-                    </p>
+            {/* Application Data */}
+            <div className={`p-6 rounded border ${darkMode ? 'border-gray-800 bg-gray-900/50' : 'border-neutral-200 bg-[#f8f9fa]'}`}>
+               <h3 className={`text-xs uppercase tracking-widest font-bold mb-4 ${darkMode ? 'text-gray-500' : 'text-triagen-secondary'}`}>Role Context</h3>
+               <div className="flex flex-col gap-4">
+                  <div className="flex flex-col">
+                     <span className={`text-[0.65rem] uppercase tracking-wider font-semibold mb-1 ${darkMode ? 'text-gray-500' : 'text-triagen-secondary'}`}>Target Role</span>
+                     <span className={`text-sm font-medium ${darkMode ? 'text-gray-200' : 'text-triagen-primary'}`}>{candidate.job.title}</span>
                   </div>
-                ))}
-              </div>
-            </Card>
-          )}
-
-          {/* Notes */}
-          {candidate.notes && (
-            <Card darkMode={darkMode}>
-              <div className="flex items-center space-x-3 mb-4">
-                <Edit className={`h-5 w-5 ${darkMode ? 'text-triagen-secondary-green' : 'text-triagen-primary-blue'}`} />
-                <h3 className={`font-heading text-lg font-semibold ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
-                  Observações
-                </h3>
-              </div>
-              <div className={`p-4 rounded-xl ${
-                darkMode ? 'bg-gray-800/30' : 'bg-triagen-light-bg/30'
-              }`}>
-                <p className={`font-sans leading-relaxed ${darkMode ? 'text-gray-300' : 'text-triagen-text-dark'}`}>
-                  {candidate.notes}
-                </p>
-              </div>
-            </Card>
-          )}
-        </div>
-
-        {/* Right Column - Job Info & Actions */}
-        <div className="space-y-6">
-          {/* Job Information */}
-          <Card darkMode={darkMode}>
-            <div className="flex items-center space-x-3 mb-4">
-              <Briefcase className={`h-5 w-5 ${darkMode ? 'text-triagen-secondary-green' : 'text-triagen-primary-blue'}`} />
-              <h3 className={`font-heading text-lg font-semibold ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
-                Informações da Vaga
-              </h3>
+                  <div className="flex flex-col">
+                     <span className={`text-[0.65rem] uppercase tracking-wider font-semibold mb-1 ${darkMode ? 'text-gray-500' : 'text-triagen-secondary'}`}>Entity</span>
+                     <span className={`text-sm font-medium ${darkMode ? 'text-gray-200' : 'text-triagen-primary'}`}>{candidate.job.company.name}</span>
+                  </div>
+               </div>
+               <div className="mt-6 pt-6 border-t border-dashed border-neutral-300 dark:border-gray-700 flex flex-col gap-3">
+                 <Button
+                   variant="secondary"
+                   size="sm"
+                   fullWidth
+                   onClick={() => navigate(`/dashboard/jobs/${candidate.job_id}`)}
+                   darkMode={darkMode}
+                 >
+                   View Role Brief
+                 </Button>
+               </div>
             </div>
+         </div>
 
-            <div className="space-y-4">
-              <div>
-                <p className={`font-sans text-sm ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
-                  Título da Vaga
-                </p>
-                <p className={`font-sans font-medium ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
-                  {candidate.job.title}
-                </p>
+         {/* Main Content Area: Dossier / Answers */}
+         <div className="lg:col-span-8 flex flex-col gap-10">
+            {candidate.resume_text && (
+              <div className="flex flex-col gap-4">
+                 <h2 className={`font-heading text-2xl pb-4 border-b ${darkMode ? 'text-white border-gray-800' : 'text-triagen-primary border-neutral-200'}`}>
+                   Resume Extract & Summary
+                 </h2>
+                 <div className={`prose max-w-none prose-sm sm:prose-base ${darkMode ? 'prose-invert prose-p:text-gray-300' : 'prose-p:text-triagen-secondary'}`}>
+                   <p className="whitespace-pre-wrap leading-relaxed">{candidate.resume_text}</p>
+                 </div>
               </div>
+            )}
 
-              <div>
-                <p className={`font-sans text-sm ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
-                  Empresa
-                </p>
-                <p className={`font-sans font-medium ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
-                  {candidate.job.company.name}
-                </p>
+            {candidate.custom_answers && Object.keys(candidate.custom_answers).length > 0 && (
+              <div className="flex flex-col gap-4">
+                 <h2 className={`font-heading text-2xl pb-4 border-b ${darkMode ? 'text-white border-gray-800' : 'text-triagen-primary border-neutral-200'}`}>
+                   Prequalification Questionnaire
+                 </h2>
+                 <div className="flex flex-col gap-6">
+                    {Object.entries(candidate.custom_answers as Record<string, any>).map(([question, answer], index) => (
+                      <div key={index} className="flex flex-col gap-2">
+                        <h4 className={`text-sm font-bold tracking-tight ${darkMode ? 'text-gray-300' : 'text-triagen-primary'}`}>{question}</h4>
+                        <p className={`text-sm md:text-base leading-relaxed ${darkMode ? 'text-gray-400' : 'text-triagen-secondary'}`}>
+                          {typeof answer === 'string' ? answer : JSON.stringify(answer)}
+                        </p>
+                      </div>
+                    ))}
+                 </div>
               </div>
+            )}
 
-              <div>
-                <p className={`font-sans text-sm mb-2 ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
-                  Descrição
-                </p>
-                <p className={`font-sans text-sm leading-relaxed ${darkMode ? 'text-gray-300' : 'text-triagen-text-dark'}`}>
-                  {candidate.job.description}
-                </p>
+            {candidate.notes && (
+              <div className="flex flex-col gap-4">
+                 <h2 className={`font-heading text-2xl pb-4 border-b ${darkMode ? 'text-white border-gray-800' : 'text-triagen-primary border-neutral-200'}`}>
+                   Internal Notes
+                 </h2>
+                 <div className={`p-6 rounded border ${darkMode ? 'bg-gray-800/50 border-gray-700' : 'bg-[#fcfdfd] border-neutral-200'}`}>
+                   <p className={`text-sm md:text-base leading-relaxed whitespace-pre-wrap ${darkMode ? 'text-gray-300' : 'text-triagen-secondary'}`}>
+                     {candidate.notes}
+                   </p>
+                 </div>
               </div>
-            </div>
-          </Card>
+            )}
 
-          {/* Quick Actions */}
-          <Card darkMode={darkMode}>
-            <h3 className={`font-heading text-lg font-semibold mb-4 ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
-              Ações Rápidas
-            </h3>
-
-            <div className="space-y-3">
-              <Button
-                variant="outline"
-                size="md"
-                fullWidth
-                onClick={() => navigate(`/dashboard/jobs/${candidate.job_id}`)}
-                icon={Briefcase}
-                darkMode={darkMode}
-              >
-                Ver Vaga Completa
-              </Button>
-
-              <Button
-                variant="outline"
-                size="md"
-                fullWidth
-                onClick={() => navigate(`/dashboard/candidates?job=${candidate.job_id}`)}
-                icon={User}
-                darkMode={darkMode}
-              >
-                Outros Candidatos
-              </Button>
-
-              {candidate.status === 'completed' && (
-                <Button
-                  variant="primary"
-                  size="md"
-                  fullWidth
-                  onClick={() => navigate(`/dashboard/candidates/${candidate.id}/report`)}
-                  icon={FileText}
-                >
-                  Ver Relatório Completo
-                </Button>
-              )}
-            </div>
-          </Card>
-        </div>
+            {/* Empty state if nothing to show */}
+            {!candidate.resume_text && (!candidate.custom_answers || Object.keys(candidate.custom_answers).length === 0) && !candidate.notes && (
+              <div className={`py-16 px-4 text-center border border-dashed rounded ${darkMode ? 'border-gray-800 text-gray-500' : 'border-neutral-300 text-gray-400'}`}>
+                 <p className="font-heading text-xl">No dossier content available.</p>
+                 <p className="text-sm mt-2">Resume, notes, and screening questions will appear here.</p>
+              </div>
+            )}
+         </div>
       </div>
     </div>
   );
