@@ -1,8 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { MapPin, Clock, Users, ExternalLink, Copy, Check } from 'lucide-react';
-import { useState } from 'react';
-import Button from '../../ui/Button';
-import Card from '../../ui/Card';
+import { ArrowRight, Pencil, Archive } from 'lucide-react';
 import { JobWithStats } from '../../../types/company';
 
 interface JobCardProps {
@@ -13,109 +10,64 @@ interface JobCardProps {
 
 function JobCard({ job, darkMode, onClick }: JobCardProps) {
   const navigate = useNavigate();
-  const [copied, setCopied] = useState(false);
 
-  const applicationUrl = `${window.location.origin}/apply/${job.id}`;
-
-  const copyApplicationLink = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    try {
-      await navigator.clipboard.writeText(applicationUrl);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      console.error('Failed to copy link:', err);
+  // Use the ID snippet to simulate the ref structure from mockups
+  const shortId = job.id ? job.id.substring(0, 3).toUpperCase() : 'NEW';
+  const displayRef = `REF-2026-${shortId}`;
+  
+  // Custom minimalistic badge colors based entirely on semantic state
+  const getStatusInfo = () => {
+    switch(job.status) {
+       case 'closed': return { label: 'CLOSED', style: darkMode ? 'bg-red-900/30 text-red-400' : 'bg-neutral-200 text-neutral-600', icon: Archive };
+       case 'paused': return { label: 'DRAFT', style: darkMode ? 'bg-gray-700 text-gray-300' : 'bg-[#e2e8e4] text-triagen-secondary', icon: Pencil };
+       default: return { label: 'ACTIVE', style: darkMode ? 'bg-gray-800 text-gray-300' : 'bg-[#eaefee] text-triagen-primary', icon: ArrowRight };
     }
-  };
+  }
 
-  const openApplicationPage = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    window.open(applicationUrl, '_blank');
-  };
+  const { label, style, icon: Icon } = getStatusInfo();
 
   return (
-    <Card
-      key={job.id}
-      darkMode={darkMode}
-      hoverEffect
+    <div
       onClick={() => onClick(job.id)}
+      className={`relative p-8 flex flex-col h-[280px] w-full rounded cursor-pointer border transition-all duration-300 group ${
+        darkMode 
+          ? 'bg-gray-800/40 border-gray-700 hover:border-gray-500' 
+          : 'bg-white border-neutral-200 hover:border-neutral-300 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] hover:shadow-[0_8px_30px_-4px_rgba(0,0,0,0.05)]'
+      }`}
     >
-      <div className="flex items-start justify-between">
-        <div className="flex-1">
-          <div className="flex items-center space-x-3 mb-3">
-            <h3 className={`font-heading text-xl font-semibold ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
-              {job.title}
-            </h3>
-            <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-              job.status === 'open'
-                ? 'bg-green-100 text-green-800'
-                : job.status === 'paused'
-                ? 'bg-yellow-100 text-yellow-800'
-                : 'bg-red-100 text-red-800'
-            }`}>
-              {job.status === 'open' ? 'Aberta' : job.status === 'paused' ? 'Pausada' : 'Fechada'}
-            </span>
-          </div>
-          <p className={`font-sans text-sm mb-4 ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'} line-clamp-2`}>
-            {job.description}
-          </p>
-          <div className="flex items-center space-x-6 text-sm">
-            {job.location && (
-              <div className={`flex items-center space-x-1 ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
-                <MapPin className="h-4 w-4" />
-                <span>{job.location}</span>
-              </div>
-            )}
-            <div className={`flex items-center space-x-1 ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
-              <Users className="h-4 w-4" />
-              <span>{job.candidatesCount} candidatos</span>
-            </div>
-            <div className={`flex items-center space-x-1 ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
-              <Clock className="h-4 w-4" />
-              <span>{new Date(job.created_at).toLocaleDateString('pt-BR')}</span>
-            </div>
-          </div>
+      <div className="flex items-center justify-between mb-8">
+        <span className={`px-2.5 py-1 rounded-full text-[0.6rem] font-bold tracking-widest uppercase ${style}`}>
+          {label}
+        </span>
+        <span className={`text-[0.65rem] tracking-widest font-semibold uppercase ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+          {displayRef}
+        </span>
+      </div>
 
-          {/* Application Link Section */}
-          <div className={`mt-4 pt-4 border-t ${
-            darkMode ? 'border-triagen-border-dark' : 'border-triagen-border-light'
-          }`}>
-            <div className="flex items-center justify-between">
-              <div className="flex-1 mr-4">
-                <p className={`text-xs font-medium mb-1 ${darkMode ? 'text-gray-300' : 'text-triagen-dark-bg'}`}>
-                  Link de Candidatura:
-                </p>
-                <div className={`px-3 py-2 rounded-lg text-xs font-mono break-all ${
-                  darkMode ? 'bg-gray-800/50 text-gray-400' : 'bg-triagen-light-bg/50 text-triagen-text-light'
-                }`}>
-                  {applicationUrl}
-                </div>
-              </div>
-              <div className="flex space-x-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={copyApplicationLink}
-                  icon={copied ? Check : Copy}
-                  darkMode={darkMode}
-                >
-                  {copied ? 'Copiado!' : 'Copiar'}
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={openApplicationPage}
-                  icon={ExternalLink}
-                  darkMode={darkMode}
-                >
-                  Abrir
-                </Button>
-              </div>
-            </div>
-          </div>
+      <div className="flex flex-col flex-grow">
+        <h3 className={`font-heading text-2xl font-normal leading-tight mb-2 ${darkMode ? 'text-white' : 'text-triagen-primary'}`}>
+          {job.title}
+        </h3>
+        <p className={`font-sans text-xs uppercase tracking-wider font-semibold ${darkMode ? 'text-gray-400' : 'text-triagen-secondary'}`}>
+          {job.department || 'General'} • {job.location || 'Remote'}
+        </p>
+      </div>
+
+      <div className="flex items-end justify-between mt-auto pt-4">
+        <div className="flex flex-col">
+          <span className={`text-4xl font-heading leading-none mb-1 ${darkMode ? 'text-white' : 'text-triagen-primary'}`}>
+            {job.candidatesCount || 0}
+          </span>
+          <span className={`text-[0.65rem] font-semibold tracking-widest uppercase ${darkMode ? 'text-gray-500' : 'text-triagen-secondary'}`}>
+            Candidates
+          </span>
+        </div>
+        
+        <div className={`transition-transform duration-300 group-hover:translate-x-1 ${darkMode ? 'text-gray-400' : 'text-triagen-primary'}`}>
+          <Icon strokeWidth={1.5} className="h-5 w-5" />
         </div>
       </div>
-    </Card>
+    </div>
   );
 }
 
