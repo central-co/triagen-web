@@ -11,6 +11,8 @@
     "preview": "doppler run -- vite preview"
   },
   "dependencies": {
+    "@fontsource/manrope": "^5.2.8",
+    "@fontsource/newsreader": "^5.2.10",
     "@livekit/components-styles": "^1.1.6",
     "@supabase/supabase-js": "^2.50.3",
     "@types/node": "^24.0.4",

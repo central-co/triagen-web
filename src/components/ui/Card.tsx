@@ -19,18 +19,18 @@ function Card({
   padding = 'md',
   onClick
 }: CardProps) {
-  const baseClasses = 'rounded-3xl border transition-all duration-300';
+  const baseClasses = 'rounded border transition-all duration-300';
 
   const variantClasses = {
     default: darkMode
-      ? 'bg-gray-800/30 border-gray-700/50'
-      : 'bg-white/40 border-triagen-petrol/10',
+      ? 'bg-gray-900 border-gray-800'
+      : 'bg-white border-neutral-200',
     glass: darkMode
-      ? 'backdrop-blur-xl bg-gray-800/40 border-gray-700/50'
-      : 'backdrop-blur-xl bg-white/50 border-triagen-petrol/10',
+      ? 'bg-gray-900 border-gray-800'
+      : 'bg-white border-neutral-200',
     solid: darkMode
-      ? 'bg-gray-800 border-gray-700'
-      : 'bg-white border-triagen-light-text/20'
+      ? 'bg-gray-900 border-gray-800'
+      : 'bg-white border-neutral-200'
   };
 
   const paddingClasses = {
@@ -41,8 +41,8 @@ function Card({
 
   const hoverClasses = hoverEffect
     ? onClick
-      ? 'hover:scale-[1.005] hover:shadow-lg cursor-pointer' + (darkMode ? ' hover:bg-gray-800/60' : ' hover:bg-white/70')
-      : 'hover:scale-[1.005] hover:shadow-lg' + (darkMode ? ' hover:bg-gray-800/50' : ' hover:bg-white/60')
+      ? 'hover:shadow-sm cursor-pointer' + (darkMode ? ' hover:border-gray-700' : ' hover:border-neutral-300')
+      : 'hover:shadow-sm' + (darkMode ? ' hover:border-gray-700' : ' hover:border-neutral-300')
     : '';
 
   const classes = `${baseClasses} ${variantClasses[variant]} ${paddingClasses[padding]} ${hoverClasses} ${className}`;

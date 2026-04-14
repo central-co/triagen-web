@@ -1,9 +1,26 @@
 /* LiveKit Components Styles */
 @import '@livekit/components-styles';
 
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Newsreader:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Base Reset */
+body {
+  font-family: 'Manrope', sans-serif;
+  background-color: theme('colors.triagen.neutral');
+  color: theme('colors.triagen.primary');
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Newsreader', serif;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
 
 /* Custom styles for LiveKit components */
 .lk-room-container {
