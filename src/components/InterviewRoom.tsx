@@ -5,16 +5,12 @@ import {
   RemoteParticipant,
   Track,
   LocalAudioTrack,
-  RemoteAudioTrack,
-  TrackPublication
+  RemoteAudioTrack
 } from 'livekit-client';
-import { Mic, MicOff, PhoneOff, Volume2, VolumeX, Users, Bot, User } from 'lucide-react';
+import { Mic, MicOff, PhoneOff, Pause, Settings, Play } from 'lucide-react';
 import useDarkMode from '../hooks/useDarkMode';
 import useAudioLevel from '../hooks/useAudioLevel';
 import { config } from '../utils/config';
-import AnimatedBackground from './ui/AnimatedBackground';
-import Button from './ui/Button';
-import Card from './ui/Card';
 import StatusMessage from './ui/StatusMessage';
 import RemoteAudioTrackComponent from './RemoteAudioTrack';
 
@@ -23,26 +19,41 @@ interface InterviewRoomProps {
   onFinished: () => void;
 }
 
-interface ParticipantInfo {
-  identity: string;
-  type: 'local' | 'agent' | 'remote';
-  isLocal: boolean;
-}
-
 function InterviewRoom({ jwtToken, onFinished }: InterviewRoomProps) {
   const [room, setRoom] = useState<Room | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [error, setError] = useState('');
   const [isMuted, setIsMuted] = useState(false);
-  const [isSpeakerMuted, setIsSpeakerMuted] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
   const [localAudioTrack, setLocalAudioTrack] = useState<LocalAudioTrack | null>(null);
   const [participants, setParticipants] = useState<RemoteParticipant[]>([]);
   const [remoteAudioTracks, setRemoteAudioTracks] = useState<RemoteAudioTrack[]>([]);
-  const [localParticipantIdentity, setLocalParticipantIdentity] = useState<string>('');
+  
+  const [elapsedTime, setElapsedTime] = useState(0);
+  
   const { darkMode } = useDarkMode(true);
   const audioLevel = useAudioLevel(localAudioTrack);
   const roomRef = useRef<Room | null>(null);
+
+  // Timer
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (isConnected && !isPaused) {
+      interval = setInterval(() => {
+        setElapsedTime(prev => prev + 1);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [isConnected, isPaused]);
+
+  const formatTime = (seconds: number) => {
+    const hrs = Math.floor(seconds / 3600);
+    const mins = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    return `${hrs > 0 ? `${hrs.toString().padStart(2, '0')}:` : ''}${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
   useEffect(() => {
     connectToRoom();
     return () => {
@@ -50,106 +61,36 @@ function InterviewRoom({ jwtToken, onFinished }: InterviewRoomProps) {
         roomRef.current.disconnect();
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Helper function to determine participant type
-  const getParticipantType = (identity: string): 'agent' | 'remote' => {
-    // Check if identity contains 'agent' or 'bot' (case-insensitive)
-    const lowerIdentity = identity.toLowerCase();
-    if (lowerIdentity.includes('agent') || lowerIdentity.includes('bot')) {
-      return 'agent';
-    }
-    return 'remote';
-  };
-
-  // Get all participants with their types
-  const getAllParticipants = (): ParticipantInfo[] => {
-    const allParticipants: ParticipantInfo[] = [];
-
-    // Add local participant
-    if (localParticipantIdentity) {
-      allParticipants.push({
-        identity: localParticipantIdentity,
-        type: 'local',
-        isLocal: true
-      });
-    }
-
-    // Add remote participants
-    participants.forEach(participant => {
-      allParticipants.push({
-        identity: participant.identity,
-        type: getParticipantType(participant.identity),
-        isLocal: false
-      });
-    });
-
-    return allParticipants;
-  };
-
   const connectToRoom = async () => {
-    if (isConnecting || !config) return;
-
+    if (isConnecting) return;
     setIsConnecting(true);
     setError('');
 
     try {
       const livekitUrl = config.livekitUrl;
-
-      if (!livekitUrl) {
-        throw new Error('LiveKit server URL not configured. Please check your configuration.');
-      }
-
-      // Validate that the URL is a WebSocket URL
-      if (!livekitUrl.startsWith('ws://') && !livekitUrl.startsWith('wss://')) {
-        throw new Error('LiveKit URL must be a WebSocket URL (starting with ws:// or wss://)');
-      }
-
       const roomInstance = new Room();
-
-      // Store in ref BEFORE setting up event listeners so handlers can access it
       roomRef.current = roomInstance;
 
-      // Event listeners
       roomInstance.on(RoomEvent.Connected, handleRoomConnected);
       roomInstance.on(RoomEvent.Disconnected, handleRoomDisconnected);
       roomInstance.on(RoomEvent.ParticipantConnected, handleParticipantConnected);
       roomInstance.on(RoomEvent.ParticipantDisconnected, handleParticipantDisconnected);
       roomInstance.on(RoomEvent.TrackSubscribed, handleTrackSubscribed);
       roomInstance.on(RoomEvent.TrackUnsubscribed, handleTrackUnsubscribed);
-      roomInstance.on(RoomEvent.LocalTrackPublished, handleLocalTrackPublished);
 
-      // Connect to room using config
-      await roomInstance.connect(livekitUrl, jwtToken, {
-        autoSubscribe: true,
-      });
-
-      // Enable microphone only (audio-only interview)
+      await roomInstance.connect(livekitUrl, jwtToken, { autoSubscribe: true });
       await roomInstance.localParticipant.setMicrophoneEnabled(true);
 
-      // Get local audio track
       const audioTrackPubs = Array.from(roomInstance.localParticipant.audioTrackPublications.values());
       if (audioTrackPubs.length > 0 && audioTrackPubs[0].track) {
         setLocalAudioTrack(audioTrackPubs[0].track as LocalAudioTrack);
       }
 
       setRoom(roomInstance);
-
-      console.log('✅ Connected to room - Local:', roomInstance.localParticipant.identity, '| Remote:', roomInstance.remoteParticipants.size);
     } catch (err) {
-      console.error('Failed to connect to room:', err);
-      if (err instanceof Error) {
-        if (err.name === 'NotAllowedError' || err.message.toLowerCase().includes('permission')) {
-          setError('Acesso ao microfone negado. Por favor, permita o acesso ao microfone nas configurações do seu browser e tente novamente.');
-        } else if (err.name === 'NotFoundError') {
-          setError('Nenhum microfone encontrado. Verifique se um microfone está conectado ao seu dispositivo.');
-        } else {
-          setError(err.message);
-        }
-      } else {
-        setError('Falha ao conectar na sala de entrevista');
-      }
+      setError('Falha ao conectar na sala de entrevista');
     } finally {
       setIsConnecting(false);
     }
@@ -157,28 +98,9 @@ function InterviewRoom({ jwtToken, onFinished }: InterviewRoomProps) {
 
   const handleRoomConnected = () => {
     setIsConnected(true);
-
-    // Store local participant identity using roomRef
-    if (roomRef.current?.localParticipant) {
-      const identity = roomRef.current.localParticipant.identity;
-      setLocalParticipantIdentity(identity);
-
-      // Also capture any remote participants already in the room
+    if (roomRef.current?.remoteParticipants) {
       const remoteParticipants = Array.from(roomRef.current.remoteParticipants.values());
-      if (remoteParticipants.length > 0) {
-        setParticipants(remoteParticipants);
-
-        // Capture existing tracks
-        remoteParticipants.forEach(p => {
-          p.audioTrackPublications.forEach(pub => {
-            if (pub.track && pub.track.kind === Track.Kind.Audio) {
-              handleTrackSubscribed(pub.track);
-            }
-          });
-        });
-      }
-
-      console.log('✅ Room ready - You:', identity, '| Others:', remoteParticipants.length);
+      setParticipants(remoteParticipants);
     }
   };
 
@@ -186,244 +108,194 @@ function InterviewRoom({ jwtToken, onFinished }: InterviewRoomProps) {
     setIsConnected(false);
     setLocalAudioTrack(null);
     setParticipants([]);
-    setLocalParticipantIdentity('');
     roomRef.current = null;
-
-    // Notify parent that interview is finished
     onFinished();
   };
 
   const handleParticipantConnected = (participant: RemoteParticipant) => {
-    console.log('➕ Participant joined:', participant.identity);
     setParticipants(prev => [...prev, participant]);
-
-    // Subscribe to audio tracks
-    const audioTrackPubs = Array.from(participant.audioTrackPublications.values());
-    audioTrackPubs.forEach((pub: TrackPublication) => {
-      if (pub.track) {
-        handleTrackSubscribed(pub.track);
-      }
-    });
   };
 
   const handleParticipantDisconnected = (participant: RemoteParticipant) => {
-    console.log('➖ Participant left:', participant.identity);
     setParticipants(prev => prev.filter(p => p.identity !== participant.identity));
   };
 
-  const handleTrackSubscribed = (track: Track) => {
+  const handleTrackSubscribed = (track: Track, publication: any, participant: RemoteParticipant) => {
     if (track.kind === Track.Kind.Audio) {
-      const audioTrack = track as RemoteAudioTrack;
-      setRemoteAudioTracks(prev => {
-        if (prev.some(t => t.sid === audioTrack.sid)) return prev;
-        return [...prev, audioTrack];
-      });
+      setRemoteAudioTracks(prev => [...prev, track as RemoteAudioTrack]);
     }
   };
 
   const handleTrackUnsubscribed = (track: Track) => {
     if (track.kind === Track.Kind.Audio) {
-      const audioTrack = track as RemoteAudioTrack;
-      setRemoteAudioTracks(prev => prev.filter(t => t.sid !== audioTrack.sid));
+      setRemoteAudioTracks(prev => prev.filter(t => t.sid !== track.sid));
     }
   };
 
-  const handleLocalTrackPublished = (publication: TrackPublication) => {
-    if (publication.kind === Track.Kind.Audio && publication.track) {
-      setLocalAudioTrack(publication.track as LocalAudioTrack);
+  const toggleMute = () => {
+    if (room?.localParticipant) {
+      const newMutedState = !isMuted;
+      room.localParticipant.setMicrophoneEnabled(!newMutedState);
+      setIsMuted(newMutedState);
     }
   };
 
-  const toggleMute = async () => {
-    if (room) {
-      const newMuted = !isMuted;
-      await room.localParticipant.setMicrophoneEnabled(!newMuted);
-      setIsMuted(newMuted);
-    }
+  const togglePause = () => {
+    setIsPaused(!isPaused);
+    // Real implementation would pause the LLM agent stream specifically
   };
 
-  const toggleSpeaker = () => {
-    setIsSpeakerMuted(!isSpeakerMuted);
+  const disconnect = () => {
+    room?.disconnect();
   };
 
-  const handleLeave = async () => {
-    if (room) {
-      room.disconnect();
-      // onFinished() will be called by handleRoomDisconnected via RoomEvent.Disconnected
-    } else {
-      onFinished();
-    }
-  };
-
-
-  if (!isConnected && !isConnecting) {
+  // Audio visualization bars (fake visualization based on overall audiolevel)
+  const renderAudioBars = () => {
+    const bars = 9;
     return (
-      <div className={`min-h-screen transition-all duration-500 ${darkMode ? 'dark bg-gray-900' : 'bg-triagen-light-bg'}`}>
-        <AnimatedBackground darkMode={darkMode} isRoom />
-        <div className="flex items-center justify-center min-h-screen px-4">
-          <Card darkMode={darkMode}>
-            <StatusMessage
-              type="error"
-              title="Conexão perdida"
-              message={error || "A conexão com a sala foi perdida. Tente novamente."}
-              darkMode={darkMode}
+      <div className="flex items-center justify-center gap-1.5 md:gap-2.5 h-32 mb-12">
+        {Array.from({ length: bars }).map((_, i) => {
+          // Center is biggest, edges are smaller
+          const distanceFromCenter = Math.abs(i - Math.floor(bars / 2));
+          const baseHeight = 100 - (distanceFromCenter * 20); // 100%, 80%, 60%, 40%, 20%
+          
+          // Add some randomness based on audio level if active
+          const activeHeight = audioLevel > 0.05 
+            ? baseHeight * (0.5 + Math.random() * audioLevel * 2) 
+            : baseHeight * 0.3;
+            
+          return (
+            <div 
+              key={i}
+              className={`w-1.5 md:w-2 rounded-full transition-all duration-75 ${darkMode ? 'bg-gray-400' : 'bg-triagen-secondary'}`}
+              style={{ 
+                height: `${Math.max(15, Math.min(100, activeHeight))}%`,
+                opacity: 1 - (distanceFromCenter * 0.15)
+              }}
             />
-            <Button
-              variant="primary"
-              size="lg"
-              fullWidth
-              onClick={connectToRoom}
-            >
-              Reconectar
-            </Button>
-          </Card>
-        </div>
+          );
+        })}
       </div>
     );
-  }
+  };
 
-  if (isConnecting) {
-    return (
-      <div className={`min-h-screen transition-all duration-500 ${darkMode ? 'dark bg-gray-900' : 'bg-triagen-light-bg'}`}>
-        <AnimatedBackground darkMode={darkMode} isRoom />
-        <div className="flex items-center justify-center min-h-screen px-4">
-          <Card darkMode={darkMode}>
-            <StatusMessage
-              type="info"
-              title="Conectando..."
-              message="Estabelecendo conexão com a sala de entrevista."
-              darkMode={darkMode}
-            />
-          </Card>
+  if (!isConnected && !error) {
+     return (
+        <div className={`min-h-screen flex flex-col items-center justify-center ${darkMode ? 'dark bg-gray-900 text-white' : 'bg-triagen-neutral text-triagen-primary'}`}>
+           <div className="w-12 h-12 rounded-full border-2 border-triagen-primary border-t-transparent animate-spin mb-4" />
+           <p className="font-sans text-sm uppercase tracking-widest text-triagen-secondary">Orchestrating Session...</p>
         </div>
-      </div>
-    );
+     );
   }
 
   return (
-    <div className={`min-h-screen transition-all duration-500 ${darkMode ? 'dark bg-gray-900' : 'bg-triagen-light-bg'}`}>
-      <AnimatedBackground darkMode={darkMode} isRoom />
-
-      <div className="flex items-center justify-center min-h-screen px-4">
-        <Card darkMode={darkMode} className="max-w-2xl w-full">
-          <div className="text-center mb-8">
-            <h1 className={`text-3xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
-              Entrevista em Andamento
-            </h1>
-            <p className={`${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
-              Participantes conectados: {participants.length + 1}
-            </p>
-          </div>
-
-          {/* Participants List */}
-          <div className="mb-8">
-            <div className="flex items-center space-x-2 mb-4">
-              <Users className={`h-5 w-5 ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`} />
-              <h2 className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
-                Participantes na Sala
-              </h2>
-            </div>
-            <div className="space-y-2">
-              {getAllParticipants().map((participant, index) => {
-                const isAgent = participant.type === 'agent';
-                const isLocal = participant.type === 'local';
-                const Icon = isAgent ? Bot : User;
-
-                return (
-                  <div
-                    key={`${participant.identity}-${index}`}
-                    className={`flex items-center space-x-3 p-3 rounded-lg ${darkMode
-                        ? 'bg-gray-800 border border-gray-700'
-                        : 'bg-white border border-triagen-border-light'
-                      }`}
-                  >
-                    <div className={`p-2 rounded-full ${isLocal
-                        ? 'bg-triagen-primary-blue/20'
-                        : isAgent
-                          ? 'bg-triagen-secondary-green/20'
-                          : 'bg-gray-500/20'
-                      }`}>
-                      <Icon className={`h-5 w-5 ${isLocal
-                          ? 'text-triagen-primary-blue'
-                          : isAgent
-                            ? 'text-triagen-secondary-green'
-                            : darkMode ? 'text-gray-400' : 'text-gray-600'
-                        }`} />
-                    </div>
-                    <div className="flex-1">
-                      <p className={`font-medium ${darkMode ? 'text-white' : 'text-triagen-dark-bg'
-                        }`}>
-                        {participant.identity}
-                      </p>
-                      <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'
-                        }`}>
-                        {isLocal ? 'Você' : isAgent ? 'Agente IA' : 'Participante Remoto'}
-                      </p>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Audio level indicator */}
-          <div className="mb-8">
-            <div className={`h-2 rounded-full ${darkMode ? 'bg-gray-700' : 'bg-triagen-border-light'}`}>
-              <div
-                className="h-full bg-gradient-to-r from-triagen-secondary-green to-triagen-primary-blue rounded-full"
-                style={{ width: `${audioLevel}%` }}
-              />
-            </div>
-            <p className={`text-sm mt-2 ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
-              Nível do microfone
-            </p>
-          </div>
-
-          {/* Controls */}
-          <div className="flex justify-center space-x-4 mb-8">
-            <Button
-              variant={isMuted ? "outline" : "secondary"}
-              size="lg"
-              onClick={toggleMute}
-              icon={isMuted ? MicOff : Mic}
-              darkMode={darkMode}
-            />
-
-            <Button
-              variant={isSpeakerMuted ? "outline" : "secondary"}
-              size="lg"
-              onClick={toggleSpeaker}
-              icon={isSpeakerMuted ? VolumeX : Volume2}
-              darkMode={darkMode}
-            />
-
-            <Button
-              variant="danger"
-              size="lg"
-              onClick={handleLeave}
-              icon={PhoneOff}
-              darkMode={darkMode}
-            />
-          </div>
-
-          {error && (
-            <StatusMessage
-              type="error"
-              message={error}
-              darkMode={darkMode}
-            />
-          )}
-        </Card>
+    <div className={`min-h-screen flex flex-col font-sans transition-colors duration-300 relative overflow-hidden ${darkMode ? 'dark bg-gray-900 text-gray-100' : 'bg-triagen-neutral text-triagen-primary'}`}>
+      
+      {/* Remote Tracks Container (Hidden) */}
+      <div className="hidden">
+        {remoteAudioTracks.map((track, idx) => (
+          <RemoteAudioTrackComponent key={track.sid || idx} track={track} />
+        ))}
       </div>
 
-      {/* Remote Audio Tracks */}
-      {remoteAudioTracks.map(track => (
-        <RemoteAudioTrackComponent
-          key={track.sid}
-          track={track}
-          volume={isSpeakerMuted ? 0 : 1.0}
-        />
-      ))}
+      {error ? (
+        <div className="flex-1 flex items-center justify-center p-6">
+           <StatusMessage type="error" message={error} darkMode={darkMode} />
+        </div>
+      ) : (
+        <>
+          {/* Header */}
+          <header className={`absolute top-0 w-full z-10 p-6 md:px-12 flex justify-between items-center`}>
+            <div className="flex items-center gap-4">
+              <h1 className="text-xl font-heading font-semibold tracking-tight">TriaGen</h1>
+              <span className={`text-sm italic ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>|</span>
+              <span className={`text-sm italic font-serif ${darkMode ? 'text-gray-300' : 'text-triagen-secondary'}`}>Senior Experience Designer</span>
+            </div>
+            
+            <div className="flex items-center gap-6">
+              <div className={`flex items-center gap-2 text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-triagen-secondary'}`}>
+                 <div className={`w-2 h-2 rounded-full ${isPaused ? 'bg-yellow-500' : 'bg-triagen-primary'} animate-pulse`} />
+                 {formatTime(elapsedTime)}
+              </div>
+              <button className={`p-2 transition-colors ${darkMode ? 'hover:text-white' : 'hover:text-black'}`}>
+                <Settings strokeWidth={1.5} className="w-5 h-5" />
+              </button>
+            </div>
+          </header>
+
+          {/* Main Stage */}
+          <main className="flex-1 flex flex-col items-center justify-center p-6 mt-16 max-w-4xl mx-auto w-full text-center">
+            
+            {/* Audio Visualization */}
+            {renderAudioBars()}
+
+            <div className="space-y-4 mb-20 md:mb-32">
+               <p className={`text-xs uppercase tracking-[0.2em] font-semibold ${darkMode ? 'text-gray-500' : 'text-triagen-secondary'}`}>Agent Inquiry</p>
+               
+               {isPaused ? (
+                  <h2 className={`text-3xl md:text-5xl font-heading font-normal leading-tight mx-auto max-w-3xl italic ${darkMode ? 'text-gray-400' : 'text-gray-400'}`}>
+                    Session Paused.
+                  </h2>
+               ) : (
+                  <h2 className={`text-3xl md:text-5xl font-heading font-normal leading-tight mx-auto max-w-3xl ${darkMode ? 'text-white' : 'text-triagen-primary'}`}>
+                    "How do you balance user advocacy with business constraints in a high-growth environment?"
+                  </h2>
+               )}
+
+               <div className={`flex items-center justify-center text-xs tracking-wider uppercase mt-8 ${audioLevel > 0.05 ? 'text-triagen-primary' : 'text-gray-400'}`}>
+                 <Mic className="w-3 h-3 mr-2" /> 
+                 {audioLevel > 0.05 ? 'Listening...' : 'Awaiting Input'}
+               </div>
+            </div>
+          </main>
+
+          {/* Bottom Dock Navigation */}
+          <div className="absolute bottom-12 w-full flex justify-center z-10 px-4">
+             <div className={`flex items-center gap-2 md:gap-4 p-2 rounded-2xl shadow-sm border ${darkMode ? 'bg-gray-800/90 border-gray-700 backdrop-blur-md' : 'bg-white/90 border-neutral-200 backdrop-blur-md'}`}>
+                
+                {/* Pause Button */}
+                <button 
+                  onClick={togglePause}
+                  className={`flex flex-col items-center justify-center w-20 h-20 rounded-xl transition-colors ${darkMode ? 'hover:bg-gray-700' : 'bg-neutral-100/50 hover:bg-neutral-100'} ${isPaused ? 'bg-yellow-100/50 !text-yellow-600' : ''}`}
+                >
+                  {isPaused ? <Play strokeWidth={1.5} className="w-6 h-6 mb-2" /> : <Pause strokeWidth={1.5} className="w-6 h-6 mb-2" />}
+                  <span className="text-[0.65rem] uppercase tracking-widest font-semibold">{isPaused ? 'Resume' : 'Pause'}</span>
+                </button>
+
+                {/* Mute Button */}
+                <button 
+                  onClick={toggleMute}
+                  className={`flex flex-col items-center justify-center w-20 h-20 rounded-xl transition-colors ${isMuted ? 'bg-red-50 text-red-600' : darkMode ? 'hover:bg-gray-700' : 'bg-neutral-100/50 hover:bg-neutral-100'}`}
+                >
+                  {isMuted ? <MicOff strokeWidth={1.5} className="w-6 h-6 mb-2" /> : <Mic strokeWidth={1.5} className="w-6 h-6 mb-2" />}
+                  <span className="text-[0.65rem] uppercase tracking-widest font-semibold">{isMuted ? 'Unmute' : 'Mute'}</span>
+                </button>
+
+                <div className={`w-px h-12 mx-2 ${darkMode ? 'bg-gray-700' : 'bg-neutral-200'}`} />
+
+                {/* End Session Button */}
+                <button 
+                  onClick={disconnect}
+                  className={`flex flex-col items-center justify-center w-24 h-20 rounded-xl transition-colors text-red-500 ${darkMode ? 'hover:bg-red-500/10' : 'bg-red-50 hover:bg-red-100'}`}
+                >
+                  <PhoneOff strokeWidth={1.5} className="w-6 h-6 mb-2" />
+                  <span className="text-[0.65rem] uppercase tracking-widest font-semibold text-red-600">End Session</span>
+                </button>
+
+             </div>
+          </div>
+
+          {/* Bottom Tags */}
+          <div className="absolute bottom-6 w-full px-6 md:px-12 flex justify-between items-center text-[0.65rem] tracking-widest uppercase font-semibold text-gray-400">
+             <span>Secure Session • TriaGen Intelligence</span>
+             <div className="flex gap-4">
+                <span className="cursor-pointer hover:text-black transition-colors">Support</span>
+                <span className="cursor-pointer hover:text-black transition-colors">Privacy</span>
+             </div>
+          </div>
+
+        </>
+      )}
     </div>
   );
 }
