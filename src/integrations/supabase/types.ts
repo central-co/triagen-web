@@ -1,4 +1,4 @@
-type Json =
+export type Json =
   | string
   | number
   | boolean
@@ -7,41 +7,13 @@ type Json =
   | Json[]
 
 export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "14.4"
+  }
   public: {
     Tables: {
-      _prisma_migrations: {
-        Row: {
-          applied_steps_count: number
-          checksum: string
-          finished_at: string | null
-          id: string
-          logs: string | null
-          migration_name: string
-          rolled_back_at: string | null
-          started_at: string
-        }
-        Insert: {
-          applied_steps_count?: number
-          checksum: string
-          finished_at?: string | null
-          id: string
-          logs?: string | null
-          migration_name: string
-          rolled_back_at?: string | null
-          started_at?: string
-        }
-        Update: {
-          applied_steps_count?: number
-          checksum?: string
-          finished_at?: string | null
-          id?: string
-          logs?: string | null
-          migration_name?: string
-          rolled_back_at?: string | null
-          started_at?: string
-        }
-        Relationships: []
-      }
       candidates: {
         Row: {
           created_at: string | null
@@ -49,17 +21,15 @@ export type Database = {
           email: string
           id: string
           interview_completed_at: string | null
-          interview_plan_id: string | null
+          interview_id: string
           interview_started_at: string | null
-          interview_token: string | null
           is_favorite: boolean | null
           job_id: string
           name: string
           notes: string | null
           phone: string | null
-          resume_text: string | null
           resume_url: string | null
-          status: string | null
+          status: Database["public"]["Enums"]["candidate_status"]
           updated_at: string | null
         }
         Insert: {
@@ -68,17 +38,15 @@ export type Database = {
           email: string
           id?: string
           interview_completed_at?: string | null
-          interview_plan_id?: string | null
+          interview_id?: string
           interview_started_at?: string | null
-          interview_token?: string | null
           is_favorite?: boolean | null
           job_id: string
           name: string
           notes?: string | null
           phone?: string | null
-          resume_text?: string | null
           resume_url?: string | null
-          status?: string | null
+          status?: Database["public"]["Enums"]["candidate_status"]
           updated_at?: string | null
         }
         Update: {
@@ -87,17 +55,15 @@ export type Database = {
           email?: string
           id?: string
           interview_completed_at?: string | null
-          interview_plan_id?: string | null
+          interview_id?: string
           interview_started_at?: string | null
-          interview_token?: string | null
           is_favorite?: boolean | null
           job_id?: string
           name?: string
           notes?: string | null
           phone?: string | null
-          resume_text?: string | null
           resume_url?: string | null
-          status?: string | null
+          status?: Database["public"]["Enums"]["candidate_status"]
           updated_at?: string | null
         }
         Relationships: [
@@ -148,160 +114,182 @@ export type Database = {
       }
       interview_contexts: {
         Row: {
-          candidate_id: string
           contextual_criteria: Json | null
           created_at: string | null
           generated_at: string | null
           id: string
+          interview_id: string
           llm_model: string | null
           processing_time_ms: number | null
         }
         Insert: {
-          candidate_id: string
           contextual_criteria?: Json | null
           created_at?: string | null
           generated_at?: string | null
           id?: string
+          interview_id: string
           llm_model?: string | null
           processing_time_ms?: number | null
         }
         Update: {
-          candidate_id?: string
           contextual_criteria?: Json | null
           created_at?: string | null
           generated_at?: string | null
           id?: string
+          interview_id?: string
           llm_model?: string | null
           processing_time_ms?: number | null
         }
         Relationships: [
           {
-            foreignKeyName: "interview_contexts_candidate_id_fkey"
-            columns: ["candidate_id"]
-            isOneToOne: false
+            foreignKeyName: "interview_contexts_interview_id_fkey"
+            columns: ["interview_id"]
+            isOneToOne: true
             referencedRelation: "candidates"
-            referencedColumns: ["id"]
+            referencedColumns: ["interview_id"]
           },
         ]
       }
       interview_reports: {
         Row: {
           alignment_analysis: string | null
-          candidate_id: string
           category_scores: Json | null
           compatibility_score: number | null
-          created_at: string | null
+          created_at: string
           criteria_scores: Json | null
           id: string
           insights: string | null
+          interview_id: string
           llm_model: string | null
           overall_score: number | null
-          recommendations: string | null
+          recommendation:
+            | Database["public"]["Enums"]["recommendation_type"]
+            | null
           recording_url: string | null
+          status: Database["public"]["Enums"]["interview_report_status"]
           strengths: string[] | null
           summary: string | null
           transcript_url: string | null
+          updated_at: string
           weaknesses: string[] | null
         }
         Insert: {
           alignment_analysis?: string | null
-          candidate_id: string
           category_scores?: Json | null
           compatibility_score?: number | null
-          created_at?: string | null
+          created_at?: string
           criteria_scores?: Json | null
           id?: string
           insights?: string | null
+          interview_id: string
           llm_model?: string | null
           overall_score?: number | null
-          recommendations?: string | null
+          recommendation?:
+            | Database["public"]["Enums"]["recommendation_type"]
+            | null
           recording_url?: string | null
+          status?: Database["public"]["Enums"]["interview_report_status"]
           strengths?: string[] | null
           summary?: string | null
           transcript_url?: string | null
+          updated_at?: string
           weaknesses?: string[] | null
         }
         Update: {
           alignment_analysis?: string | null
-          candidate_id?: string
           category_scores?: Json | null
           compatibility_score?: number | null
-          created_at?: string | null
+          created_at?: string
           criteria_scores?: Json | null
           id?: string
           insights?: string | null
+          interview_id?: string
           llm_model?: string | null
           overall_score?: number | null
-          recommendations?: string | null
+          recommendation?:
+            | Database["public"]["Enums"]["recommendation_type"]
+            | null
           recording_url?: string | null
+          status?: Database["public"]["Enums"]["interview_report_status"]
           strengths?: string[] | null
           summary?: string | null
           transcript_url?: string | null
+          updated_at?: string
           weaknesses?: string[] | null
         }
         Relationships: [
           {
-            foreignKeyName: "interview_reports_candidate_id_fkey"
-            columns: ["candidate_id"]
-            isOneToOne: false
+            foreignKeyName: "fk_interview_reports_candidates"
+            columns: ["interview_id"]
+            isOneToOne: true
             referencedRelation: "candidates"
-            referencedColumns: ["id"]
+            referencedColumns: ["interview_id"]
+          },
+          {
+            foreignKeyName: "interview_reports_interview_id_fkey_session"
+            columns: ["interview_id"]
+            isOneToOne: true
+            referencedRelation: "interview_sessions"
+            referencedColumns: ["interview_id"]
           },
         ]
       }
       interview_sessions: {
         Row: {
-          candidate_id: string
           completed_at: string | null
           contextual_criteria_covered: Json | null
           conversation_log: Json | null
           created_at: string | null
           duration_seconds: number | null
           id: string
+          interview_id: string
           llm_model: string | null
           mandatory_criteria_covered: Json | null
-          session_token: string
+          room_name: string
           started_at: string | null
-          status: string | null
+          status: Database["public"]["Enums"]["interview_session_status"]
+          transcript: string | null
           updated_at: string | null
         }
         Insert: {
-          candidate_id: string
           completed_at?: string | null
           contextual_criteria_covered?: Json | null
           conversation_log?: Json | null
           created_at?: string | null
           duration_seconds?: number | null
           id?: string
+          interview_id: string
           llm_model?: string | null
           mandatory_criteria_covered?: Json | null
-          session_token: string
+          room_name: string
           started_at?: string | null
-          status?: string | null
+          status?: Database["public"]["Enums"]["interview_session_status"]
+          transcript?: string | null
           updated_at?: string | null
         }
         Update: {
-          candidate_id?: string
           completed_at?: string | null
           contextual_criteria_covered?: Json | null
           conversation_log?: Json | null
           created_at?: string | null
           duration_seconds?: number | null
           id?: string
+          interview_id?: string
           llm_model?: string | null
           mandatory_criteria_covered?: Json | null
-          session_token?: string
+          room_name?: string
           started_at?: string | null
-          status?: string | null
+          status?: Database["public"]["Enums"]["interview_session_status"]
+          transcript?: string | null
           updated_at?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "interview_sessions_candidate_id_fkey"
-            columns: ["candidate_id"]
-            isOneToOne: false
-            referencedRelation: "candidates"
-            referencedColumns: ["id"]
+            foreignKeyName: "interview_sessions_interview_id_fkey_ctx"
+            columns: ["interview_id"]
+            isOneToOne: true
+            referencedRelation: "interview_contexts"
+            referencedColumns: ["interview_id"]
           },
         ]
       }
@@ -309,65 +297,68 @@ export type Database = {
         Row: {
           benefits: string | null
           company_id: string
-          contract_type: string | null
-          created_at: string | null
-          custom_fields: Json | null
-          custom_questions: Json | null
+          contract_type: string
+          created_at: string
+          criteria: Json | null
           deadline: string | null
           description: string
-          differentials: Json | null
-          evaluation_criteria: Json | null
+          desirable_requirements: Json | null
           id: string
+          interview_duration_minutes: number
           location: string | null
-          requirements: Json | null
+          mandatory_requirements: Json
+          pre_interview_questions: Json | null
           salary_info: string | null
           salary_range: string | null
-          status: string | null
+          status: Database["public"]["Enums"]["job_status"]
+          team_context: string | null
           title: string
-          updated_at: string | null
-          work_model: string | null
+          updated_at: string
+          work_model: string
         }
         Insert: {
           benefits?: string | null
           company_id: string
-          contract_type?: string | null
-          created_at?: string | null
-          custom_fields?: Json | null
-          custom_questions?: Json | null
+          contract_type: string
+          created_at?: string
+          criteria?: Json | null
           deadline?: string | null
           description: string
-          differentials?: Json | null
-          evaluation_criteria?: Json | null
+          desirable_requirements?: Json | null
           id?: string
+          interview_duration_minutes: number
           location?: string | null
-          requirements?: Json | null
+          mandatory_requirements?: Json
+          pre_interview_questions?: Json | null
           salary_info?: string | null
           salary_range?: string | null
-          status?: string | null
+          status?: Database["public"]["Enums"]["job_status"]
+          team_context?: string | null
           title: string
-          updated_at?: string | null
-          work_model?: string | null
+          updated_at?: string
+          work_model: string
         }
         Update: {
           benefits?: string | null
           company_id?: string
-          contract_type?: string | null
-          created_at?: string | null
-          custom_fields?: Json | null
-          custom_questions?: Json | null
+          contract_type?: string
+          created_at?: string
+          criteria?: Json | null
           deadline?: string | null
           description?: string
-          differentials?: Json | null
-          evaluation_criteria?: Json | null
+          desirable_requirements?: Json | null
           id?: string
+          interview_duration_minutes?: number
           location?: string | null
-          requirements?: Json | null
+          mandatory_requirements?: Json
+          pre_interview_questions?: Json | null
           salary_info?: string | null
           salary_range?: string | null
-          status?: string | null
+          status?: Database["public"]["Enums"]["job_status"]
+          team_context?: string | null
           title?: string
-          updated_at?: string | null
-          work_model?: string | null
+          updated_at?: string
+          work_model?: string
         }
         Relationships: [
           {
@@ -424,7 +415,7 @@ export type Database = {
           current_period_start: string | null
           id: string
           plan_id: string
-          status: string | null
+          status: Database["public"]["Enums"]["subscription_status"]
           updated_at: string | null
         }
         Insert: {
@@ -435,7 +426,7 @@ export type Database = {
           current_period_start?: string | null
           id?: string
           plan_id: string
-          status?: string | null
+          status?: Database["public"]["Enums"]["subscription_status"]
           updated_at?: string | null
         }
         Update: {
@@ -446,7 +437,7 @@ export type Database = {
           current_period_start?: string | null
           id?: string
           plan_id?: string
-          status?: string | null
+          status?: Database["public"]["Enums"]["subscription_status"]
           updated_at?: string | null
         }
         Relationships: [
@@ -542,7 +533,29 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      candidate_status:
+        | "pending"
+        | "interviewed"
+        | "completed"
+        | "rejected"
+        | "hired"
+      interview_report_status:
+        | "pending"
+        | "in_progress"
+        | "completed"
+        | "failed"
+      interview_session_status:
+        | "pending"
+        | "in_progress"
+        | "completed"
+        | "failed"
+      job_status: "open" | "closed" | "paused"
+      recommendation_type:
+        | "not_decided"
+        | "approve"
+        | "reject"
+        | "technical_test"
+      subscription_status: "active" | "cancelled" | "expired"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -550,21 +563,25 @@ export type Database = {
   }
 }
 
-type DefaultSchema = Database[Extract<keyof Database, "public">]
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
 
-type Tables<
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+
+export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-        Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-      Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
     ? R
@@ -579,17 +596,19 @@ type Tables<
       : never
     : never
 
-type TablesInsert<
+export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Insert: infer I
     }
     ? I
@@ -602,17 +621,19 @@ type TablesInsert<
       : never
     : never
 
-type TablesUpdate<
+export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Update: infer U
     }
     ? U
@@ -625,38 +646,70 @@ type TablesUpdate<
       : never
     : never
 
-type Enums<
+export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
     : never = never,
-> = DefaultSchemaEnumNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
     ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
     : never
 
-type CompositeTypes<
+export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
     : never = never,
-> = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
     ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
 
-const Constants = {
+export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      candidate_status: [
+        "pending",
+        "interviewed",
+        "completed",
+        "rejected",
+        "hired",
+      ],
+      interview_report_status: [
+        "pending",
+        "in_progress",
+        "completed",
+        "failed",
+      ],
+      interview_session_status: [
+        "pending",
+        "in_progress",
+        "completed",
+        "failed",
+      ],
+      job_status: ["open", "closed", "paused"],
+      recommendation_type: [
+        "not_decided",
+        "approve",
+        "reject",
+        "technical_test",
+      ],
+      subscription_status: ["active", "cancelled", "expired"],
+    },
   },
 } as const

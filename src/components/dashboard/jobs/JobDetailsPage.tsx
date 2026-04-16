@@ -11,7 +11,9 @@ import {
   Target,
   Star,
   Clock,
-  Download
+  Download,
+  Link,
+  Check
 } from 'lucide-react';
 import { getStatusColor, getStatusText, getStatusIcon } from '../../../utils/candidateStatus';
 import LoadingSpinner from '../../ui/LoadingSpinner';
@@ -45,6 +47,7 @@ function JobDetailsPage() {
   const [candidates, setCandidates] = useState<CandidateWithStatus[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [copied, setCopied] = useState(false);
   const { darkMode } = useDarkMode(true);
   const { user } = useAuth();
 
@@ -101,11 +104,9 @@ function JobDetailsPage() {
       const transformedJob: JobWithCompany = {
         ...jobData,
         location: jobData.location || undefined,
-        custom_fields: jobData.custom_fields ? jobData.custom_fields as Record<string, any> : null,
-        requirements: jobData.requirements ? (Array.isArray(jobData.requirements) ? jobData.requirements as string[] : JSON.parse(jobData.requirements as string)) : null,
-        differentials: jobData.differentials ? (Array.isArray(jobData.differentials) ? jobData.differentials as string[] : JSON.parse(jobData.differentials as string)) : null,
-        custom_questions: jobData.custom_questions ? (Array.isArray(jobData.custom_questions) ? jobData.custom_questions : JSON.parse(jobData.custom_questions as string)) : null,
-        evaluation_criteria: jobData.evaluation_criteria ? (Array.isArray(jobData.evaluation_criteria) ? jobData.evaluation_criteria : JSON.parse(jobData.evaluation_criteria as string)) : null,
+        mandatory_requirements: jobData.mandatory_requirements ? (Array.isArray(jobData.mandatory_requirements) ? jobData.mandatory_requirements as string[] : JSON.parse(jobData.mandatory_requirements as string)) : null,
+        desirable_requirements: jobData.desirable_requirements ? (Array.isArray(jobData.desirable_requirements) ? jobData.desirable_requirements as string[] : JSON.parse(jobData.desirable_requirements as string)) : null,
+        pre_interview_questions: jobData.pre_interview_questions ? (Array.isArray(jobData.pre_interview_questions) ? jobData.pre_interview_questions as Array<{ id: number; question: string }> : JSON.parse(jobData.pre_interview_questions as string)) : null,
         candidatesCount: jobData.candidates?.[0]?.count || 0,
         candidates: jobData.candidates,
         status: (jobData.status as 'open' | 'closed' | 'paused') || 'open',
@@ -154,6 +155,14 @@ function JobDetailsPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const copyApplicationLink = () => {
+    const url = `${window.location.origin}/apply/${jobId}`;
+    navigator.clipboard.writeText(url).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
   };
 
   if (loading) {
@@ -296,14 +305,14 @@ function JobDetailsPage() {
           </Card>
 
           {/* Requirements and Differentials */}
-          {((job.requirements && job.requirements.length > 0) || (job.differentials && job.differentials.length > 0)) && (
+          {((job.mandatory_requirements && job.mandatory_requirements.length > 0) || (job.desirable_requirements && job.desirable_requirements.length > 0)) && (
             <Card darkMode={darkMode}>
               <h2 className={`font-heading text-xl font-semibold mb-6 ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
                 Requisitos e Diferenciais
               </h2>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {job.requirements && job.requirements.length > 0 && (
+                {job.mandatory_requirements && job.mandatory_requirements.length > 0 && (
                   <div>
                     <div className="flex items-center space-x-2 mb-4">
                       <Target className={`h-5 w-5 ${darkMode ? 'text-triagen-secondary-green' : 'text-triagen-primary-blue'}`} />
@@ -312,7 +321,7 @@ function JobDetailsPage() {
                       </h3>
                     </div>
                     <ul className={`space-y-2 ${darkMode ? 'text-gray-300' : 'text-triagen-text-dark'}`}>
-                      {job.requirements.map((req, index) => (
+                      {job.mandatory_requirements.map((req, index) => (
                         <li key={index} className="flex items-start space-x-2">
                           <span className="text-triagen-secondary-green">•</span>
                           <span className="font-sans">{req}</span>
@@ -322,7 +331,7 @@ function JobDetailsPage() {
                   </div>
                 )}
 
-                {job.differentials && job.differentials.length > 0 && (
+                {job.desirable_requirements && job.desirable_requirements.length > 0 && (
                   <div>
                     <div className="flex items-center space-x-2 mb-4">
                       <Star className={`h-5 w-5 ${darkMode ? 'text-triagen-highlight-purple' : 'text-triagen-highlight-purple'}`} />
@@ -331,7 +340,7 @@ function JobDetailsPage() {
                       </h3>
                     </div>
                     <ul className={`space-y-2 ${darkMode ? 'text-gray-300' : 'text-triagen-text-dark'}`}>
-                      {job.differentials.map((diff, index) => (
+                      {job.desirable_requirements.map((diff, index) => (
                         <li key={index} className="flex items-start space-x-2">
                           <span className="text-triagen-highlight-purple">•</span>
                           <span className="font-sans">{diff}</span>
@@ -471,6 +480,31 @@ function JobDetailsPage() {
             </h3>
 
             <div className="space-y-3">
+              <button
+                onClick={copyApplicationLink}
+                className={`w-full flex items-center justify-center space-x-2 px-4 py-2.5 rounded-xl border text-sm font-medium transition-all duration-300 ${
+                  copied
+                    ? darkMode
+                      ? 'border-triagen-secondary-green bg-triagen-secondary-green/10 text-triagen-secondary-green'
+                      : 'border-green-500 bg-green-50 text-green-700'
+                    : darkMode
+                    ? 'border-triagen-border-dark bg-transparent text-gray-300 hover:border-triagen-secondary-green hover:text-triagen-secondary-green hover:bg-triagen-secondary-green/5'
+                    : 'border-triagen-border-light bg-transparent text-triagen-text-dark hover:border-triagen-primary-blue hover:text-triagen-primary-blue hover:bg-triagen-primary-blue/5'
+                }`}
+              >
+                {copied ? (
+                  <>
+                    <Check className="h-4 w-4 shrink-0" />
+                    <span>Link copiado!</span>
+                  </>
+                ) : (
+                  <>
+                    <Link className="h-4 w-4 shrink-0" />
+                    <span>Copiar link da vaga</span>
+                  </>
+                )}
+              </button>
+
               <Button
                 variant="outline"
                 size="md"

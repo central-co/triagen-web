@@ -43,6 +43,7 @@ export interface ApplicationPayload {
     phone?: string;
     job_id: string;
     resume_text?: string;
+    pre_interview_answers?: Record<string, string>;
 }
 
 export interface ApplicationResult {

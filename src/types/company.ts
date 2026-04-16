@@ -18,20 +18,20 @@ interface Job {
   description: string;
   location?: string | null;
   contract_type: string | null;
-  custom_fields: Record<string, any> | null;
   status: 'open' | 'closed' | 'paused';
   deadline?: string | null;
   created_at: string;
   updated_at: string;
   // Additional fields from database
   benefits?: string | null;
-  requirements?: string[] | null;
-  differentials?: string[] | null;
+  mandatory_requirements?: string[] | null;
+  desirable_requirements?: string[] | null;
   salary_range?: string | null;
   work_model?: string | null;
-  custom_questions?: any[] | null;
+  pre_interview_questions?: Array<{ id: number; question: string }> | null;
   salary_info?: string | null;
-  evaluation_criteria?: any[] | null;
+  interview_duration_minutes?: number | null;
+  team_context?: string | null;
 }
 
 export interface JobWithStats extends Job {
@@ -45,11 +45,11 @@ export interface JobWithCompany {
   description: string;
   location?: string | null;
   work_model?: string | null;
-  requirements?: string[] | null;
-  differentials?: string[] | null;
+  mandatory_requirements?: string[] | null;
+  desirable_requirements?: string[] | null;
   salary_range?: string | null;
   benefits?: string | null;
-  custom_questions?: any[] | null;
+  pre_interview_questions?: Array<{ id: number; question: string }> | null;
   company: {
     id: string;
     name: string;

@@ -27,7 +27,7 @@ function JobApplicationPage() {
     phone: '',
     resume_url: '',
     resume_text: '',
-    custom_answers: {} as Record<string, any>
+    pre_interview_answers: {} as Record<string, string>
   });
 
   useEffect(() => {
@@ -106,11 +106,11 @@ function JobApplicationPage() {
         description: data.description,
         location: data.location || undefined,
         work_model: data.work_model,
-        requirements: parseJsonbField(data.requirements),
-        differentials: parseJsonbField(data.differentials),
+        mandatory_requirements: parseJsonbField(data.mandatory_requirements),
+        desirable_requirements: parseJsonbField(data.desirable_requirements),
         salary_range: data.salary_range || undefined,
         benefits: data.benefits || undefined,
-        custom_questions: parseJsonbField(data.custom_questions),
+        pre_interview_questions: parseJsonbField(data.pre_interview_questions) as Array<{ id: number; question: string }> | null,
         company: data.company as {
           id: string;
           name: string;
@@ -157,12 +157,11 @@ function JobApplicationPage() {
       return;
     }
 
-    // Validate required custom questions
-    if (job?.custom_questions) {
-      const customQuestions = job.custom_questions as any[];
-      for (const question of customQuestions) {
-        if (question.required && !formData.custom_answers[question.question]) {
-          setError(`A pergunta "${question.question}" é obrigatória`);
+    // Validate pre-interview questions — all are required
+    if (job?.pre_interview_questions) {
+      for (const q of job.pre_interview_questions) {
+        if (!formData.pre_interview_answers[String(q.id)]?.trim()) {
+          setError(`A pergunta "${q.question}" é obrigatória`);
           return;
         }
       }
@@ -180,7 +179,10 @@ function JobApplicationPage() {
         email: formData.email,
         phone: formData.phone || undefined,
         job_id: jobId,
-        resume_text: formData.resume_text || undefined
+        resume_text: formData.resume_text || undefined,
+        pre_interview_answers: Object.keys(formData.pre_interview_answers).length > 0
+          ? formData.pre_interview_answers
+          : undefined
       };
 
       console.log('Enviando payload para API:', payload);
@@ -312,9 +314,9 @@ function JobApplicationPage() {
             </p>
 
             {/* Requirements and Differentials */}
-            {(job?.requirements && job.requirements.length > 0) || (job?.differentials && job.differentials.length > 0) ? (
+            {(job?.mandatory_requirements && job.mandatory_requirements.length > 0) || (job?.desirable_requirements && job.desirable_requirements.length > 0) ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-                {job?.requirements && job.requirements.length > 0 && (
+                {job?.mandatory_requirements && job.mandatory_requirements.length > 0 && (
                   <div className={`p-4 rounded-xl ${
                     darkMode ? 'bg-gray-800/30' : 'bg-triagen-light-bg/30'
                   }`}>
@@ -322,14 +324,14 @@ function JobApplicationPage() {
                       ✅ Requisitos Obrigatórios
                     </h3>
                     <ul className={`text-sm space-y-1 ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
-                      {job.requirements.map((req, index) => (
+                      {job.mandatory_requirements.map((req, index) => (
                         <li key={index}>• {req}</li>
                       ))}
                     </ul>
                   </div>
                 )}
 
-                {job?.differentials && job.differentials.length > 0 && (
+                {job?.desirable_requirements && job.desirable_requirements.length > 0 && (
                   <div className={`p-4 rounded-xl ${
                     darkMode ? 'bg-gray-800/30' : 'bg-triagen-light-bg/30'
                   }`}>
@@ -337,7 +339,7 @@ function JobApplicationPage() {
                       ⭐ Diferenciais Desejáveis
                     </h3>
                     <ul className={`text-sm space-y-1 ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
-                      {job.differentials.map((diff, index) => (
+                      {job.desirable_requirements.map((diff, index) => (
                         <li key={index}>• {diff}</li>
                       ))}
                     </ul>
@@ -471,6 +473,36 @@ function JobApplicationPage() {
                 Essas informações ajudarão nossa IA a personalizar a entrevista para você
               </p>
             </div>
+
+            {/* Pre-Interview Questions */}
+            {job?.pre_interview_questions && job.pre_interview_questions.length > 0 && (
+              <div className="space-y-4">
+                <h3 className={`font-heading text-lg font-semibold ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
+                  Perguntas da Vaga
+                </h3>
+                {job.pre_interview_questions.map((q) => (
+                  <div key={q.id}>
+                    <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-triagen-dark-bg'}`}>
+                      {q.question} *
+                    </label>
+                    <textarea
+                      value={formData.pre_interview_answers[String(q.id)] || ''}
+                      onChange={(e) => setFormData(prev => ({
+                        ...prev,
+                        pre_interview_answers: { ...prev.pre_interview_answers, [String(q.id)]: e.target.value }
+                      }))}
+                      rows={2}
+                      className={`font-sans w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-triagen-secondary-green/50 focus:border-triagen-secondary-green resize-none ${
+                        darkMode
+                          ? 'bg-gray-800/50 border-triagen-border-dark text-white placeholder-gray-400'
+                          : 'bg-white/70 border-triagen-border-light text-triagen-dark-bg placeholder-triagen-text-light'
+                      }`}
+                      placeholder="Sua resposta..."
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
 
             {error && (
               <StatusMessage
