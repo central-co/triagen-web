@@ -22,11 +22,13 @@ import Button from '../../ui/Button';
 import StatusMessage from '../../ui/StatusMessage';
 import LoadingSpinner from '../../ui/LoadingSpinner';
 import { Candidate } from '../../../types/company';
+import { computeOverallScore } from '../../../utils/scoring';
 
 interface Job {
   id: string;
   title: string;
   description: string;
+  criteria?: unknown;
   company: {
     id: string;
     name: string;
@@ -85,9 +87,10 @@ function CandidateProfilePage() {
             id,
             title,
             description,
+            criteria,
             company:companies(id, name)
           ),
-          interview_reports(id, overall_score, created_at)
+          interview_reports(id, criteria_scores, created_at)
         `)
         .eq('id', candidateId)
         .single();
@@ -123,7 +126,7 @@ function CandidateProfilePage() {
         created_at: candidateData.created_at || new Date().toISOString(),
         updated_at: candidateData.updated_at || new Date().toISOString(),
         job: candidateData.job,
-        score: report ? report.overall_score : undefined,
+        score: report ? computeOverallScore(report.criteria_scores, candidateData.job?.criteria) : undefined,
         reportId: report ? report.id : undefined,
       };
 

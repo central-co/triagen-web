@@ -17,7 +17,6 @@ export type {
     DashboardReportData,
     FinishSessionResult,
     InterviewPlanResult,
-    InterviewReport,
     InterviewSession,
     WaitlistPayload,
     WaitlistResult,
@@ -27,7 +26,6 @@ export type {
 export {
     finishInterviewSession,
     getCandidateByShortCode,
-    getInterviewStatus,
     planInterview,
     startInterviewSession,
 } from "./interview";

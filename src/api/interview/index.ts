@@ -5,19 +5,17 @@
  * candidate lookup, plan generation, session start/finish, and report polling.
  */
 
-import { apiClient, ApiError } from "../client";
+import { apiClient } from "../client";
 import type {
     CandidateData,
     FinishSessionResult,
     InterviewPlanResult,
-    InterviewReport,
     InterviewSession,
 } from "../types";
 
 // Re-export types that consumers previously imported from this module
 export type {
     CandidateData,
-    InterviewReport,
     InterviewSession,
 } from "../types";
 
@@ -32,26 +30,6 @@ export async function getCandidateByShortCode(
         `/application/${shortCode}`,
     );
     return data;
-}
-
-/**
- * Get interview status and report.
- * Endpoint: GET /interviews/:candidateId/report
- */
-export async function getInterviewStatus(
-    candidateId: string,
-): Promise<InterviewReport> {
-    try {
-        const { data } = await apiClient.get<InterviewReport>(
-            `/interviews/${candidateId}/report`,
-        );
-        return data;
-    } catch (err: unknown) {
-        if (err instanceof ApiError && err.status === 404) {
-            return { status: "not_found" };
-        }
-        throw new Error("Erro ao buscar relatório");
-    }
 }
 
 /**

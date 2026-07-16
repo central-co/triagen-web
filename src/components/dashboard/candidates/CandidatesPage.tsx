@@ -6,10 +6,12 @@ import { useAuth } from '../../../hooks/useAuth';
 import { supabase } from '../../../integrations/supabase/client';
 import Button from '../../ui/Button';
 import LoadingSpinner from '../../ui/LoadingSpinner';
+import { computeOverallScore } from '../../../utils/scoring';
 
 interface Job {
   id: string;
   title: string;
+  criteria?: unknown;
 }
 
 interface CandidateWithJob {
@@ -75,7 +77,7 @@ function CandidatesPage() {
         .select(`
           *,
           job:jobs(*),
-          interview_reports(overall_score)
+          interview_reports(criteria_scores)
         `)
         .in('job_id', jobsData.map(job => job.id))
         .order('created_at', { ascending: false });
@@ -94,7 +96,7 @@ function CandidatesPage() {
            job: candidate.job as Job,
            is_favorite: candidate.is_favorite || false,
            score: candidate.interview_reports && candidate.interview_reports.length > 0
-                  ? candidate.interview_reports[0].overall_score
+                  ? computeOverallScore(candidate.interview_reports[0].criteria_scores, (candidate.job as Job)?.criteria)
                   : undefined
         }));
         console.log('Transformed candidates!', transformedCandidates);

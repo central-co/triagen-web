@@ -81,12 +81,8 @@ interface InterviewReport {
   id: string;
   candidate_id: string;
   summary?: string;
-  alignment_analysis?: string;
+  highlights?: string;
   overall_score?: number;
-  category_scores: Record<string, number>;
-  recommendations?: string;
-  transcript_url?: string;
-  recording_url?: string;
   created_at: string;
   status: 'pending' | 'processing' | 'completed' | 'failed';
 }
@@ -97,9 +93,8 @@ export interface Report {
   job_title: string;
   overall_score: number;
   created_at: string;
-  alignment_analysis: string;
+  highlights: string;
   summary: string;
-  category_scores: Record<string, number>;
   status: 'pending' | 'processing' | 'completed' | 'failed';
 }
 

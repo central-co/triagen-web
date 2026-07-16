@@ -10,14 +10,13 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.4"
+    PostgrestVersion: "14.5"
   }
   public: {
     Tables: {
       candidates: {
         Row: {
           created_at: string | null
-          custom_answers: Json | null
           email: string
           id: string
           interview_completed_at: string | null
@@ -28,13 +27,13 @@ export type Database = {
           name: string
           notes: string | null
           phone: string | null
+          pre_interview_answers: Json | null
           resume_url: string | null
           status: Database["public"]["Enums"]["candidate_status"]
           updated_at: string | null
         }
         Insert: {
           created_at?: string | null
-          custom_answers?: Json | null
           email: string
           id?: string
           interview_completed_at?: string | null
@@ -45,13 +44,13 @@ export type Database = {
           name: string
           notes?: string | null
           phone?: string | null
+          pre_interview_answers?: Json | null
           resume_url?: string | null
           status?: Database["public"]["Enums"]["candidate_status"]
           updated_at?: string | null
         }
         Update: {
           created_at?: string | null
-          custom_answers?: Json | null
           email?: string
           id?: string
           interview_completed_at?: string | null
@@ -62,6 +61,7 @@ export type Database = {
           name?: string
           notes?: string | null
           phone?: string | null
+          pre_interview_answers?: Json | null
           resume_url?: string | null
           status?: Database["public"]["Enums"]["candidate_status"]
           updated_at?: string | null
@@ -114,7 +114,7 @@ export type Database = {
       }
       interview_contexts: {
         Row: {
-          contextual_criteria: Json | null
+          conducting_plan: Json | null
           created_at: string | null
           generated_at: string | null
           id: string
@@ -123,7 +123,7 @@ export type Database = {
           processing_time_ms: number | null
         }
         Insert: {
-          contextual_criteria?: Json | null
+          conducting_plan?: Json | null
           created_at?: string | null
           generated_at?: string | null
           id?: string
@@ -132,7 +132,7 @@ export type Database = {
           processing_time_ms?: number | null
         }
         Update: {
-          contextual_criteria?: Json | null
+          conducting_plan?: Json | null
           created_at?: string | null
           generated_at?: string | null
           id?: string
@@ -152,70 +152,34 @@ export type Database = {
       }
       interview_reports: {
         Row: {
-          alignment_analysis: string | null
-          category_scores: Json | null
-          compatibility_score: number | null
           created_at: string
           criteria_scores: Json | null
+          highlights: string | null
           id: string
-          insights: string | null
           interview_id: string
-          llm_model: string | null
-          overall_score: number | null
-          recommendation:
-            | Database["public"]["Enums"]["recommendation_type"]
-            | null
-          recording_url: string | null
           status: Database["public"]["Enums"]["interview_report_status"]
-          strengths: string[] | null
           summary: string | null
-          transcript_url: string | null
           updated_at: string
-          weaknesses: string[] | null
         }
         Insert: {
-          alignment_analysis?: string | null
-          category_scores?: Json | null
-          compatibility_score?: number | null
           created_at?: string
           criteria_scores?: Json | null
+          highlights?: string | null
           id?: string
-          insights?: string | null
           interview_id: string
-          llm_model?: string | null
-          overall_score?: number | null
-          recommendation?:
-            | Database["public"]["Enums"]["recommendation_type"]
-            | null
-          recording_url?: string | null
           status?: Database["public"]["Enums"]["interview_report_status"]
-          strengths?: string[] | null
           summary?: string | null
-          transcript_url?: string | null
           updated_at?: string
-          weaknesses?: string[] | null
         }
         Update: {
-          alignment_analysis?: string | null
-          category_scores?: Json | null
-          compatibility_score?: number | null
           created_at?: string
           criteria_scores?: Json | null
+          highlights?: string | null
           id?: string
-          insights?: string | null
           interview_id?: string
-          llm_model?: string | null
-          overall_score?: number | null
-          recommendation?:
-            | Database["public"]["Enums"]["recommendation_type"]
-            | null
-          recording_url?: string | null
           status?: Database["public"]["Enums"]["interview_report_status"]
-          strengths?: string[] | null
           summary?: string | null
-          transcript_url?: string | null
           updated_at?: string
-          weaknesses?: string[] | null
         }
         Relationships: [
           {
@@ -550,11 +514,6 @@ export type Database = {
         | "completed"
         | "failed"
       job_status: "open" | "closed" | "paused"
-      recommendation_type:
-        | "not_decided"
-        | "approve"
-        | "reject"
-        | "technical_test"
       subscription_status: "active" | "cancelled" | "expired"
     }
     CompositeTypes: {
@@ -703,12 +662,6 @@ export const Constants = {
         "failed",
       ],
       job_status: ["open", "closed", "paused"],
-      recommendation_type: [
-        "not_decided",
-        "approve",
-        "reject",
-        "technical_test",
-      ],
       subscription_status: ["active", "cancelled", "expired"],
     },
   },

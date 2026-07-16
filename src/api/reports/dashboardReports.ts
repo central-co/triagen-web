@@ -1,5 +1,6 @@
 import { supabase } from '../../integrations/supabase/client';
 import { Report } from '../../types/company';
+import { computeOverallScore } from '../../utils/scoring';
 
 type CandidateRow = {
   id: string;
@@ -11,16 +12,16 @@ type CandidateRow = {
 type JobRow = {
   id: string;
   title: string;
+  criteria?: unknown;
 };
 
 type ReportRow = {
   id: string;
   interview_id: string;
   created_at?: string | null;
-  overall_score?: number | string | null;
-  alignment_analysis?: string | null;
+  criteria_scores?: unknown;
   summary?: string | null;
-  category_scores?: unknown;
+  highlights?: string | null;
   status?: string | null;
 };
 
@@ -34,18 +35,6 @@ function toReportStatus(value: string | null | undefined): Report['status'] {
     return value;
   }
   return 'pending';
-}
-
-function parseCategoryScores(value: unknown): Record<string, number> {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) {
-    return {};
-  }
-
-  const entries = Object.entries(value as Record<string, unknown>)
-    .filter(([, score]) => typeof score === 'number')
-    .map(([key, score]) => [key, score as number]);
-
-  return Object.fromEntries(entries);
 }
 
 export async function fetchDashboardReports(userId: string, limit?: number): Promise<DashboardReportListItem[]> {
@@ -70,7 +59,7 @@ export async function fetchDashboardReports(userId: string, limit?: number): Pro
 
   const { data: jobs, error: jobsError } = await supabase
     .from('jobs')
-    .select('id,title')
+    .select('id,title,criteria')
     .in('company_id', companyIds);
 
   if (jobsError) {
@@ -113,6 +102,7 @@ export async function fetchDashboardReports(userId: string, limit?: number): Pro
     typedCandidates.map((candidate) => [candidate.interview_id, candidate])
   );
   const jobTitleById = new Map(typedJobs.map((job) => [job.id, job.title]));
+  const jobCriteriaById = new Map(typedJobs.map((job) => [job.id, job.criteria]));
 
   let reportQuery = supabase
     .from('interview_reports')
@@ -148,11 +138,10 @@ export async function fetchDashboardReports(userId: string, limit?: number): Pro
         candidate_id: candidate.id,
         candidate_name: candidate.name,
         job_title: jobTitleById.get(candidate.job_id) || 'N/A',
-        overall_score: Number(report.overall_score || 0),
+        overall_score: computeOverallScore(report.criteria_scores, jobCriteriaById.get(candidate.job_id)) || 0,
         created_at: report.created_at || '',
-        alignment_analysis: report.alignment_analysis || '',
+        highlights: report.highlights || '',
         summary: report.summary || '',
-        category_scores: parseCategoryScores(report.category_scores),
         status: toReportStatus(report.status),
       } as DashboardReportListItem;
     })

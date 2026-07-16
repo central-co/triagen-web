@@ -6,6 +6,7 @@
 
 import { supabase } from "../../integrations/supabase/client";
 import type { DashboardReportData } from "../types";
+import { computeOverallScore, toDisplayCriteriaScores } from "../../utils/scoring";
 
 export type { DashboardReportData } from "../types";
 
@@ -23,7 +24,7 @@ export async function getInterviewReport(
         // First, get the candidate to find their interview_id
         const { data: candidate, error: candidateError } = await supabase
             .from('candidates')
-            .select('interview_id, name, jobs(id, title)')
+            .select('interview_id, name, jobs(id, title, criteria)')
             .eq('id', candidateId)
             .single();
 
@@ -57,16 +58,12 @@ export async function getInterviewReport(
             candidateId: candidateId,
             candidate_name: candidate.name,
             job_title: (candidate.jobs as any)?.title || 'N/A',
-            overallScore: Number(report.overall_score || 0),
+            overallScore: computeOverallScore(report.criteria_scores, (candidate.jobs as any)?.criteria),
             createdAt: report.created_at || '',
-            alignment_analysis: report.alignment_analysis || '',
             summary: report.summary || '',
-            category_scores: (report.category_scores as Record<string, number>) || {},
+            highlights: report.highlights || '',
             status: (report.status as 'pending' | 'processing' | 'completed' | 'failed') || 'pending',
-            strengths: (report.strengths as string[]) || [],
-            weaknesses: (report.weaknesses as string[]) || [],
-            recommendation: report.recommendation || '',
-            criteriaScores: (report.criteria_scores as Record<string, { score: number; justification: string }>) || {},
+            criteriaScores: toDisplayCriteriaScores(report.criteria_scores),
         } as DashboardReportData;
     } catch (err: unknown) {
         console.error('[getInterviewReport] Error:', err);

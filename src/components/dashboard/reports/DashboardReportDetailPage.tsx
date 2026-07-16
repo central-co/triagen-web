@@ -5,10 +5,7 @@ import {
   FileText,
   Star,
   CheckCircle,
-  XCircle,
-  TrendingDown,
-  TrendingUp,
-  AlertCircle
+  Sparkles
 } from 'lucide-react';
 import { getInterviewReport, DashboardReportData } from '../../../api/reports';
 import useDarkMode from '../../../hooks/useDarkMode';
@@ -74,10 +71,8 @@ export default function DashboardReportDetailPage() {
   const {
     summary,
     overallScore = 0,
-    recommendation,
+    highlights,
     criteriaScores = {},
-    strengths = [],
-    weaknesses = [],
     status
   } = report;
 
@@ -124,15 +119,6 @@ export default function DashboardReportDetailPage() {
                 {status === 'completed' || status === 'hired' ? <CheckCircle className="w-3 h-3" /> : null}
                 {status || 'Analyzed'}
               </span>
-              {recommendation && (
-                <span className={`px-2.5 py-1 rounded-sm text-[0.65rem] font-bold tracking-widest uppercase ${
-                  recommendation === 'approve' ? (darkMode ? 'bg-green-900/30 text-green-400' : 'bg-green-100 text-green-700') :
-                  recommendation === 'reject' ? (darkMode ? 'bg-red-900/30 text-red-400' : 'bg-red-100 text-red-700') :
-                  (darkMode ? 'bg-yellow-900/30 text-yellow-400' : 'bg-yellow-100 text-yellow-700')
-                }`}>
-                  {recommendation === 'approve' ? 'Recommended' : recommendation === 'reject' ? 'Not Recommended' : 'Needs Technical Test'}
-                </span>
-              )}
             </div>
             <h1 className={`text-4xl md:text-6xl font-heading font-normal tracking-tight leading-tight ${darkMode ? 'text-white' : 'text-triagen-primary'}`}>
               Intelligence Assessment
@@ -210,39 +196,15 @@ export default function DashboardReportDetailPage() {
 
       </div>
 
-      {/* FULL WIDTH STRENGTHS AND RISKS GRID BELOW THE MAIN CONTENT */}
-      {(strengths?.length > 0 || weaknesses?.length > 0) && (
-        <section className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-16 px-2">
-            {strengths && strengths.length > 0 && (
-              <div className={`p-6 rounded border ${darkMode ? 'bg-green-900/10 border-green-900/50' : 'bg-green-50/50 border-green-100'}`}>
-                  <h3 className={`flex items-center gap-2 text-xs uppercase tracking-widest font-bold mb-4 ${darkMode ? 'text-green-400' : 'text-green-700'}`}>
-                    <TrendingUp className="w-4 h-4" /> Core Strengths
-                  </h3>
-                  <ul className="flex flex-col gap-3">
-                    {strengths.map((str, idx) => (
-                      <li key={idx} className={`flex items-start gap-2 text-sm leading-relaxed ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                        <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-green-500 shrink-0" />
-                        {str}
-                      </li>
-                    ))}
-                  </ul>
-              </div>
-            )}
-            {weaknesses && weaknesses.length > 0 && (
-              <div className={`p-6 rounded border ${darkMode ? 'bg-red-900/10 border-red-900/50' : 'bg-red-50/50 border-red-100'}`}>
-                  <h3 className={`flex items-center gap-2 text-xs uppercase tracking-widest font-bold mb-4 ${darkMode ? 'text-red-400' : 'text-red-700'}`}>
-                    <TrendingDown className="w-4 h-4" /> Risk Vectors
-                  </h3>
-                  <ul className="flex flex-col gap-3">
-                    {weaknesses.map((wk, idx) => (
-                      <li key={idx} className={`flex items-start gap-2 text-sm leading-relaxed ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                        <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-red-400 shrink-0" />
-                        {wk}
-                      </li>
-                    ))}
-                  </ul>
-              </div>
-            )}
+      {/* Highlights */}
+      {highlights && (
+        <section className={`mt-16 mx-2 p-6 rounded border ${darkMode ? 'bg-gray-800/30 border-gray-800' : 'bg-white border-neutral-200'}`}>
+          <h3 className={`flex items-center gap-2 text-xs uppercase tracking-widest font-bold mb-4 ${darkMode ? 'text-gray-400' : 'text-triagen-secondary'}`}>
+            <Sparkles className="w-4 h-4" /> Highlights
+          </h3>
+          <p className={`text-sm leading-relaxed whitespace-pre-wrap ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+            {highlights}
+          </p>
         </section>
       )}
 

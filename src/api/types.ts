@@ -1,20 +1,5 @@
 // Shared API types across all modules
 
-export interface InterviewReport {
-    status: "not_found" | "processing" | "completed" | "failed";
-    overallScore?: number;
-    criteriaScores?: Record<string, {
-        score: number;
-        justification: string;
-    }>;
-    summary?: string;
-    strengths?: string[];
-    weaknesses?: string[];
-    recommendation?: "approve" | "reject" | "technical_test";
-    alignment_analysis?: string;
-    category_scores?: Record<string, number>;
-}
-
 export interface CandidateData {
     id: string;
     candidate_id: string;
@@ -54,16 +39,13 @@ export interface ApplicationResult {
 export interface DashboardReportData {
     id: string;
     candidateId: string;
+    candidate_name: string;
+    job_title: string;
     status: string;
     overallScore?: number;
-    criteriaScores?: Record<
-        string,
-        number | { score: number; justification: string }
-    >;
+    criteriaScores?: Record<string, { score: number; justification: string }>;
     summary?: string;
-    strengths?: string[];
-    weaknesses?: string[];
-    recommendation?: "approve" | "reject" | "technical_test";
+    highlights?: string;
     createdAt?: string;
 }
 

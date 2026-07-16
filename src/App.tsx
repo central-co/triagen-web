@@ -4,7 +4,6 @@ import LoadingSpinner from './components/ui/LoadingSpinner';
 import LandingPage from './components/LandingPage';
 import InterviewPage from './components/InterviewPage';
 import TestInterviewRoom from './components/TestInterviewRoom';
-import ReportDetailPage from './components/ReportDetailPage';
 import NotFoundPage from './components/NotFoundPage';
 import LoginPage from './components/auth/LoginPage';
 import DashboardLayout from './components/dashboard/DashboardLayout';
@@ -56,7 +55,6 @@ function App() {
       <Route path="/" element={<LandingPage />} />
       <Route path="/interview" element={<InterviewPage />} />
       <Route path="/interview/:token" element={<InterviewPage />} />
-      <Route path="/report/:candidateId" element={<ReportDetailPage />} />
       <Route path="/apply/:jobId" element={<JobApplicationPage />} />
 
       {/* 🧪 TEST MODE ROUTE - Direct LiveKit connection with JWT token */}
