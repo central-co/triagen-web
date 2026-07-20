@@ -1,6 +1,9 @@
+import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import App from './App.tsx';
+import { AuthProvider } from './hooks/useAuth';
+import { ThemeProvider } from './hooks/useDarkMode';
 import './index.css';
 
 // Initialize observability (singleton is created on import)
@@ -31,11 +34,15 @@ window.onunhandledrejection = (event) => {
 };
 
 createRoot(document.getElementById('root')!).render(
-  // <StrictMode>
+  <StrictMode>
     <ObservabilityErrorBoundary>
       <BrowserRouter>
-        <App />
+        <ThemeProvider>
+          <AuthProvider>
+            <App />
+          </AuthProvider>
+        </ThemeProvider>
       </BrowserRouter>
     </ObservabilityErrorBoundary>
-  // </StrictMode>
+  </StrictMode>
 );

@@ -28,12 +28,12 @@ import {
 import useDarkMode from '../hooks/useDarkMode';
 import { useAuth } from '../hooks/useAuth';
 import { config } from '../utils/config';
+import { submitWaitlistSignup } from '../api';
 import AnimatedBackground from './ui/AnimatedBackground';
 import Button from './ui/Button';
 import PageHeader from './ui/PageHeader';
 import SectionHeader from './ui/SectionHeader';
 import FeatureCard from './ui/FeatureCard';
-import StatCard from './ui/StatCard';
 import Footer from './ui/Footer';
 import Card from './ui/Card';
 import StatusMessage from './ui/StatusMessage';
@@ -180,7 +180,7 @@ function LandingPage() {
           Iniciar Entrevista
         </Button>
         <Button
-          variant="green-test"
+          variant="secondary"
           size="sm"
           onClick={() => navigate('/auth/login')}
           icon={LogIn}
@@ -222,7 +222,7 @@ function LandingPage() {
   ];
 
   return (
-    <div className={`min-h-screen transition-all duration-500 ${darkMode ? 'dark bg-gray-900' : 'bg-triagen-light-bg'}`}>
+    <div className={`min-h-screen transition-all duration-500 ${darkMode ? 'bg-gray-900' : 'bg-triagen-light-bg'}`}>
       {/* Animated Background */}
       <AnimatedBackground darkMode={darkMode} scrollY={scrollY} />
 
@@ -579,16 +579,22 @@ function LandingPage() {
       <section className="py-20 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {stats.map((stat, index) => (
-              <StatCard
-                key={index}
-                icon={stat.icon}
-                value={stat.value}
-                title={stat.title}
-                darkMode={darkMode}
-                iconColor={stat.iconColor}
-              />
-            ))}
+            {stats.map((stat) => {
+              const StatIcon = stat.icon;
+              return (
+                <div key={stat.title} className="flex flex-col items-center text-center gap-3">
+                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${stat.iconColor}`}>
+                    <StatIcon className="h-6 w-6 text-white" aria-hidden="true" />
+                  </div>
+                  <span className={`font-heading text-4xl ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
+                    {stat.value}
+                  </span>
+                  <span className={`text-xs font-sans tracking-widest uppercase font-semibold ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
+                    {stat.title}
+                  </span>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>

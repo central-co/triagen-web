@@ -2,30 +2,30 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
-  Edit,
   MapPin,
   Users,
   Calendar,
-  DollarSign,
+  Clock,
+  Link as LinkIcon,
+  Check,
+  Briefcase,
+  Timer,
+  CircleDollarSign,
   Gift,
   Target,
   Star,
-  Clock,
-  Download,
-  Link,
-  Check
+  HelpCircle,
 } from 'lucide-react';
-import { getStatusColor, getStatusText, getStatusIcon } from '../../../utils/candidateStatus';
+import { getStatusColor, getStatusShortText } from '../../../utils/candidateStatus';
+import { getJobDisplayStatus, getJobStatusColor, getJobStatusLabel } from '../../../utils/jobStatus';
 import LoadingSpinner from '../../ui/LoadingSpinner';
 import useDarkMode from '../../../hooks/useDarkMode';
 import { useAuth } from '../../../hooks/useAuth';
 import { supabase } from '../../../integrations/supabase/client';
 import Button from '../../ui/Button';
-import Card from '../../ui/Card';
+import Avatar from '../../ui/Avatar';
 import StatusMessage from '../../ui/StatusMessage';
-import DashboardHeader from '../DashboardHeader';
-import { JobWithStats } from '../../../types/company';
-import { Candidate } from '../../../types/company';
+import { Candidate, JobWithStats } from '../../../types/company';
 
 interface JobWithCompany extends JobWithStats {
   company: {
@@ -34,128 +34,127 @@ interface JobWithCompany extends JobWithStats {
   };
 }
 
-interface CandidateWithStatus extends Candidate {
-  job: {
-    title: string;
-  };
+const WORK_MODEL_LABELS: Record<string, string> = {
+  remoto: 'Remoto',
+  hibrido: 'Híbrido',
+  presencial: 'Presencial',
+};
+
+const CONTRACT_TYPE_LABELS: Record<string, string> = {
+  'full-time': 'Tempo integral',
+  'part-time': 'Meio período',
+  'contract': 'Contrato',
+  'freelance': 'Freelance',
+  'internship': 'Estágio',
+};
+
+function parseJsonArray<T>(value: unknown): T[] | null {
+  if (!value) return null;
+  if (Array.isArray(value)) return value as T[];
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value);
+      return Array.isArray(parsed) ? parsed as T[] : null;
+    } catch {
+      return null;
+    }
+  }
+  return null;
 }
 
 function JobDetailsPage() {
   const { jobId } = useParams();
   const navigate = useNavigate();
   const [job, setJob] = useState<JobWithCompany | null>(null);
-  const [candidates, setCandidates] = useState<CandidateWithStatus[]>([]);
+  const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [copied, setCopied] = useState(false);
-  const { darkMode } = useDarkMode(true);
+  const { darkMode } = useDarkMode();
   const { user } = useAuth();
+  const userId = user?.id;
 
   useEffect(() => {
-    if (jobId && user) {
-      fetchJobDetails();
-    }
-  }, [jobId, user]);
+    if (!jobId || !userId) return;
+    let cancelled = false;
 
-  const fetchJobDetails = async () => {
-    try {
-      setLoading(true);
+    const fetchJobDetails = async () => {
+      try {
+        const { data: companies, error: companyError } = await supabase
+          .from('companies')
+          .select('id, name')
+          .eq('user_id', userId);
 
-      if (!user?.id || !jobId) {
-        throw new Error('Dados necessários não encontrados');
+        if (companyError) throw companyError;
+        if (!companies || companies.length === 0) {
+          throw new Error('Empresa não encontrada');
+        }
+
+        const company = companies[0];
+
+        const { data: jobData, error: jobError } = await supabase
+          .from('jobs')
+          .select(`
+            *,
+            candidates(count)
+          `)
+          .eq('id', jobId)
+          .eq('company_id', company.id)
+          .single();
+
+        if (jobError) throw jobError;
+        if (!jobData) throw new Error('Vaga não encontrada');
+
+        const transformedJob: JobWithCompany = {
+          ...jobData,
+          location: jobData.location || undefined,
+          mandatory_requirements: parseJsonArray<string>(jobData.mandatory_requirements),
+          desirable_requirements: parseJsonArray<string>(jobData.desirable_requirements),
+          pre_interview_questions: parseJsonArray<{ id: number; question: string }>(jobData.pre_interview_questions),
+          candidatesCount: jobData.candidates?.[0]?.count || 0,
+          candidates: jobData.candidates,
+          status: (jobData.status as 'open' | 'closed' | 'paused') || 'open',
+          created_at: jobData.created_at || new Date().toISOString(),
+          updated_at: jobData.updated_at || new Date().toISOString(),
+          company,
+        };
+
+        if (!cancelled) setJob(transformedJob);
+
+        const { data: candidatesData, error: candidatesError } = await supabase
+          .from('candidates')
+          .select('*')
+          .eq('job_id', jobId)
+          .order('created_at', { ascending: false });
+
+        if (candidatesError) throw candidatesError;
+
+        const transformedCandidates: Candidate[] = (candidatesData || []).map(candidate => ({
+          ...candidate,
+          phone: candidate.phone || undefined,
+          resume_url: candidate.resume_url || undefined,
+          notes: candidate.notes || undefined,
+          interview_started_at: candidate.interview_started_at || undefined,
+          interview_completed_at: candidate.interview_completed_at || undefined,
+          status: (candidate.status || 'pending') as Candidate['status'],
+          is_favorite: candidate.is_favorite || false,
+          pre_interview_answers: candidate.pre_interview_answers as Record<string, unknown> | null,
+          created_at: candidate.created_at || new Date().toISOString(),
+          updated_at: candidate.updated_at || new Date().toISOString(),
+        }));
+
+        if (!cancelled) setCandidates(transformedCandidates);
+      } catch (err) {
+        console.error('Error fetching job details:', err);
+        if (!cancelled) setError(err instanceof Error ? err.message : 'Erro ao carregar detalhes da vaga');
+      } finally {
+        if (!cancelled) setLoading(false);
       }
+    };
 
-      // First get the user's company
-      const { data: companies, error: companyError } = await supabase
-        .from('companies')
-        .select('id, name')
-        .eq('user_id', user.id);
-
-      if (companyError) {
-        throw companyError;
-      }
-
-      if (!companies || companies.length === 0) {
-        throw new Error('Empresa não encontrada');
-      }
-
-      const company = companies[0];
-
-      // Get job details with candidate count
-      const { data: jobData, error: jobError } = await supabase
-        .from('jobs')
-        .select(`
-          *,
-          candidates(count)
-        `)
-        .eq('id', jobId)
-        .eq('company_id', company.id)
-        .single();
-
-      if (jobError) {
-        throw jobError;
-      }
-
-      if (!jobData) {
-        throw new Error('Vaga não encontrada');
-      }
-
-      // Transform job data
-      const transformedJob: JobWithCompany = {
-        ...jobData,
-        location: jobData.location || undefined,
-        mandatory_requirements: jobData.mandatory_requirements ? (Array.isArray(jobData.mandatory_requirements) ? jobData.mandatory_requirements as string[] : JSON.parse(jobData.mandatory_requirements as string)) : null,
-        desirable_requirements: jobData.desirable_requirements ? (Array.isArray(jobData.desirable_requirements) ? jobData.desirable_requirements as string[] : JSON.parse(jobData.desirable_requirements as string)) : null,
-        pre_interview_questions: jobData.pre_interview_questions ? (Array.isArray(jobData.pre_interview_questions) ? jobData.pre_interview_questions as Array<{ id: number; question: string }> : JSON.parse(jobData.pre_interview_questions as string)) : null,
-        candidatesCount: jobData.candidates?.[0]?.count || 0,
-        candidates: jobData.candidates,
-        status: (jobData.status as 'open' | 'closed' | 'paused') || 'open',
-        created_at: jobData.created_at || new Date().toISOString(),
-        updated_at: jobData.updated_at || new Date().toISOString(),
-        company: company
-      };
-
-      setJob(transformedJob);
-
-      // Get candidates for this job
-      const { data: candidatesData, error: candidatesError } = await supabase
-        .from('candidates')
-        .select(`
-          *,
-          job:jobs(title)
-        `)
-        .eq('job_id', jobId)
-        .order('created_at', { ascending: false });
-
-      if (candidatesError) {
-        throw candidatesError;
-      }
-
-      // Transform candidates data
-      const transformedCandidates: CandidateWithStatus[] = (candidatesData || []).map(candidate => ({
-        ...candidate,
-        phone: candidate.phone || undefined,
-        resume_url: candidate.resume_url || undefined,
-        notes: candidate.notes || undefined,
-        interview_token: candidate.interview_token || undefined,
-        interview_started_at: candidate.interview_started_at || undefined,
-        interview_completed_at: candidate.interview_completed_at || undefined,
-        status: (candidate.status || 'pending') as 'pending' | 'interviewed' | 'completed' | 'rejected' | 'hired',
-        is_favorite: candidate.is_favorite || false,
-        custom_answers: candidate.custom_answers as Record<string, unknown> | null,
-        created_at: candidate.created_at || new Date().toISOString(),
-        updated_at: candidate.updated_at || new Date().toISOString(),
-        job: candidate.job
-      }));
-
-      setCandidates(transformedCandidates);
-    } catch (err) {
-      console.error('Error fetching job details:', err);
-      setError(err instanceof Error ? err.message : 'Erro ao carregar detalhes da vaga');
-    } finally {
-      setLoading(false);
-    }
-  };
+    fetchJobDetails();
+    return () => { cancelled = true; };
+  }, [jobId, userId]);
 
   const copyApplicationLink = () => {
     const url = `${window.location.origin}/apply/${jobId}`;
@@ -171,352 +170,277 @@ function JobDetailsPage() {
 
   if (error || !job) {
     return (
-      <div className="space-y-8">
-        <div className="flex items-center space-x-4">
-          <Button
-            onClick={() => navigate('/dashboard/jobs')}
-            variant="outline"
-            size="sm"
-            icon={ArrowLeft}
-            darkMode={darkMode}
-          >
-            Voltar
-          </Button>
-        </div>
-
-        <StatusMessage
-          type="error"
-          title="Vaga não encontrada"
-          message={error || 'A vaga solicitada não foi encontrada'}
+      <div className="max-w-6xl mx-auto py-12">
+        <Button
+          onClick={() => navigate('/dashboard/jobs')}
+          variant="outline"
+          size="sm"
+          icon={ArrowLeft}
+          iconPosition="left"
           darkMode={darkMode}
-        />
+        >
+          Voltar para vagas
+        </Button>
+        <div className="mt-8">
+          <StatusMessage
+            type="error"
+            title="Vaga não encontrada"
+            message={error || 'A vaga solicitada não foi encontrada'}
+            darkMode={darkMode}
+          />
+        </div>
       </div>
     );
   }
 
+  const displayStatus = getJobDisplayStatus(job);
+  const workModel = job.work_model ? WORK_MODEL_LABELS[job.work_model] || job.work_model : null;
+  const contractType = job.contract_type ? CONTRACT_TYPE_LABELS[job.contract_type] || job.contract_type : null;
+
+  const metaItems = [
+    workModel && { icon: Briefcase, label: 'Modelo de trabalho', value: workModel },
+    job.location && { icon: MapPin, label: 'Localização', value: job.location },
+    contractType && { icon: Users, label: 'Tipo de contrato', value: contractType },
+    job.interview_duration_minutes && { icon: Timer, label: 'Duração da entrevista', value: `${job.interview_duration_minutes} min` },
+    { icon: Calendar, label: 'Criada em', value: new Date(job.created_at).toLocaleDateString('pt-BR') },
+    job.deadline && { icon: Clock, label: 'Prazo final', value: new Date(job.deadline).toLocaleDateString('pt-BR') },
+  ].filter(Boolean) as Array<{ icon: typeof MapPin; label: string; value: string }>;
+
+  const sectionTitle = (title: string) => (
+    <h2 className={`font-heading text-2xl pb-4 border-b mb-6 ${darkMode ? 'text-white border-gray-800' : 'text-triagen-primary border-triagen-border-light'}`}>
+      {title}
+    </h2>
+  );
+
+  const requirementList = (items: string[], Icon: typeof Target, title: string) => (
+    <div>
+      <div className="flex items-center gap-2 mb-4">
+        <Icon className={`h-4 w-4 ${darkMode ? 'text-gray-400' : 'text-triagen-secondary'}`} />
+        <h3 className={`text-xs uppercase tracking-widest font-bold ${darkMode ? 'text-gray-400' : 'text-triagen-secondary'}`}>
+          {title}
+        </h3>
+      </div>
+      <ul className="flex flex-col gap-2.5">
+        {items.map((item) => (
+          <li key={item} className="flex items-start gap-3">
+            <span className={`mt-[0.55rem] w-1.5 h-1.5 rounded-full shrink-0 ${darkMode ? 'bg-gray-500' : 'bg-triagen-secondary'}`} />
+            <span className={`text-sm md:text-base leading-relaxed ${darkMode ? 'text-gray-300' : 'text-triagen-primary'}`}>{item}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+
   return (
-    <div className="space-y-8">
-      <DashboardHeader
-        title={job.title}
-        description={`${job.company.name} • ${job.candidatesCount} candidatos`}
-        darkMode={darkMode}
-        statusContent={
-          <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-            job.status === 'open'
-              ? 'bg-green-100 text-green-800'
-              : job.status === 'paused'
-              ? 'bg-yellow-100 text-yellow-800'
-              : 'bg-red-100 text-red-800'
-          }`}>
-            {job.status === 'open' ? 'Aberta' : job.status === 'paused' ? 'Pausada' : 'Fechada'}
+    <div className="flex flex-col max-w-6xl mx-auto pb-16">
+
+      {/* Breadcrumb */}
+      <div className="flex flex-wrap items-center justify-between gap-4 pt-6 mb-12">
+        <button
+          onClick={() => navigate('/dashboard/jobs')}
+          className={`flex items-center gap-2 text-xs uppercase tracking-widest font-semibold hover:opacity-70 transition-opacity ${darkMode ? 'text-gray-400' : 'text-triagen-secondary'}`}
+        >
+          <ArrowLeft className="w-4 h-4" /> Vagas
+        </button>
+        <Button
+          variant={copied ? 'secondary' : 'primary'}
+          size="sm"
+          onClick={copyApplicationLink}
+          icon={copied ? Check : LinkIcon}
+          iconPosition="left"
+          darkMode={darkMode}
+        >
+          {copied ? 'Link copiado!' : 'Copiar link de candidatura'}
+        </Button>
+      </div>
+
+      {/* Header */}
+      <div className={`flex flex-col gap-6 pb-10 mb-12 border-b ${darkMode ? 'border-gray-800' : 'border-triagen-border-light'}`}>
+        <div className="flex flex-wrap items-center gap-3">
+          <span className={`px-2.5 py-1 rounded-full text-[0.65rem] font-bold tracking-widest uppercase ${getJobStatusColor(displayStatus)}`}>
+            {getJobStatusLabel(displayStatus)}
           </span>
-        }
-        rightContent={
-          <div className="flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-3 w-full sm:w-auto sm:flex-wrap">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => alert('Funcionalidade de edição será implementada em breve')}
-              icon={Edit}
-              darkMode={darkMode}
-            >
-              Editar Vaga
-            </Button>
+          <span className={`text-[0.65rem] uppercase tracking-widest font-semibold ${darkMode ? 'text-gray-400' : 'text-triagen-secondary'}`}>
+            {job.company.name}
+          </span>
+        </div>
+        <h1 className={`text-4xl md:text-6xl font-heading font-normal tracking-tight leading-tight break-words ${darkMode ? 'text-white' : 'text-triagen-primary'}`}>
+          {job.title}
+        </h1>
 
-            <Button
-              onClick={() => navigate('/dashboard/jobs')}
-              variant="outline"
-              size="sm"
-              icon={ArrowLeft}
-              darkMode={darkMode}
-            >
-              Voltar
-            </Button>
-          </div>
-        }
-      />
+        {/* Meta strip */}
+        <dl className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-x-6 gap-y-5 mt-2">
+          {metaItems.map(({ icon: Icon, label, value }) => (
+            <div key={label} className="flex flex-col gap-1 min-w-0">
+              <dt className={`flex items-center gap-1.5 text-[0.6rem] uppercase tracking-widest font-semibold ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+                <Icon className="w-3 h-3" /> {label}
+              </dt>
+              <dd className={`text-sm font-medium truncate ${darkMode ? 'text-gray-200' : 'text-triagen-primary'}`}>{value}</dd>
+            </div>
+          ))}
+        </dl>
+      </div>
 
-      {/* Job Details */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left Column - Job Information */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Basic Information */}
-          <Card darkMode={darkMode}>
-            <h2 className={`font-heading text-xl font-semibold mb-4 ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
-              Descrição da Vaga
-            </h2>
-            <p className={`font-sans leading-relaxed mb-6 ${darkMode ? 'text-gray-300' : 'text-triagen-text-dark'}`}>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+        {/* Main column */}
+        <div className="lg:col-span-8 flex flex-col gap-12">
+          {/* Description */}
+          <section>
+            {sectionTitle('Sobre a vaga')}
+            <p className={`text-base leading-relaxed whitespace-pre-line max-w-3xl ${darkMode ? 'text-gray-300' : 'text-triagen-secondary'}`}>
               {job.description}
             </p>
+          </section>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {job.location && (
-                <div className="flex items-center space-x-3">
-                  <MapPin className={`h-5 w-5 ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`} />
-                  <div>
-                    <p className={`font-sans text-sm ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
-                      Localização
-                    </p>
-                    <p className={`font-sans font-medium ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
-                      {job.location}
-                    </p>
-                  </div>
-                </div>
-              )}
+          {/* Team context */}
+          {job.team_context && (
+            <section>
+              {sectionTitle('Sobre o time')}
+              <p className={`text-base leading-relaxed whitespace-pre-line max-w-3xl ${darkMode ? 'text-gray-300' : 'text-triagen-secondary'}`}>
+                {job.team_context}
+              </p>
+            </section>
+          )}
 
-              <div className="flex items-center space-x-3">
-                <Users className={`h-5 w-5 ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`} />
-                <div>
-                  <p className={`font-sans text-sm ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
-                    Modelo de Trabalho
-                  </p>
-                  <p className={`font-sans font-medium ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
-                    {job.work_model === 'remoto' ? 'Remoto' : job.work_model === 'hibrido' ? 'Híbrido' : 'Presencial'}
-                  </p>
-                </div>
+          {/* Requirements */}
+          {((job.mandatory_requirements?.length || 0) > 0 || (job.desirable_requirements?.length || 0) > 0) && (
+            <section>
+              {sectionTitle('Requisitos e diferenciais')}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                {job.mandatory_requirements && job.mandatory_requirements.length > 0 &&
+                  requirementList(job.mandatory_requirements, Target, 'Requisitos obrigatórios')}
+                {job.desirable_requirements && job.desirable_requirements.length > 0 &&
+                  requirementList(job.desirable_requirements, Star, 'Diferenciais desejáveis')}
               </div>
-
-              <div className="flex items-center space-x-3">
-                <Calendar className={`h-5 w-5 ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`} />
-                <div>
-                  <p className={`font-sans text-sm ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
-                    Data de Criação
-                  </p>
-                  <p className={`font-sans font-medium ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
-                    {new Date(job.created_at).toLocaleDateString('pt-BR')}
-                  </p>
-                </div>
-              </div>
-
-              {job.deadline && (
-                <div className="flex items-center space-x-3">
-                  <Clock className={`h-5 w-5 ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`} />
-                  <div>
-                    <p className={`font-sans text-sm ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
-                      Prazo Final
-                    </p>
-                    <p className={`font-sans font-medium ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
-                      {new Date(job.deadline).toLocaleDateString('pt-BR')}
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
-          </Card>
-
-          {/* Requirements and Differentials */}
-          {((job.mandatory_requirements && job.mandatory_requirements.length > 0) || (job.desirable_requirements && job.desirable_requirements.length > 0)) && (
-            <Card darkMode={darkMode}>
-              <h2 className={`font-heading text-xl font-semibold mb-6 ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
-                Requisitos e Diferenciais
-              </h2>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {job.mandatory_requirements && job.mandatory_requirements.length > 0 && (
-                  <div>
-                    <div className="flex items-center space-x-2 mb-4">
-                      <Target className={`h-5 w-5 ${darkMode ? 'text-triagen-secondary-green' : 'text-triagen-primary-blue'}`} />
-                      <h3 className={`font-heading text-lg font-semibold ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
-                        Requisitos Obrigatórios
-                      </h3>
-                    </div>
-                    <ul className={`space-y-2 ${darkMode ? 'text-gray-300' : 'text-triagen-text-dark'}`}>
-                      {job.mandatory_requirements.map((req, index) => (
-                        <li key={index} className="flex items-start space-x-2">
-                          <span className="text-triagen-secondary-green">•</span>
-                          <span className="font-sans">{req}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-                {job.desirable_requirements && job.desirable_requirements.length > 0 && (
-                  <div>
-                    <div className="flex items-center space-x-2 mb-4">
-                      <Star className={`h-5 w-5 ${darkMode ? 'text-triagen-highlight-purple' : 'text-triagen-highlight-purple'}`} />
-                      <h3 className={`font-heading text-lg font-semibold ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
-                        Diferenciais Desejáveis
-                      </h3>
-                    </div>
-                    <ul className={`space-y-2 ${darkMode ? 'text-gray-300' : 'text-triagen-text-dark'}`}>
-                      {job.desirable_requirements.map((diff, index) => (
-                        <li key={index} className="flex items-start space-x-2">
-                          <span className="text-triagen-highlight-purple">•</span>
-                          <span className="font-sans">{diff}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </div>
-            </Card>
+            </section>
           )}
 
           {/* Salary and Benefits */}
-          {(job.salary_range || job.benefits) && (
-            <Card darkMode={darkMode}>
-              <h2 className={`font-heading text-xl font-semibold mb-6 ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
-                Remuneração e Benefícios
-              </h2>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {job.salary_range && (
+          {(job.salary_range || job.salary_info || job.benefits) && (
+            <section>
+              {sectionTitle('Remuneração e benefícios')}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                {(job.salary_range || job.salary_info) && (
                   <div>
-                    <div className="flex items-center space-x-2 mb-3">
-                      <DollarSign className={`h-5 w-5 ${darkMode ? 'text-triagen-secondary-green' : 'text-triagen-primary-blue'}`} />
-                      <h3 className={`font-heading text-lg font-semibold ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
-                        Faixa Salarial
+                    <div className="flex items-center gap-2 mb-3">
+                      <CircleDollarSign className={`h-4 w-4 ${darkMode ? 'text-gray-400' : 'text-triagen-secondary'}`} />
+                      <h3 className={`text-xs uppercase tracking-widest font-bold ${darkMode ? 'text-gray-400' : 'text-triagen-secondary'}`}>
+                        Faixa salarial
                       </h3>
                     </div>
-                    <p className={`font-sans ${darkMode ? 'text-gray-300' : 'text-triagen-text-dark'}`}>
-                      {job.salary_range}
-                    </p>
+                    {job.salary_range && (
+                      <p className={`text-base font-medium ${darkMode ? 'text-gray-200' : 'text-triagen-primary'}`}>{job.salary_range}</p>
+                    )}
+                    {job.salary_info && (
+                      <p className={`text-sm mt-1 ${darkMode ? 'text-gray-400' : 'text-triagen-secondary'}`}>{job.salary_info}</p>
+                    )}
                   </div>
                 )}
-
                 {job.benefits && (
                   <div>
-                    <div className="flex items-center space-x-2 mb-3">
-                      <Gift className={`h-5 w-5 ${darkMode ? 'text-triagen-highlight-purple' : 'text-triagen-highlight-purple'}`} />
-                      <h3 className={`font-heading text-lg font-semibold ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
+                    <div className="flex items-center gap-2 mb-3">
+                      <Gift className={`h-4 w-4 ${darkMode ? 'text-gray-400' : 'text-triagen-secondary'}`} />
+                      <h3 className={`text-xs uppercase tracking-widest font-bold ${darkMode ? 'text-gray-400' : 'text-triagen-secondary'}`}>
                         Benefícios
                       </h3>
                     </div>
-                    <p className={`font-sans ${darkMode ? 'text-gray-300' : 'text-triagen-text-dark'}`}>
+                    <p className={`text-sm md:text-base leading-relaxed whitespace-pre-line ${darkMode ? 'text-gray-300' : 'text-triagen-primary'}`}>
                       {job.benefits}
                     </p>
                   </div>
                 )}
               </div>
-            </Card>
+            </section>
+          )}
+
+          {/* Screening questions */}
+          {job.pre_interview_questions && job.pre_interview_questions.length > 0 && (
+            <section>
+              {sectionTitle('Perguntas de triagem')}
+              <ol className="flex flex-col gap-3">
+                {job.pre_interview_questions.map((q, index) => (
+                  <li key={q.id} className="flex items-start gap-4">
+                    <span className={`font-heading text-lg leading-relaxed ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+                      {String(index + 1).padStart(2, '0')}
+                    </span>
+                    <div className="flex items-start gap-2 pt-[0.3rem]">
+                      <HelpCircle className={`w-4 h-4 mt-0.5 shrink-0 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`} />
+                      <span className={`text-sm md:text-base leading-relaxed ${darkMode ? 'text-gray-300' : 'text-triagen-primary'}`}>{q.question}</span>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            </section>
           )}
         </div>
 
-        {/* Right Column - Candidates */}
-        <div className="space-y-6">
-          <Card darkMode={darkMode}>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className={`font-heading text-lg font-semibold ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
+        {/* Sidebar: candidates */}
+        <div className="lg:col-span-4">
+          <div className={`p-6 rounded border sticky top-24 ${darkMode ? 'border-gray-800 bg-gray-900/50' : 'border-triagen-border-light bg-white'}`}>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className={`text-xs uppercase tracking-widest font-bold ${darkMode ? 'text-gray-500' : 'text-triagen-secondary'}`}>
                 Candidatos ({candidates.length})
-              </h3>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => navigate(`/dashboard/candidates?job=${job.id}`)}
-                darkMode={darkMode}
-              >
-                Ver Todos
-              </Button>
+              </h2>
+              {candidates.length > 0 && (
+                <button
+                  onClick={() => navigate(`/dashboard/candidates?job=${job.id}`)}
+                  className={`text-[0.65rem] font-semibold tracking-widest uppercase transition-colors ${darkMode ? 'text-gray-400 hover:text-white' : 'text-triagen-secondary hover:text-triagen-primary'}`}
+                >
+                  Ver todos
+                </button>
+              )}
             </div>
 
             {candidates.length === 0 ? (
               <div className="text-center py-8">
-                <Users className={`h-12 w-12 mx-auto mb-3 ${darkMode ? 'text-gray-600' : 'text-triagen-text-light'}`} />
-                <p className={`font-sans text-sm ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
-                  Nenhum candidato ainda
+                <Users className={`h-8 w-8 mx-auto mb-3 ${darkMode ? 'text-gray-600' : 'text-gray-300'}`} />
+                <p className={`text-sm mb-4 ${darkMode ? 'text-gray-400' : 'text-triagen-secondary'}`}>
+                  Nenhum candidato ainda.
+                </p>
+                <p className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+                  Compartilhe o link de candidatura para receber os primeiros candidatos.
                 </p>
               </div>
             ) : (
-              <div className="space-y-3">
-                {candidates.slice(0, 5).map((candidate) => {
-                  const StatusIcon = getStatusIcon(candidate.status);
-
-                  return (
-                    <div
-                      key={candidate.id}
-                      className={`p-3 rounded-xl border cursor-pointer transition-all duration-200 hover:scale-101 ${
-                        darkMode
-                          ? 'border-triagen-border-dark bg-gray-800/30 hover:bg-gray-800/50'
-                          : 'border-triagen-border-light bg-triagen-light-bg/30 hover:bg-triagen-light-bg/50'
-                      }`}
-                      onClick={() => navigate(`/dashboard/candidates/${candidate.id}`)}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-2 mb-1">
-                            <h4 className={`font-sans font-medium text-sm ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
-                              {candidate.name}
-                            </h4>
-                            {candidate.is_favorite && (
-                              <Star className="h-3 w-3 text-yellow-500 fill-current" />
-                            )}
-                          </div>
-                          <p className={`font-sans text-xs ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
-                            {candidate.email}
-                          </p>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <StatusIcon className="h-3 w-3" />
-                          <span className={`px-2 py-1 rounded text-xs font-medium ${getStatusColor(candidate.status)}`}>
-                            {getStatusText(candidate.status)}
-                          </span>
-                        </div>
+              <div className="flex flex-col gap-2">
+                {candidates.slice(0, 5).map((candidate) => (
+                  <button
+                    key={candidate.id}
+                    onClick={() => navigate(`/dashboard/candidates/${candidate.id}`)}
+                    className={`p-3 rounded border text-left transition-colors flex items-center gap-3 ${
+                      darkMode
+                        ? 'border-gray-800 bg-gray-800/30 hover:border-gray-600'
+                        : 'border-neutral-100 bg-neutral-50/60 hover:border-neutral-300'
+                    }`}
+                  >
+                    <Avatar name={candidate.name} size="sm" />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <span className={`font-medium text-sm truncate ${darkMode ? 'text-white' : 'text-triagen-primary'}`}>
+                          {candidate.name}
+                        </span>
+                        {candidate.is_favorite && (
+                          <Star className="h-3 w-3 shrink-0 text-amber-500" fill="currentColor" />
+                        )}
                       </div>
+                      <span className={`inline-block mt-1 px-2 py-0.5 rounded-full text-[0.55rem] font-bold tracking-widest uppercase ${getStatusColor(candidate.status)}`}>
+                        {getStatusShortText(candidate.status)}
+                      </span>
                     </div>
-                  );
-                })}
+                  </button>
+                ))}
 
                 {candidates.length > 5 && (
-                  <div className="text-center pt-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => navigate(`/dashboard/candidates?job=${job.id}`)}
-                      darkMode={darkMode}
-                    >
-                      Ver mais {candidates.length - 5} candidatos
-                    </Button>
-                  </div>
+                  <button
+                    onClick={() => navigate(`/dashboard/candidates?job=${job.id}`)}
+                    className={`text-xs font-semibold py-2 transition-colors ${darkMode ? 'text-gray-400 hover:text-white' : 'text-triagen-secondary hover:text-triagen-primary'}`}
+                  >
+                    Ver mais {candidates.length - 5} candidatos
+                  </button>
                 )}
               </div>
             )}
-          </Card>
-
-          {/* Quick Actions */}
-          <Card darkMode={darkMode}>
-            <h3 className={`font-heading text-lg font-semibold mb-4 ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
-              Ações Rápidas
-            </h3>
-
-            <div className="space-y-3">
-              <button
-                onClick={copyApplicationLink}
-                className={`w-full flex items-center justify-center space-x-2 px-4 py-2.5 rounded-xl border text-sm font-medium transition-all duration-300 ${
-                  copied
-                    ? darkMode
-                      ? 'border-triagen-secondary-green bg-triagen-secondary-green/10 text-triagen-secondary-green'
-                      : 'border-green-500 bg-green-50 text-green-700'
-                    : darkMode
-                    ? 'border-triagen-border-dark bg-transparent text-gray-300 hover:border-triagen-secondary-green hover:text-triagen-secondary-green hover:bg-triagen-secondary-green/5'
-                    : 'border-triagen-border-light bg-transparent text-triagen-text-dark hover:border-triagen-primary-blue hover:text-triagen-primary-blue hover:bg-triagen-primary-blue/5'
-                }`}
-              >
-                {copied ? (
-                  <>
-                    <Check className="h-4 w-4 shrink-0" />
-                    <span>Link copiado!</span>
-                  </>
-                ) : (
-                  <>
-                    <Link className="h-4 w-4 shrink-0" />
-                    <span>Copiar link da vaga</span>
-                  </>
-                )}
-              </button>
-
-              <Button
-                variant="outline"
-                size="md"
-                fullWidth
-                onClick={() => navigate('/dashboard/reports')}
-                icon={Download}
-                darkMode={darkMode}
-              >
-                Ver Relatórios
-              </Button>
-            </div>
-          </Card>
+          </div>
         </div>
       </div>
     </div>

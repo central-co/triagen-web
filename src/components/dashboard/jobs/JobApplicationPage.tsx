@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Send, ArrowLeft, FileText } from 'lucide-react';
+import { Send, ArrowLeft, MapPin, Building2, CircleDollarSign, Gift, Target, Star } from 'lucide-react';
 import useDarkMode from '../../../hooks/useDarkMode';
 import { supabase } from '../../../integrations/supabase/client';
 import { createApplication } from '../../../api/application';
@@ -9,127 +9,121 @@ import Card from '../../ui/Card';
 import StatusMessage from '../../ui/StatusMessage';
 import AnimatedBackground from '../../ui/AnimatedBackground';
 import PageHeader from '../../ui/PageHeader';
+import LoadingSpinner from '../../ui/LoadingSpinner';
+import { Input, Textarea } from '../../ui/Field';
 import { JobWithCompany } from '../../../types/company';
+import { isJobAcceptingApplications } from '../../../utils/jobStatus';
+
+const WORK_MODEL_LABELS: Record<string, string> = {
+  remoto: 'Remoto',
+  hibrido: 'Híbrido',
+  presencial: 'Presencial',
+};
+
+function parseJsonbField<T>(field: unknown): T[] | null {
+  if (!field) return null;
+  if (Array.isArray(field)) return field as T[];
+  if (typeof field === 'string') {
+    try {
+      const parsed = JSON.parse(field);
+      return Array.isArray(parsed) ? parsed as T[] : null;
+    } catch {
+      return null;
+    }
+  }
+  return null;
+}
 
 function JobApplicationPage() {
   const { jobId } = useParams();
   const navigate = useNavigate();
   const [job, setJob] = useState<JobWithCompany | null>(null);
+  const [acceptingApplications, setAcceptingApplications] = useState(true);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
-  const { darkMode } = useDarkMode(true);
+  const { darkMode } = useDarkMode();
 
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     phone: '',
-    resume_url: '',
     resume_text: '',
     pre_interview_answers: {} as Record<string, string>
   });
 
   useEffect(() => {
-    if (jobId) {
-      fetchJob();
-    }
-  }, [jobId]);
-
-  useEffect(() => {
-    console.log('JobApplicationPage mounted');
-    console.log('jobId from URL:', jobId);
-    console.log('Supabase URL:', import.meta.env.VITE_SUPABASE_URL);
-    console.log('API URL from env:', import.meta.env.VITE_API_URL);
-  }, []);
-
-  const fetchJob = async () => {
-    console.log('Fetching job with ID:', jobId);
-
     if (!jobId) {
-      setError('ID da vaga não fornecido na URL');
+      setError('Link de candidatura inválido.');
       setLoading(false);
       return;
     }
 
-    try {
-      setLoading(true);
+    let cancelled = false;
 
-      // Buscar vaga com dados da empresa (JOIN)
-      const { data, error } = await supabase
-        .from('jobs')
-        .select(`
-          *,
-          company:companies(
-            id,
-            name,
-            contact_email,
-            address
-          )
-        `)
-        .eq('id', jobId)
-        .eq('status', 'open')
-        .maybeSingle();
+    const fetchJob = async () => {
+      try {
+        const { data, error: fetchError } = await supabase
+          .from('jobs')
+          .select(`
+            *,
+            company:companies(
+              id,
+              name,
+              contact_email,
+              address
+            )
+          `)
+          .eq('id', jobId)
+          .eq('status', 'open')
+          .maybeSingle();
 
-      console.log('Supabase response:', { data, error });
-
-      if (error) {
-        console.error('Supabase error:', error);
-        setError(`Erro ao carregar vaga: ${error.message}`);
-        return;
-      }
-
-      if (!data) {
-        setError('Vaga não encontrada ou não está mais disponível.');
-        return;
-      }
-
-      // Transform to match JobWithCompany interface
-      // Parse JSONB fields that might be stored as strings
-      const parseJsonbField = (field: any): any[] | null => {
-        if (!field) return null;
-        if (Array.isArray(field)) return field;
-        if (typeof field === 'string') {
-          try {
-            const parsed = JSON.parse(field);
-            return Array.isArray(parsed) ? parsed : null;
-          } catch {
-            return null;
-          }
+        if (fetchError) {
+          console.error('Error fetching job:', fetchError);
+          if (!cancelled) setError('Não foi possível carregar a vaga. Tente novamente em instantes.');
+          return;
         }
-        return null;
-      };
 
-      const transformedJob: JobWithCompany = {
-        id: data.id,
-        title: data.title,
-        description: data.description,
-        location: data.location || undefined,
-        work_model: data.work_model,
-        mandatory_requirements: parseJsonbField(data.mandatory_requirements),
-        desirable_requirements: parseJsonbField(data.desirable_requirements),
-        salary_range: data.salary_range || undefined,
-        benefits: data.benefits || undefined,
-        pre_interview_questions: parseJsonbField(data.pre_interview_questions) as Array<{ id: number; question: string }> | null,
-        company: data.company as {
-          id: string;
-          name: string;
-          contact_email?: string;
-          address?: string;
+        if (!data) {
+          if (!cancelled) setError('Vaga não encontrada ou não está mais disponível.');
+          return;
         }
-      };
 
-      console.log('Job loaded successfully:', transformedJob);
-      setJob(transformedJob);
-    } catch (err) {
-      console.error('Error fetching job:', err);
-      setError('Erro inesperado ao carregar vaga.');
-    } finally {
-      setLoading(false);
-    }
-  };
+        const transformedJob: JobWithCompany = {
+          id: data.id,
+          title: data.title,
+          description: data.description,
+          location: data.location || undefined,
+          work_model: data.work_model,
+          mandatory_requirements: parseJsonbField<string>(data.mandatory_requirements),
+          desirable_requirements: parseJsonbField<string>(data.desirable_requirements),
+          salary_range: data.salary_range || undefined,
+          benefits: data.benefits || undefined,
+          pre_interview_questions: parseJsonbField<{ id: number; question: string }>(data.pre_interview_questions),
+          company: data.company as JobWithCompany['company'],
+        };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+        if (!cancelled) {
+          setJob(transformedJob);
+          setAcceptingApplications(isJobAcceptingApplications({
+            status: data.status as 'open' | 'closed' | 'paused',
+            deadline: data.deadline,
+          }));
+        }
+      } catch (err) {
+        console.error('Error fetching job:', err);
+        if (!cancelled) setError('Erro inesperado ao carregar a vaga.');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    fetchJob();
+    return () => { cancelled = true; };
+  }, [jobId]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
@@ -153,11 +147,10 @@ function JobApplicationPage() {
     e.preventDefault();
 
     if (!formData.name || !formData.email) {
-      setError('Nome e email são obrigatórios');
+      setError('Nome e e-mail são obrigatórios');
       return;
     }
 
-    // Validate pre-interview questions — all are required
     if (job?.pre_interview_questions) {
       for (const q of job.pre_interview_questions) {
         if (!formData.pre_interview_answers[String(q.id)]?.trim()) {
@@ -171,10 +164,9 @@ function JobApplicationPage() {
     setError('');
 
     try {
-      // Preparar payload no formato esperado pelo backend (flat structure com snake_case)
-      if (!jobId) throw new Error('ID da vaga não encontrado');
+      if (!jobId) throw new Error('Link de candidatura inválido.');
 
-      const payload = {
+      await createApplication({
         name: formData.name,
         email: formData.email,
         phone: formData.phone || undefined,
@@ -183,42 +175,37 @@ function JobApplicationPage() {
         pre_interview_answers: Object.keys(formData.pre_interview_answers).length > 0
           ? formData.pre_interview_answers
           : undefined
-      };
-
-      console.log('Enviando payload para API:', payload);
-
-      await createApplication(payload);
+      });
       setSuccess(true);
+      window.scrollTo({ top: 0 });
     } catch (err) {
       console.error('Error submitting application:', err);
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError('Erro ao enviar candidatura. Tente novamente.');
-      }
+      setError(err instanceof Error ? err.message : 'Erro ao enviar candidatura. Tente novamente.');
     } finally {
       setSubmitting(false);
     }
   };
 
+  const pageShell = (content: React.ReactNode) => (
+    <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-triagen-light-bg'}`}>
+      <AnimatedBackground darkMode={darkMode} />
+      <PageHeader darkMode={darkMode} />
+      {content}
+    </div>
+  );
+
   if (loading) {
-    return (
-      <div className={`min-h-screen transition-all duration-500 ${darkMode ? 'dark bg-gray-900' : 'bg-triagen-light-bg'}`}>
-        <AnimatedBackground darkMode={darkMode} />
-        <PageHeader darkMode={darkMode} />
-        <div className="flex items-center justify-center min-h-[calc(100vh-80px)]">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-triagen-primary-blue"></div>
-        </div>
+    return pageShell(
+      <div className="flex items-center justify-center min-h-[calc(100vh-80px)]">
+        <LoadingSpinner label="Carregando vaga" />
       </div>
     );
   }
 
   if (error && !job) {
-    return (
-      <div className={`min-h-screen transition-all duration-500 ${darkMode ? 'dark bg-gray-900' : 'bg-triagen-light-bg'}`}>
-        <AnimatedBackground darkMode={darkMode} />
-        <PageHeader darkMode={darkMode} />
-        <div className="flex items-center justify-center min-h-[calc(100vh-80px)] px-4">
+    return pageShell(
+      <div className="flex items-center justify-center min-h-[calc(100vh-80px)] px-4">
+        <div className="max-w-md w-full">
           <Card darkMode={darkMode}>
             <StatusMessage
               type="error"
@@ -226,49 +213,7 @@ function JobApplicationPage() {
               message={error}
               darkMode={darkMode}
             />
-            <Button
-              variant="primary"
-              size="lg"
-              fullWidth
-              onClick={() => navigate('/')}
-              icon={ArrowLeft}
-              iconPosition="left"
-            >
-              Voltar ao Início
-            </Button>
-          </Card>
-        </div>
-      </div>
-    );
-  }
-
-  if (success) {
-    return (
-      <div className={`min-h-screen transition-all duration-500 ${darkMode ? 'dark bg-gray-900' : 'bg-triagen-light-bg'}`}>
-        <AnimatedBackground darkMode={darkMode} />
-        <PageHeader darkMode={darkMode} />
-        <div className="flex items-center justify-center min-h-[calc(100vh-80px)] px-4">
-          <Card darkMode={darkMode}>
-            <div className="text-center">
-              <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-triagen-secondary-green flex items-center justify-center">
-                <Send className="h-10 w-10 text-white" />
-              </div>
-
-              <h1 className={`font-heading text-2xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
-                Candidatura Enviada!
-              </h1>
-
-              <p className={`font-sans mb-6 ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
-                Sua candidatura foi processada com sucesso! Nossa IA está preparando uma entrevista personalizada para você.
-              </p>
-
-              <StatusMessage
-                type="info"
-                title="Próximos passos"
-                message="Você receberá um e-mail com o link para sua entrevista em breve. Verifique sua caixa de entrada e spam."
-                darkMode={darkMode}
-              />
-
+            <div className="mt-6">
               <Button
                 variant="primary"
                 size="lg"
@@ -277,7 +222,7 @@ function JobApplicationPage() {
                 icon={ArrowLeft}
                 iconPosition="left"
               >
-                Voltar ao Início
+                Voltar ao início
               </Button>
             </div>
           </Card>
@@ -286,220 +231,195 @@ function JobApplicationPage() {
     );
   }
 
-  return (
-    <div className={`min-h-screen transition-all duration-500 ${darkMode ? 'dark bg-gray-900' : 'bg-triagen-light-bg'}`}>
-      <AnimatedBackground darkMode={darkMode} />
-      <PageHeader darkMode={darkMode} />
+  if (success) {
+    return pageShell(
+      <div className="flex items-center justify-center min-h-[calc(100vh-80px)] px-4">
+        <div className="max-w-md w-full">
+          <Card darkMode={darkMode}>
+            <div className="text-center">
+              <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-triagen-secondary-green flex items-center justify-center">
+                <Send className="h-9 w-9 text-white" />
+              </div>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Job Info */}
-        <Card darkMode={darkMode} className="mb-8">
-          <div className="text-center">
-            <h1 className={`font-heading text-3xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
-              {job?.title}
-            </h1>
-            <div className="flex items-center justify-center space-x-4 text-sm mb-6">
-              <span className={`${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
-                📍 {job?.work_model === 'remoto' ? 'Remoto' : job?.work_model === 'hibrido' ? 'Híbrido' : 'Presencial'}
-                {job?.location && ` • ${job.location}`}
-              </span>
-              {job?.company && (
-                <span className={`${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
-                  🏢 {job.company.name}
-                </span>
-              )}
+              <h1 className={`font-heading text-2xl font-semibold mb-4 ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
+                Candidatura enviada!
+              </h1>
+
+              <p className={`font-sans mb-6 leading-relaxed ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
+                Sua candidatura foi recebida com sucesso. Nossa IA está preparando uma entrevista personalizada para você.
+              </p>
+
+              <StatusMessage
+                type="info"
+                title="Próximos passos"
+                message="Você receberá um e-mail com o link da sua entrevista em breve. Verifique também a caixa de spam."
+                darkMode={darkMode}
+              />
             </div>
-            <p className={`font-sans ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'} leading-relaxed mb-6`}>
-              {job?.description}
-            </p>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
-            {/* Requirements and Differentials */}
-            {(job?.mandatory_requirements && job.mandatory_requirements.length > 0) || (job?.desirable_requirements && job.desirable_requirements.length > 0) ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-                {job?.mandatory_requirements && job.mandatory_requirements.length > 0 && (
-                  <div className={`p-4 rounded-xl ${
-                    darkMode ? 'bg-gray-800/30' : 'bg-triagen-light-bg/30'
-                  }`}>
-                    <h3 className={`font-semibold mb-3 ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
-                      ✅ Requisitos Obrigatórios
-                    </h3>
-                    <ul className={`text-sm space-y-1 ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
-                      {job.mandatory_requirements.map((req, index) => (
-                        <li key={index}>• {req}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
+  const workModelLabel = job?.work_model ? WORK_MODEL_LABELS[job.work_model] || job.work_model : null;
 
-                {job?.desirable_requirements && job.desirable_requirements.length > 0 && (
-                  <div className={`p-4 rounded-xl ${
-                    darkMode ? 'bg-gray-800/30' : 'bg-triagen-light-bg/30'
-                  }`}>
-                    <h3 className={`font-semibold mb-3 ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
-                      ⭐ Diferenciais Desejáveis
-                    </h3>
-                    <ul className={`text-sm space-y-1 ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
-                      {job.desirable_requirements.map((diff, index) => (
-                        <li key={index}>• {diff}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </div>
-            ) : null}
+  const infoTag = (Icon: typeof MapPin, text: string) => (
+    <span className={`inline-flex items-center gap-1.5 text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-triagen-text-light'}`}>
+      <Icon className="w-4 h-4" aria-hidden="true" /> {text}
+    </span>
+  );
 
-            {/* Salary and Benefits */}
-            {(job?.salary_range || job?.benefits) && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-                {job.salary_range && (
-                  <div className={`p-4 rounded-xl ${
-                    darkMode ? 'bg-gray-800/30' : 'bg-triagen-light-bg/30'
-                  }`}>
-                    <h3 className={`font-semibold mb-2 ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
-                      💰 Faixa Salarial
-                    </h3>
-                    <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
-                      {job.salary_range}
-                    </p>
-                  </div>
-                )}
+  const requirementBlock = (Icon: typeof Target, title: string, items: string[]) => (
+    <div className={`p-5 rounded border text-left ${darkMode ? 'bg-gray-800/40 border-gray-700' : 'bg-white border-triagen-border-light'}`}>
+      <h3 className={`flex items-center gap-2 text-xs uppercase tracking-widest font-bold mb-3 ${darkMode ? 'text-gray-400' : 'text-triagen-secondary'}`}>
+        <Icon className="w-3.5 h-3.5" aria-hidden="true" /> {title}
+      </h3>
+      <ul className="flex flex-col gap-2">
+        {items.map((item) => (
+          <li key={item} className="flex items-start gap-2.5">
+            <span className={`mt-[0.5rem] w-1 h-1 rounded-full shrink-0 ${darkMode ? 'bg-gray-500' : 'bg-triagen-secondary'}`} />
+            <span className={`text-sm leading-relaxed ${darkMode ? 'text-gray-300' : 'text-triagen-text-dark'}`}>{item}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
 
-                {job.benefits && (
-                  <div className={`p-4 rounded-xl ${
-                    darkMode ? 'bg-gray-800/30' : 'bg-triagen-light-bg/30'
-                  }`}>
-                    <h3 className={`font-semibold mb-2 ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
-                      🎁 Benefícios
-                    </h3>
-                    <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
-                      {job.benefits}
-                    </p>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        </Card>
+  return pageShell(
+    <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative">
+      {/* Job Header */}
+      <div className="mb-10">
+        <p className={`text-xs uppercase tracking-widest font-semibold mb-3 ${darkMode ? 'text-gray-400' : 'text-triagen-secondary'}`}>
+          Vaga aberta
+        </p>
+        <h1 className={`font-heading text-4xl md:text-5xl font-normal tracking-tight leading-tight mb-4 ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
+          {job?.title}
+        </h1>
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+          {job?.company && infoTag(Building2, job.company.name)}
+          {workModelLabel && infoTag(MapPin, [workModelLabel, job?.location].filter(Boolean).join(' • '))}
+        </div>
+      </div>
 
-        {/* Application Form */}
-        <Card darkMode={darkMode}>
-          <h2 className={`font-heading text-2xl font-bold mb-6 ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
-            Candidate-se à Vaga
+      {/* Description */}
+      <div className="mb-10">
+        <p className={`font-sans leading-relaxed whitespace-pre-line ${darkMode ? 'text-gray-300' : 'text-triagen-text-dark'}`}>
+          {job?.description}
+        </p>
+      </div>
+
+      {/* Requirements */}
+      {((job?.mandatory_requirements?.length || 0) > 0 || (job?.desirable_requirements?.length || 0) > 0) && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-10">
+          {job?.mandatory_requirements && job.mandatory_requirements.length > 0 &&
+            requirementBlock(Target, 'Requisitos obrigatórios', job.mandatory_requirements)}
+          {job?.desirable_requirements && job.desirable_requirements.length > 0 &&
+            requirementBlock(Star, 'Diferenciais desejáveis', job.desirable_requirements)}
+        </div>
+      )}
+
+      {/* Salary and Benefits */}
+      {(job?.salary_range || job?.benefits) && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-12">
+          {job.salary_range && (
+            <div className={`p-5 rounded border ${darkMode ? 'bg-gray-800/40 border-gray-700' : 'bg-white border-triagen-border-light'}`}>
+              <h3 className={`flex items-center gap-2 text-xs uppercase tracking-widest font-bold mb-2 ${darkMode ? 'text-gray-400' : 'text-triagen-secondary'}`}>
+                <CircleDollarSign className="w-3.5 h-3.5" aria-hidden="true" /> Faixa salarial
+              </h3>
+              <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-triagen-text-dark'}`}>{job.salary_range}</p>
+            </div>
+          )}
+          {job.benefits && (
+            <div className={`p-5 rounded border ${darkMode ? 'bg-gray-800/40 border-gray-700' : 'bg-white border-triagen-border-light'}`}>
+              <h3 className={`flex items-center gap-2 text-xs uppercase tracking-widest font-bold mb-2 ${darkMode ? 'text-gray-400' : 'text-triagen-secondary'}`}>
+                <Gift className="w-3.5 h-3.5" aria-hidden="true" /> Benefícios
+              </h3>
+              <p className={`text-sm leading-relaxed whitespace-pre-line ${darkMode ? 'text-gray-300' : 'text-triagen-text-dark'}`}>{job.benefits}</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Application Form or closed notice */}
+      {acceptingApplications ? (
+        <Card darkMode={darkMode} padding="lg">
+          <h2 className={`font-heading text-2xl font-semibold mb-2 ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
+            Candidate-se à vaga
           </h2>
+          <p className={`text-sm mb-8 ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
+            Preencha seus dados abaixo. Depois, você receberá por e-mail o link para uma entrevista por voz com nossa IA.
+          </p>
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Basic Information */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label htmlFor="name" className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-triagen-dark-bg'}`}>
-                  Nome Completo *
-                </label>
-                <input
-                  type="text"
-                  id="name"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  placeholder="Seu nome completo"
-                  className={`font-sans w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-triagen-secondary-green/50 focus:border-triagen-secondary-green ${
-                    darkMode
-                      ? 'bg-gray-800/50 border-triagen-border-dark text-white placeholder-gray-400'
-                      : 'bg-white/70 border-triagen-border-light text-triagen-dark-bg placeholder-triagen-text-light'
-                  }`}
-                  required
-                />
-              </div>
-
-              <div>
-                <label htmlFor="email" className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-triagen-dark-bg'}`}>
-                  Email *
-                </label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  placeholder="seu@email.com"
-                  className={`font-sans w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-triagen-secondary-green/50 focus:border-triagen-secondary-green ${
-                    darkMode
-                      ? 'bg-gray-800/50 border-triagen-border-dark text-white placeholder-gray-400'
-                      : 'bg-white/70 border-triagen-border-light text-triagen-dark-bg placeholder-triagen-text-light'
-                  }`}
-                  required
-                />
-              </div>
-            </div>
-
-            <div>
-              <label htmlFor="phone" className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-triagen-dark-bg'}`}>
-                Telefone
-              </label>
-              <input
-                type="tel"
-                id="phone"
-                name="phone"
-                value={formData.phone}
-                onChange={handlePhoneChange}
-                placeholder="(11) 99999-9999"
-                className={`font-sans w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-triagen-secondary-green/50 focus:border-triagen-secondary-green ${
-                  darkMode
-                    ? 'bg-gray-800/50 border-triagen-border-dark text-white placeholder-gray-400'
-                    : 'bg-white/70 border-triagen-border-light text-triagen-dark-bg placeholder-triagen-text-light'
-                }`}
-              />
-            </div>
-
-            {/* Resume Text */}
-            <div>
-              <label htmlFor="resume_text" className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-triagen-dark-bg'}`}>
-                <FileText className="h-4 w-4 inline mr-1" />
-                Resumo do seu Currículo (Opcional)
-              </label>
-              <textarea
-                id="resume_text"
-                name="resume_text"
-                value={formData.resume_text}
+              <Input
+                label="Nome completo *"
+                id="name"
+                name="name"
+                darkMode={darkMode}
+                value={formData.name}
                 onChange={handleInputChange}
-                placeholder="Descreva brevemente sua experiência profissional, formação e principais habilidades..."
-                rows={4}
-                className={`font-sans w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-triagen-secondary-green/50 focus:border-triagen-secondary-green resize-none ${
-                  darkMode
-                    ? 'bg-gray-800/50 border-triagen-border-dark text-white placeholder-gray-400'
-                    : 'bg-white/70 border-triagen-border-light text-triagen-dark-bg placeholder-triagen-text-light'
-                }`}
+                placeholder="Seu nome completo"
+                autoComplete="name"
+                required
               />
-              <p className={`text-xs mt-1 ${darkMode ? 'text-gray-500' : 'text-triagen-text-light'}`}>
-                Essas informações ajudarão nossa IA a personalizar a entrevista para você
-              </p>
+              <Input
+                label="E-mail *"
+                id="email"
+                name="email"
+                type="email"
+                darkMode={darkMode}
+                value={formData.email}
+                onChange={handleInputChange}
+                placeholder="seu@email.com"
+                autoComplete="email"
+                required
+              />
             </div>
 
-            {/* Pre-Interview Questions */}
+            <Input
+              label="Telefone"
+              id="phone"
+              name="phone"
+              type="tel"
+              darkMode={darkMode}
+              value={formData.phone}
+              onChange={handlePhoneChange}
+              placeholder="(11) 99999-9999"
+              autoComplete="tel"
+            />
+
+            <Textarea
+              label="Resumo do seu currículo (opcional)"
+              id="resume_text"
+              name="resume_text"
+              darkMode={darkMode}
+              value={formData.resume_text}
+              onChange={handleInputChange}
+              placeholder="Descreva brevemente sua experiência profissional, formação e principais habilidades..."
+              rows={4}
+              hint="Essas informações ajudam nossa IA a personalizar a entrevista para você."
+            />
+
             {job?.pre_interview_questions && job.pre_interview_questions.length > 0 && (
-              <div className="space-y-4">
+              <div className="space-y-4 pt-2">
                 <h3 className={`font-heading text-lg font-semibold ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
-                  Perguntas da Vaga
+                  Perguntas da vaga
                 </h3>
                 {job.pre_interview_questions.map((q) => (
-                  <div key={q.id}>
-                    <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-triagen-dark-bg'}`}>
-                      {q.question} *
-                    </label>
-                    <textarea
-                      value={formData.pre_interview_answers[String(q.id)] || ''}
-                      onChange={(e) => setFormData(prev => ({
-                        ...prev,
-                        pre_interview_answers: { ...prev.pre_interview_answers, [String(q.id)]: e.target.value }
-                      }))}
-                      rows={2}
-                      className={`font-sans w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-triagen-secondary-green/50 focus:border-triagen-secondary-green resize-none ${
-                        darkMode
-                          ? 'bg-gray-800/50 border-triagen-border-dark text-white placeholder-gray-400'
-                          : 'bg-white/70 border-triagen-border-light text-triagen-dark-bg placeholder-triagen-text-light'
-                      }`}
-                      placeholder="Sua resposta..."
-                    />
-                  </div>
+                  <Textarea
+                    key={q.id}
+                    label={`${q.question} *`}
+                    darkMode={darkMode}
+                    value={formData.pre_interview_answers[String(q.id)] || ''}
+                    onChange={(e) => setFormData(prev => ({
+                      ...prev,
+                      pre_interview_answers: { ...prev.pre_interview_answers, [String(q.id)]: e.target.value }
+                    }))}
+                    rows={2}
+                    placeholder="Sua resposta..."
+                  />
                 ))}
               </div>
             )}
@@ -514,8 +434,8 @@ function JobApplicationPage() {
 
             <StatusMessage
               type="info"
-              title="Próximo passo: Entrevista Personalizada com IA"
-              message="Após enviar sua candidatura, nossa IA analisará seu perfil e criará uma entrevista personalizada. Você receberá um e-mail com o link para a entrevista."
+              title="Próximo passo: entrevista com IA"
+              message="Após o envio, nossa IA analisará seu perfil e criará uma entrevista personalizada. O link chegará por e-mail."
               darkMode={darkMode}
             />
 
@@ -529,11 +449,18 @@ function JobApplicationPage() {
               icon={Send}
               iconPosition="left"
             >
-              {submitting ? 'Processando...' : 'Enviar Candidatura'}
+              {submitting ? 'Enviando candidatura...' : 'Enviar candidatura'}
             </Button>
           </form>
         </Card>
-      </div>
+      ) : (
+        <StatusMessage
+          type="warning"
+          title="Candidaturas encerradas"
+          message="O prazo de candidatura desta vaga já foi encerrado. Fique de olho em novas oportunidades da empresa."
+          darkMode={darkMode}
+        />
+      )}
     </div>
   );
 }

@@ -19,18 +19,18 @@ function Card({
   padding = 'md',
   onClick
 }: CardProps) {
-  const baseClasses = 'rounded border transition-all duration-300';
+  const baseClasses = 'rounded-lg border transition-all duration-300';
 
   const variantClasses = {
     default: darkMode
       ? 'bg-gray-900 border-gray-800'
-      : 'bg-white border-neutral-200',
+      : 'bg-white border-triagen-border-light',
     glass: darkMode
       ? 'bg-gray-900 border-gray-800'
-      : 'bg-white border-neutral-200',
+      : 'bg-white border-triagen-border-light',
     solid: darkMode
       ? 'bg-gray-900 border-gray-800'
-      : 'bg-white border-neutral-200'
+      : 'bg-white border-triagen-border-light'
   };
 
   const paddingClasses = {

@@ -1,15 +1,4 @@
 
-interface Company {
-  id: string;
-  user_id: string;
-  name: string;
-  cnpj?: string;
-  contact_email?: string;
-  contact_phone?: string;
-  address?: string;
-  created_at: string;
-  updated_at: string;
-}
 
 interface Job {
   id: string;
@@ -36,7 +25,7 @@ interface Job {
 
 export interface JobWithStats extends Job {
   candidatesCount: number;
-  candidates?: any[];
+  candidates?: Array<{ count: number }>;
 }
 
 export interface JobWithCompany {
@@ -64,28 +53,19 @@ export interface Candidate {
   name: string;
   email: string;
   phone?: string | null;
+  /** Free-text resume summary submitted with the application. */
   resume_url?: string;
-  resume_text?: string | null;
-  custom_answers?: Record<string, unknown> | null;
+  /** Screening answers keyed by the job's pre_interview_questions ids. */
+  pre_interview_answers?: Record<string, unknown> | null;
   status: 'pending' | 'interviewed' | 'completed' | 'rejected' | 'hired';
   is_favorite: boolean;
   notes?: string;
-  interview_token?: string;
   interview_started_at?: string;
   interview_completed_at?: string;
   created_at: string;
   updated_at: string;
 }
 
-interface InterviewReport {
-  id: string;
-  candidate_id: string;
-  summary?: string;
-  highlights?: string;
-  overall_score?: number;
-  created_at: string;
-  status: 'pending' | 'processing' | 'completed' | 'failed';
-}
 
 export interface Report {
   id: string;
@@ -98,36 +78,5 @@ export interface Report {
   status: 'pending' | 'processing' | 'completed' | 'failed';
 }
 
-interface Plan {
-  id: string;
-  name: string;
-  description?: string;
-  price_monthly?: number;
-  price_yearly?: number;
-  interview_credits: number;
-  features: Record<string, any>;
-  is_active: boolean;
-  created_at: string;
-}
 
-interface Subscription {
-  id: string;
-  company_id: string;
-  plan_id: string;
-  status: 'active' | 'cancelled' | 'expired';
-  current_period_start: string;
-  current_period_end?: string;
-  credits_remaining: number;
-  created_at: string;
-  updated_at: string;
-}
 
-interface UsageTracking {
-  id: string;
-  company_id: string;
-  action_type: string;
-  resource_id?: string;
-  credits_used: number;
-  metadata: Record<string, any>;
-  created_at: string;
-}

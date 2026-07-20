@@ -353,5 +353,5 @@ export function createScopedLogger(context: string) {
 
 // Make available globally for debugging
 if (typeof window !== "undefined") {
-    (window as any).__triagen_observability = observability;
+    (window as unknown as Record<string, unknown>).__triagen_observability = observability;
 }

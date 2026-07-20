@@ -15,7 +15,7 @@ interface PreInterviewRoomProps {
 }
 
 function PreInterviewRoom({ onConfirm, onBack }: PreInterviewRoomProps) {
-  const { darkMode } = useDarkMode(true);
+  const { darkMode } = useDarkMode();
   const [step, setStep] = useState<Step>('mic');
 
   // --- Mic step state ---
@@ -124,7 +124,7 @@ function PreInterviewRoom({ onConfirm, onBack }: PreInterviewRoomProps) {
   };
 
   return (
-    <div className={`min-h-screen transition-all duration-500 ${darkMode ? 'dark bg-gray-900' : 'bg-triagen-light-bg'}`}>
+    <div className={`min-h-screen transition-all duration-500 ${darkMode ? 'bg-gray-900' : 'bg-triagen-light-bg'}`}>
       <AnimatedBackground darkMode={darkMode} />
       <PageHeader darkMode={darkMode} />
 
@@ -200,7 +200,7 @@ function PreInterviewRoom({ onConfirm, onBack }: PreInterviewRoomProps) {
                     Voltar
                   </Button>
                   <Button
-                    variant="primary-solid"
+                    variant="primary"
                     size="lg"
                     fullWidth
                     onClick={handleGoToAudioStep}
@@ -256,7 +256,7 @@ function PreInterviewRoom({ onConfirm, onBack }: PreInterviewRoomProps) {
                     Não ouvi
                   </Button>
                   <Button
-                    variant="primary-solid"
+                    variant="primary"
                     size="lg"
                     fullWidth
                     onClick={onConfirm}

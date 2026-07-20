@@ -22,7 +22,7 @@ function InterviewPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
   const [jwtToken, setJwtToken] = useState('');
-  const { darkMode } = useDarkMode(true);
+  const { darkMode } = useDarkMode();
 
   useEffect(() => {
     if (urlToken) {
@@ -76,9 +76,8 @@ function InterviewPage() {
         // Chama o endpoint de finalizar sessão
         const { finishInterviewSession } = await import('../api/interview');
         await finishInterviewSession(token);
-      } catch (e) {
-        // Silencia erro, mas pode logar se quiser
-        // console.error('Erro ao finalizar entrevista', e);
+      } catch {
+        // A finalização é best-effort; o backend também encerra por timeout
       }
     }
     setIsFinished(true);
@@ -94,7 +93,7 @@ function InterviewPage() {
   }
 
   return (
-    <div className={`min-h-screen transition-all duration-500 ${darkMode ? 'dark bg-gray-900' : 'bg-triagen-light-bg'}`}>
+    <div className={`min-h-screen transition-all duration-500 ${darkMode ? 'bg-gray-900' : 'bg-triagen-light-bg'}`}>
       {/* Animated Background */}
       <AnimatedBackground darkMode={darkMode} />
 
@@ -151,7 +150,7 @@ function InterviewPage() {
 
               <Button
                 type="submit"
-                variant="primary-solid"
+                variant="primary"
                 size="lg"
                 fullWidth
                 isLoading={isLoading}

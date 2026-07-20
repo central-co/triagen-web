@@ -38,7 +38,6 @@ function toReportStatus(value: string | null | undefined): Report['status'] {
 }
 
 export async function fetchDashboardReports(userId: string, limit?: number): Promise<DashboardReportListItem[]> {
-  console.log('[dashboardReports] Fetching reports for userId:', userId);
 
   const { data: companies, error: companyError } = await supabase
     .from('companies')
@@ -51,9 +50,7 @@ export async function fetchDashboardReports(userId: string, limit?: number): Pro
   }
 
   const companyIds = (companies || []).map((company) => company.id);
-  console.log('[dashboardReports] Found companies:', companyIds);
   if (companyIds.length === 0) {
-    console.log('[dashboardReports] No companies found');
     return [];
   }
 
@@ -69,9 +66,7 @@ export async function fetchDashboardReports(userId: string, limit?: number): Pro
 
   const typedJobs = (jobs || []) as JobRow[];
   const jobIds = typedJobs.map((job) => job.id);
-  console.log('[dashboardReports] Found jobs:', jobIds);
   if (jobIds.length === 0) {
-    console.log('[dashboardReports] No jobs found');
     return [];
   }
 
@@ -86,15 +81,12 @@ export async function fetchDashboardReports(userId: string, limit?: number): Pro
   }
 
   const typedCandidates = (candidates || []) as CandidateRow[];
-  console.log('[dashboardReports] Found candidates:', typedCandidates.map(c => ({ id: c.id, interview_id: c.interview_id })));
 
   const interviewIds = typedCandidates
     .filter((candidate) => candidate.interview_id)
     .map((candidate) => candidate.interview_id);
-  console.log('[dashboardReports] Interview IDs to query:', interviewIds);
 
   if (interviewIds.length === 0) {
-    console.log('[dashboardReports] No interview IDs found');
     return [];
   }
 
@@ -121,7 +113,6 @@ export async function fetchDashboardReports(userId: string, limit?: number): Pro
   }
 
   const typedReports = (reportsData || []) as ReportRow[];
-  console.log('[dashboardReports] Found reports:', typedReports.length, typedReports);
 
   const mappedReports = typedReports
     .map((report) => {
@@ -146,7 +137,5 @@ export async function fetchDashboardReports(userId: string, limit?: number): Pro
       } as DashboardReportListItem;
     })
     .filter((report): report is DashboardReportListItem => report !== null);
-
-  console.log('[dashboardReports] Returning', mappedReports.length, 'mapped reports');
   return mappedReports;
 }

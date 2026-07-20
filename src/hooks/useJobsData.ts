@@ -1,29 +1,40 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from './useAuth';
 import { supabase } from '../integrations/supabase/client';
 import { JobWithStats } from '../types/company';
+
+function parseJsonArray<T>(value: unknown): T[] | null {
+  if (!value) return null;
+  if (Array.isArray(value)) return value as T[];
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value);
+      return Array.isArray(parsed) ? parsed as T[] : null;
+    } catch {
+      return null;
+    }
+  }
+  return null;
+}
 
 export function useJobsData() {
   const [jobs, setJobs] = useState<JobWithStats[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const { user } = useAuth();
+  const userId = user?.id;
 
   useEffect(() => {
-    if (!user?.id) return;
+    if (!userId) return;
 
     let cancelled = false;
 
     const fetchJobs = async () => {
       try {
-        setLoading(true);
-
-        // Get user's company
         const { data: companies, error: companyError } = await supabase
           .from('companies')
           .select('id')
-          .eq('user_id', user.id);
+          .eq('user_id', userId);
 
         if (companyError) throw companyError;
 
@@ -32,16 +43,13 @@ export function useJobsData() {
           return;
         }
 
-        const company = companies[0];
-
-        // Get jobs with candidate count
         const { data: jobsData, error: jobsError } = await supabase
           .from('jobs')
           .select(`
             *,
             candidates(count)
           `)
-          .eq('company_id', company.id)
+          .eq('company_id', companies[0].id)
           .order('created_at', { ascending: false });
 
         if (jobsError) throw jobsError;
@@ -49,9 +57,9 @@ export function useJobsData() {
         const transformedJobs: JobWithStats[] = (jobsData || []).map(job => ({
           ...job,
           location: job.location || undefined,
-          mandatory_requirements: job.mandatory_requirements ? (Array.isArray(job.mandatory_requirements) ? job.mandatory_requirements as string[] : JSON.parse(job.mandatory_requirements as string)) : null,
-          desirable_requirements: job.desirable_requirements ? (Array.isArray(job.desirable_requirements) ? job.desirable_requirements as string[] : JSON.parse(job.desirable_requirements as string)) : null,
-          pre_interview_questions: job.pre_interview_questions ? (Array.isArray(job.pre_interview_questions) ? job.pre_interview_questions as Array<{ id: number; question: string }> : JSON.parse(job.pre_interview_questions as string)) : null,
+          mandatory_requirements: parseJsonArray<string>(job.mandatory_requirements),
+          desirable_requirements: parseJsonArray<string>(job.desirable_requirements),
+          pre_interview_questions: parseJsonArray<{ id: number; question: string }>(job.pre_interview_questions),
           candidatesCount: job.candidates?.[0]?.count || 0,
           candidates: job.candidates,
           status: (job.status as 'open' | 'closed' | 'paused') || 'open',
@@ -70,7 +78,7 @@ export function useJobsData() {
 
     fetchJobs();
     return () => { cancelled = true; };
-  }, [user]);
+  }, [userId]);
 
   return { jobs, loading, error };
 }

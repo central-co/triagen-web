@@ -4,7 +4,7 @@
  * Catches React errors and records them for observability.
  */
 
-import React, { Component, ErrorInfo, ReactNode } from "react";
+import { Component, ErrorInfo, ReactNode } from "react";
 import { observability, createScopedLogger } from "./index";
 
 const logger = createScopedLogger("ErrorBoundary");
@@ -40,7 +40,7 @@ export class ObservabilityErrorBoundary extends Component<Props, State> {
             "React",
             errorInfo.componentStack || undefined,
             {
-                digest: (errorInfo as any).digest,
+                digest: (errorInfo as ErrorInfo & { digest?: string }).digest,
             },
         );
 

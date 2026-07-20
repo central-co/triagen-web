@@ -17,7 +17,7 @@ import { AlertCircle, ArrowRight } from 'lucide-react';
 function TestInterviewRoom() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { darkMode } = useDarkMode(true);
+  const { darkMode } = useDarkMode();
 
   const token = searchParams.get('token');
   const roomName = searchParams.get('room') || 'test-room';
@@ -41,7 +41,7 @@ function TestInterviewRoom() {
   // No token provided
   if (!token) {
     return (
-      <div className={`min-h-screen transition-all duration-500 ${darkMode ? 'dark bg-gray-900' : 'bg-triagen-light-bg'}`}>
+      <div className={`min-h-screen transition-all duration-500 ${darkMode ? 'bg-gray-900' : 'bg-triagen-light-bg'}`}>
         <AnimatedBackground darkMode={darkMode} />
         <div className="flex items-center justify-center min-h-screen px-4">
           <Card darkMode={darkMode} className="max-w-md">
@@ -99,11 +99,7 @@ function TestInterviewRoom() {
 
         <InterviewRoom
           jwtToken={token}
-          candidateId="test-candidate" // Mock ID for test mode
-          onLeave={() => {
-            console.log('🧪 Test session ended');
-            navigate('/');
-          }}
+          onFinished={() => navigate('/')}
         />
       </>
     );
@@ -111,7 +107,7 @@ function TestInterviewRoom() {
 
   // Loading state
   return (
-    <div className={`min-h-screen transition-all duration-500 ${darkMode ? 'dark bg-gray-900' : 'bg-triagen-light-bg'}`}>
+    <div className={`min-h-screen transition-all duration-500 ${darkMode ? 'bg-gray-900' : 'bg-triagen-light-bg'}`}>
       <AnimatedBackground darkMode={darkMode} />
       <div className="flex items-center justify-center min-h-screen px-4">
         <Card darkMode={darkMode}>

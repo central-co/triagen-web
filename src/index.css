@@ -1,28 +1,100 @@
+/* Self-hosted fonts (no external requests at runtime) */
+@import '@fontsource/manrope/400.css';
+@import '@fontsource/manrope/500.css';
+@import '@fontsource/manrope/600.css';
+@import '@fontsource/manrope/700.css';
+@import '@fontsource/newsreader/400.css';
+@import '@fontsource/newsreader/400-italic.css';
+@import '@fontsource/newsreader/500.css';
+@import '@fontsource/newsreader/500-italic.css';
+@import '@fontsource/newsreader/600.css';
+
 /* LiveKit Components Styles */
 @import '@livekit/components-styles';
-
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Newsreader:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Base Reset */
+/* ── Base ──────────────────────────────────────────────────────────── */
+
+html {
+  /* Reserve space for the scrollbar so async content never shifts the layout */
+  scrollbar-gutter: stable;
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
 body {
-  font-family: 'Manrope', sans-serif;
+  font-family: 'Manrope', system-ui, sans-serif;
   background-color: theme('colors.triagen.neutral');
   color: theme('colors.triagen.primary');
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }
 
+.dark body {
+  background-color: theme('colors.gray.900');
+  color: theme('colors.gray.100');
+}
+
 h1, h2, h3, h4, h5, h6 {
-  font-family: 'Newsreader', serif;
+  font-family: 'Newsreader', Georgia, serif;
   font-weight: 500;
   letter-spacing: -0.02em;
 }
 
-/* Custom styles for LiveKit components */
+/* ── Scrollbars: slim and unobtrusive, matching the palette ────────── */
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(84, 110, 122, 0.35) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: rgba(84, 110, 122, 0.35);
+  border-radius: 9999px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(84, 110, 122, 0.55);
+}
+
+.dark * {
+  scrollbar-color: rgba(148, 163, 184, 0.3) transparent;
+}
+
+.dark *::-webkit-scrollbar-thumb {
+  background-color: rgba(148, 163, 184, 0.3);
+}
+
+/* ── Focus: visible for keyboard users, quiet for pointer users ────── */
+
+:focus-visible {
+  outline: 2px solid theme('colors.triagen.secondary');
+  outline-offset: 2px;
+}
+
+.dark :focus-visible {
+  outline-color: theme('colors.gray.400');
+}
+
+/* ── LiveKit component overrides ───────────────────────────────────── */
+
 .lk-room-container {
   height: 100vh;
   background: transparent;
@@ -40,53 +112,7 @@ h1, h2, h3, h4, h5, h6 {
   transition: all 0.3s ease;
 }
 
-.lk-button:hover {
-  transform: scale(1.05);
-}
-
-/* Custom animations */
-@keyframes slide-in-from-top {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.animate-in {
-  animation-fill-mode: both;
-}
-
-.slide-in-from-top {
-  animation-name: slide-in-from-top;
-}
-
-.duration-500 {
-  animation-duration: 500ms;
-}
-
-/* Smooth scrolling */
-html {
-  scroll-behavior: smooth;
-}
-
-/* Better focus styles */
-input:focus,
-button:focus,
-textarea:focus {
-  outline: none;
-}
-
-/* Improved transitions */
-* {
-  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Hide reCAPTCHA badge */
+/* Hide reCAPTCHA badge (attribution text is shown inline instead) */
 .grecaptcha-badge {
   visibility: hidden !important;
 }

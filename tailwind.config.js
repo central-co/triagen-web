@@ -1,20 +1,29 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
+  darkMode: 'class',
   theme: {
     extend: {
       colors: {
         'triagen': {
+          // Core editorial palette — warm paper background, ink foreground
           'primary': '#2C3E50',
           'secondary': '#546E7A',
-          'neutral': '#F8F9FA',
+          'neutral': '#F7F6F3',
           'dark-bg': '#1B2A41',
-          'light-bg': '#F8F9FA', // Mapped to neutral
-          'text-dark': '#2C3E50', // Mapped to primary
-          'text-light': '#546E7A', // Mapped to secondary
-          'border-light': '#E5E7EB',
+          'light-bg': '#F7F6F3',
+          'text-dark': '#2C3E50',
+          'text-light': '#546E7A',
+          'border-light': '#E7E5E0',
           'border-dark': '#4B5563',
-          'error': '#EF4444',
+          'error': '#DC2626',
+          // Signal layer: meaning-bearing accents
+          'primary-blue': '#3E5C76',
+          'secondary-green': '#3F7A5E',
+          'sage-tint': '#E3EDE7',
+          'amber': '#B45309',
+          'amber-tint': '#FBEFDC',
+          'highlight-purple': '#6D5A74',
         }
       },
       fontFamily: {

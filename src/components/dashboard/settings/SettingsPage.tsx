@@ -1,17 +1,13 @@
 import { useState, useEffect } from 'react';
-import { Save, User, Building, Mail, Phone, Shield, Key, Bell, Globe, Palette } from 'lucide-react';
+import { Save, User, Building, Palette } from 'lucide-react';
 import useDarkMode from '../../../hooks/useDarkMode';
 import { useAuth } from '../../../hooks/useAuth';
 import { supabase } from '../../../integrations/supabase/client';
 import Button from '../../ui/Button';
 import Card from '../../ui/Card';
 import StatusMessage from '../../ui/StatusMessage';
-import DashboardHeader from '../DashboardHeader';
-
-interface UserProfile {
-  name: string;
-  email: string;
-}
+import LoadingSpinner from '../../ui/LoadingSpinner';
+import { Input, Textarea } from '../../ui/Field';
 
 interface CompanyProfile {
   name: string;
@@ -22,11 +18,7 @@ interface CompanyProfile {
 }
 
 function SettingsPage() {
-  const [userProfile, setUserProfile] = useState<UserProfile>({
-    name: '',
-    email: ''
-  });
-
+  const [userName, setUserName] = useState('');
   const [companyProfile, setCompanyProfile] = useState<CompanyProfile>({
     name: '',
     cnpj: '',
@@ -35,84 +27,58 @@ function SettingsPage() {
     address: ''
   });
 
-  const [preferences, setPreferences] = useState({
-    emailNotifications: true,
-    smsNotifications: false,
-    weeklyReports: true,
-    marketingEmails: false
-  });
-
   const [companyId, setCompanyId] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
-  const { darkMode, toggleDarkMode } = useDarkMode(true);
+  const { darkMode, toggleDarkMode } = useDarkMode();
   const { user } = useAuth();
+  const userId = user?.id;
 
   useEffect(() => {
-    if (user) {
-      loadUserData();
-    }
-  }, [user]);
+    if (!userId) return;
+    let cancelled = false;
 
-  const loadUserData = async () => {
-    try {
-      setLoading(true);
+    const loadUserData = async () => {
+      try {
+        const { data: companies, error: companyError } = await supabase
+          .from('companies')
+          .select('*')
+          .eq('user_id', userId)
+          .single();
 
-      if (!user?.id) {
-        throw new Error('User not found');
+        if (companyError && companyError.code !== 'PGRST116') {
+          throw companyError;
+        }
+
+        if (!cancelled && companies) {
+          setCompanyId(companies.id);
+          setCompanyProfile({
+            name: companies.name || '',
+            cnpj: companies.cnpj || '',
+            contact_email: companies.contact_email || '',
+            contact_phone: companies.contact_phone || '',
+            address: companies.address || ''
+          });
+        }
+      } catch (err) {
+        console.error('Error loading user data:', err);
+        if (!cancelled) setError('Erro ao carregar dados do usuário');
+      } finally {
+        if (!cancelled) setLoading(false);
       }
+    };
 
-      // Load user profile
-      setUserProfile({
-        name: user.user_metadata?.name || '',
-        email: user.email || ''
-      });
+    setUserName(user?.user_metadata?.name || '');
+    loadUserData();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId]);
 
-      // Load company profile
-      const { data: companies, error: companyError } = await supabase
-        .from('companies')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
-
-      if (companyError && companyError.code !== 'PGRST116') {
-        throw companyError;
-      }
-
-      if (companies) {
-        setCompanyId(companies.id);
-        setCompanyProfile({
-          name: companies.name || '',
-          cnpj: companies.cnpj || '',
-          contact_email: companies.contact_email || '',
-          contact_phone: companies.contact_phone || '',
-          address: companies.address || ''
-        });
-      }
-
-    } catch (err) {
-      console.error('Error loading user data:', err);
-      setError('Erro ao carregar dados do usuário');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleUserProfileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setUserProfile(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleCompanyProfileChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setCompanyProfile(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handlePreferenceChange = (key: keyof typeof preferences) => {
-    setPreferences(prev => ({ ...prev, [key]: !prev[key] }));
-  };
+  const handleCompanyChange = (field: keyof CompanyProfile) =>
+    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+      setCompanyProfile(prev => ({ ...prev, [field]: e.target.value }));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -121,22 +87,15 @@ function SettingsPage() {
     setError('');
 
     try {
-      if (!user?.id) {
-        throw new Error('User not found');
-      }
+      if (!userId) throw new Error('Usuário não encontrado');
 
-      // Update user metadata
       const { error: userError } = await supabase.auth.updateUser({
-        data: { name: userProfile.name }
+        data: { name: userName }
       });
+      if (userError) throw userError;
 
-      if (userError) {
-        throw userError;
-      }
-
-      // Update or create company profile
       const companyData = {
-        user_id: user.id,
+        user_id: userId,
         name: companyProfile.name,
         cnpj: companyProfile.cnpj || null,
         contact_email: companyProfile.contact_email || null,
@@ -149,9 +108,7 @@ function SettingsPage() {
         ? await supabase.from('companies').update(companyData).eq('id', companyId)
         : await supabase.from('companies').insert(companyData);
 
-      if (companyError) {
-        throw companyError;
-      }
+      if (companyError) throw companyError;
 
       setSuccess('Configurações salvas com sucesso!');
     } catch (err) {
@@ -163,337 +120,165 @@ function SettingsPage() {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-triagen-primary-blue"></div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
+  const sectionHeading = (Icon: typeof User, title: string, description?: string) => (
+    <div className="mb-6">
+      <h2 className={`flex items-center gap-2 font-heading text-xl ${darkMode ? 'text-white' : 'text-triagen-primary'}`}>
+        <Icon className="h-5 w-5" aria-hidden="true" />
+        {title}
+      </h2>
+      {description && (
+        <p className={`text-sm mt-1 ${darkMode ? 'text-gray-400' : 'text-triagen-secondary'}`}>
+          {description}
+        </p>
+      )}
+    </div>
+  );
+
   return (
-    <div className="space-y-8">
-      <DashboardHeader
-        title="Configurações"
-        description="Gerencie suas informações de perfil e preferências"
-        darkMode={darkMode}
-      />
+    <div className="flex flex-col max-w-3xl mx-auto pb-16">
+      {/* Header */}
+      <div className="mt-4 mb-10">
+        <h1 className={`text-4xl md:text-5xl font-heading font-normal tracking-tight mb-3 ${darkMode ? 'text-gray-100' : 'text-triagen-primary'}`}>
+          Configurações
+        </h1>
+        <p className={`text-lg font-sans ${darkMode ? 'text-gray-400' : 'text-triagen-secondary'}`}>
+          Gerencie seu perfil, os dados da empresa e a aparência da plataforma.
+        </p>
+      </div>
 
       <form onSubmit={handleSubmit} className="space-y-8">
         {/* User Profile */}
-        <Card darkMode={darkMode}>
-          <h2 className={`font-heading text-xl font-semibold mb-6 ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
-            <User className="h-5 w-5 inline mr-2" />
-            Perfil do Usuário
-          </h2>
+        <Card darkMode={darkMode} padding="lg">
+          {sectionHeading(User, 'Perfil do usuário')}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label htmlFor="name" className={`block text-sm font-medium mb-3 ${darkMode ? 'text-gray-300' : 'text-triagen-dark-bg'}`}>
-                Nome Completo
-              </label>
-              <input
-                type="text"
-                id="name"
-                name="name"
-                value={userProfile.name}
-                onChange={handleUserProfileChange}
-                placeholder="Seu nome completo"
-                className={`font-sans w-full px-4 py-4 rounded-2xl border transition-all duration-300 focus:ring-2 focus:ring-triagen-secondary-green/50 focus:border-triagen-secondary-green ${
-                  darkMode
-                    ? 'bg-gray-800/50 border-triagen-border-dark text-white placeholder-gray-400'
-                    : 'bg-white/70 border-triagen-border-light text-triagen-dark-bg placeholder-triagen-text-light'
-                }`}
-                required
-              />
-            </div>
+            <Input
+              label="Nome completo"
+              darkMode={darkMode}
+              value={userName}
+              onChange={(e) => setUserName(e.target.value)}
+              placeholder="Seu nome completo"
+              autoComplete="name"
+              required
+            />
 
-            <div>
-              <label htmlFor="email" className={`block text-sm font-medium mb-3 ${darkMode ? 'text-gray-300' : 'text-triagen-dark-bg'}`}>
-                Email
-              </label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                value={userProfile.email}
-                disabled
-                className={`font-sans w-full px-4 py-4 rounded-2xl border transition-all duration-300 ${
-                  darkMode
-                    ? 'bg-gray-800/30 border-triagen-border-dark text-gray-500'
-                    : 'bg-gray-100 border-triagen-border-light text-gray-500'
-                }`}
-              />
-              <p className={`text-xs mt-1 ${darkMode ? 'text-gray-500' : 'text-triagen-text-light'}`}>
-                O email não pode ser alterado
-              </p>
-            </div>
+            <Input
+              label="E-mail"
+              type="email"
+              darkMode={darkMode}
+              value={user?.email || ''}
+              disabled
+              hint="O e-mail de acesso não pode ser alterado."
+            />
           </div>
         </Card>
 
         {/* Company Profile */}
-        <Card darkMode={darkMode}>
-          <h2 className={`font-heading text-xl font-semibold mb-6 ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
-            <Building className="h-5 w-5 inline mr-2" />
-            Informações da Empresa
-          </h2>
+        <Card darkMode={darkMode} padding="lg">
+          {sectionHeading(Building, 'Empresa', 'Essas informações aparecem para os candidatos nas vagas publicadas.')}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label htmlFor="companyName" className={`block text-sm font-medium mb-3 ${darkMode ? 'text-gray-300' : 'text-triagen-dark-bg'}`}>
-                Nome da Empresa *
-              </label>
-              <input
-                type="text"
-                id="companyName"
-                name="name"
-                value={companyProfile.name}
-                onChange={handleCompanyProfileChange}
-                placeholder="Nome da sua empresa"
-                className={`font-sans w-full px-4 py-4 rounded-2xl border transition-all duration-300 focus:ring-2 focus:ring-triagen-secondary-green/50 focus:border-triagen-secondary-green ${
-                  darkMode
-                    ? 'bg-gray-800/50 border-triagen-border-dark text-white placeholder-gray-400'
-                    : 'bg-white/70 border-triagen-border-light text-triagen-dark-bg placeholder-triagen-text-light'
-                }`}
-                required
-              />
-            </div>
+            <Input
+              label="Nome da empresa *"
+              darkMode={darkMode}
+              value={companyProfile.name}
+              onChange={handleCompanyChange('name')}
+              placeholder="Nome da sua empresa"
+              required
+            />
 
-            <div>
-              <label htmlFor="cnpj" className={`block text-sm font-medium mb-3 ${darkMode ? 'text-gray-300' : 'text-triagen-dark-bg'}`}>
-                CNPJ
-              </label>
-              <input
-                type="text"
-                id="cnpj"
-                name="cnpj"
-                value={companyProfile.cnpj}
-                onChange={handleCompanyProfileChange}
-                placeholder="00.000.000/0000-00"
-                className={`font-sans w-full px-4 py-4 rounded-2xl border transition-all duration-300 focus:ring-2 focus:ring-triagen-secondary-green/50 focus:border-triagen-secondary-green ${
-                  darkMode
-                    ? 'bg-gray-800/50 border-triagen-border-dark text-white placeholder-gray-400'
-                    : 'bg-white/70 border-triagen-border-light text-triagen-dark-bg placeholder-triagen-text-light'
-                }`}
-              />
-            </div>
+            <Input
+              label="CNPJ"
+              darkMode={darkMode}
+              value={companyProfile.cnpj}
+              onChange={handleCompanyChange('cnpj')}
+              placeholder="00.000.000/0000-00"
+            />
 
-            <div>
-              <label htmlFor="contact_email" className={`block text-sm font-medium mb-3 ${darkMode ? 'text-gray-300' : 'text-triagen-dark-bg'}`}>
-                <Mail className="h-4 w-4 inline mr-1" />
-                Email de Contato
-              </label>
-              <input
-                type="email"
-                id="contact_email"
-                name="contact_email"
-                value={companyProfile.contact_email}
-                onChange={handleCompanyProfileChange}
-                placeholder="contato@empresa.com"
-                className={`font-sans w-full px-4 py-4 rounded-2xl border transition-all duration-300 focus:ring-2 focus:ring-triagen-secondary-green/50 focus:border-triagen-secondary-green ${
-                  darkMode
-                    ? 'bg-gray-800/50 border-triagen-border-dark text-white placeholder-gray-400'
-                    : 'bg-white/70 border-triagen-border-light text-triagen-dark-bg placeholder-triagen-text-light'
-                }`}
-              />
-            </div>
+            <Input
+              label="E-mail de contato"
+              type="email"
+              darkMode={darkMode}
+              value={companyProfile.contact_email}
+              onChange={handleCompanyChange('contact_email')}
+              placeholder="contato@empresa.com"
+            />
 
-            <div>
-              <label htmlFor="contact_phone" className={`block text-sm font-medium mb-3 ${darkMode ? 'text-gray-300' : 'text-triagen-dark-bg'}`}>
-                <Phone className="h-4 w-4 inline mr-1" />
-                Telefone de Contato
-              </label>
-              <input
-                type="tel"
-                id="contact_phone"
-                name="contact_phone"
-                value={companyProfile.contact_phone}
-                onChange={handleCompanyProfileChange}
-                placeholder="(11) 99999-9999"
-                className={`font-sans w-full px-4 py-4 rounded-2xl border transition-all duration-300 focus:ring-2 focus:ring-triagen-secondary-green/50 focus:border-triagen-secondary-green ${
-                  darkMode
-                    ? 'bg-gray-800/50 border-triagen-border-dark text-white placeholder-gray-400'
-                    : 'bg-white/70 border-triagen-border-light text-triagen-dark-bg placeholder-triagen-text-light'
-                }`}
-              />
-            </div>
+            <Input
+              label="Telefone de contato"
+              type="tel"
+              darkMode={darkMode}
+              value={companyProfile.contact_phone}
+              onChange={handleCompanyChange('contact_phone')}
+              placeholder="(11) 99999-9999"
+            />
 
             <div className="md:col-span-2">
-              <label htmlFor="address" className={`block text-sm font-medium mb-3 ${darkMode ? 'text-gray-300' : 'text-triagen-dark-bg'}`}>
-                <Globe className="h-4 w-4 inline mr-1" />
-                Endereço
-              </label>
-              <textarea
-                id="address"
-                name="address"
+              <Textarea
+                label="Endereço"
+                darkMode={darkMode}
                 value={companyProfile.address}
-                onChange={handleCompanyProfileChange}
+                onChange={handleCompanyChange('address')}
                 rows={3}
                 placeholder="Endereço completo da empresa"
-                className={`font-sans w-full px-4 py-4 rounded-2xl border transition-all duration-300 focus:ring-2 focus:ring-triagen-secondary-green/50 focus:border-triagen-secondary-green resize-none ${
-                  darkMode
-                    ? 'bg-gray-800/50 border-triagen-border-dark text-white placeholder-gray-400'
-                    : 'bg-white/70 border-triagen-border-light text-triagen-dark-bg placeholder-triagen-text-light'
-                }`}
               />
-            </div>
-          </div>
-        </Card>
-
-        {/* Preferences */}
-        <Card darkMode={darkMode}>
-          <h2 className={`font-heading text-xl font-semibold mb-6 ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
-            <Bell className="h-5 w-5 inline mr-2" />
-            Preferências de Notificação
-          </h2>
-
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className={`font-medium ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
-                  Notificações por Email
-                </h3>
-                <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
-                  Receber notificações sobre novos candidatos e entrevistas
-                </p>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={preferences.emailNotifications}
-                  onChange={() => handlePreferenceChange('emailNotifications')}
-                  className="sr-only peer"
-                />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-triagen-secondary-green/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-triagen-secondary-green"></div>
-              </label>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className={`font-medium ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
-                  Relatórios Semanais
-                </h3>
-                <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
-                  Receber resumo semanal das atividades
-                </p>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={preferences.weeklyReports}
-                  onChange={() => handlePreferenceChange('weeklyReports')}
-                  className="sr-only peer"
-                />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-triagen-secondary-green/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-triagen-secondary-green"></div>
-              </label>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className={`font-medium ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
-                  Emails de Marketing
-                </h3>
-                <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
-                  Receber novidades e dicas sobre recrutamento
-                </p>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={preferences.marketingEmails}
-                  onChange={() => handlePreferenceChange('marketingEmails')}
-                  className="sr-only peer"
-                />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-triagen-secondary-green/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-triagen-secondary-green"></div>
-              </label>
             </div>
           </div>
         </Card>
 
         {/* Appearance */}
-        <Card darkMode={darkMode}>
-          <h2 className={`font-heading text-xl font-semibold mb-6 ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
-            <Palette className="h-5 w-5 inline mr-2" />
-            Aparência
-          </h2>
+        <Card darkMode={darkMode} padding="lg">
+          {sectionHeading(Palette, 'Aparência')}
 
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-6">
             <div>
-              <h3 className={`font-medium ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
-                Modo Escuro
+              <h3 className={`font-medium ${darkMode ? 'text-white' : 'text-triagen-primary'}`}>
+                Modo escuro
               </h3>
-              <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
-                Usar tema escuro na interface
+              <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-triagen-secondary'}`}>
+                Usar tema escuro em toda a plataforma
               </p>
             </div>
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                checked={darkMode}
-                onChange={toggleDarkMode}
-                className="sr-only peer"
+            <button
+              type="button"
+              role="switch"
+              aria-checked={darkMode}
+              aria-label="Alternar modo escuro"
+              onClick={toggleDarkMode}
+              className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ${darkMode ? 'bg-triagen-secondary-green' : 'bg-gray-300'}`}
+            >
+              <span
+                className={`absolute top-[2px] left-[2px] h-5 w-5 rounded-full bg-white border border-gray-200 transition-transform ${darkMode ? 'translate-x-full' : ''}`}
               />
-              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-triagen-secondary-green/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-triagen-secondary-green"></div>
-            </label>
+            </button>
           </div>
         </Card>
 
         {/* Messages */}
         {success && (
-          <StatusMessage
-            type="success"
-            message={success}
-            darkMode={darkMode}
-          />
+          <StatusMessage type="success" message={success} darkMode={darkMode} />
         )}
-
         {error && (
-          <StatusMessage
-            type="error"
-            message={error}
-            darkMode={darkMode}
-          />
+          <StatusMessage type="error" message={error} darkMode={darkMode} />
         )}
 
         {/* Submit Button */}
-        <div className="flex justify-end space-x-4">
+        <div className="flex justify-end">
           <Button
             type="submit"
             variant="primary"
             size="md"
             isLoading={isSaving}
             icon={Save}
+            iconPosition="left"
           >
-            {isSaving ? 'Salvando...' : 'Salvar Configurações'}
+            {isSaving ? 'Salvando...' : 'Salvar configurações'}
           </Button>
         </div>
       </form>
-
-      {/* Security Settings */}
-      <Card darkMode={darkMode}>
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className={`font-heading text-xl font-semibold mb-2 ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
-              <Shield className="h-5 w-5 inline mr-2" />
-              Segurança
-            </h2>
-            <p className={`font-sans text-sm ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
-              Gerencie suas configurações de segurança e senha
-            </p>
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            icon={Key}
-            darkMode={darkMode}
-            onClick={() => {
-              // TODO: Implement password change functionality
-              alert('Funcionalidade de alteração de senha será implementada em breve');
-            }}
-          >
-            Alterar Senha
-          </Button>
-        </div>
-      </Card>
     </div>
   );
 }

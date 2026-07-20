@@ -31,7 +31,7 @@ function UserDropdown() {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { user, signOut } = useAuth();
-  const { darkMode } = useDarkMode(true);
+  const { darkMode } = useDarkMode();
   const navigate = useNavigate();
 
   // Close dropdown when clicking outside

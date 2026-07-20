@@ -23,7 +23,6 @@ export default function RemoteAudioTrack({ track, volume = 1.0 }: RemoteAudioTra
         const playAudio = async () => {
             try {
                 await audioElement.play();
-                console.log(`🔊 Audio started for track ${track.sid}`);
             } catch (err) {
                 console.warn(`⚠️ Autoplay failed for track ${track.sid}:`, err);
             }

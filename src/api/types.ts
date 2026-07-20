@@ -1,5 +1,7 @@
 // Shared API types across all modules
 
+import type { DisplayCriterionScore } from "../utils/scoring";
+
 export interface CandidateData {
     id: string;
     candidate_id: string;
@@ -42,8 +44,9 @@ export interface DashboardReportData {
     candidate_name: string;
     job_title: string;
     status: string;
+    /** 0-100 */
     overallScore?: number;
-    criteriaScores?: Record<string, { score: number; justification: string }>;
+    criteriaScores: DisplayCriterionScore[];
     summary?: string;
     highlights?: string;
     createdAt?: string;

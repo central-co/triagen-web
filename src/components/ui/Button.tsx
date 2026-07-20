@@ -1,19 +1,23 @@
 import React from 'react';
-import { Loader2, DivideIcon as LucideIcon } from 'lucide-react';
+import { Loader2, type LucideIcon } from 'lucide-react';
+
+type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
 
 interface ButtonProps {
   children?: React.ReactNode;
-  variant?: 'primary' | 'primary-solid' | 'secondary' | 'outline' | 'outline-purple' | 'ghost' | 'danger' | 'success' | 'green-test' | 'purple-test' | 'favorite-toggle';
+  variant?: ButtonVariant;
   size?: 'sm' | 'md' | 'lg';
   isLoading?: boolean;
   darkMode?: boolean;
-  icon?: typeof LucideIcon;
+  icon?: LucideIcon;
   iconPosition?: 'left' | 'right';
   fullWidth?: boolean;
   disabled?: boolean;
   onClick?: () => void;
   type?: 'button' | 'submit' | 'reset';
   contentAlignment?: 'left' | 'center' | 'right';
+  className?: string;
+  title?: string;
 }
 
 function Button({
@@ -28,9 +32,11 @@ function Button({
   disabled = false,
   onClick,
   type = 'button',
-  contentAlignment = 'center'
+  contentAlignment = 'center',
+  className = '',
+  title
 }: Readonly<ButtonProps>) {
-  const baseClasses = 'group relative font-medium transition-all duration-200 overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2';
+  const baseClasses = 'group relative font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-triagen-secondary';
 
   const sizeClasses = {
     sm: 'px-3 py-1.5 text-sm rounded-sm',
@@ -38,40 +44,24 @@ function Button({
     lg: 'px-6 py-3 text-base rounded'
   };
 
-  const variantClasses = {
-    primary: darkMode
-      ? 'bg-triagen-primary text-white hover:bg-triagen-secondary focus:ring-triagen-primary/50'
-      : 'bg-triagen-primary text-white hover:bg-triagen-secondary focus:ring-triagen-primary/50',
-    'primary-solid': darkMode
-      ? 'bg-triagen-primary text-white hover:bg-triagen-secondary focus:ring-triagen-primary/50'
-      : 'bg-triagen-primary text-white hover:bg-triagen-secondary focus:ring-triagen-primary/50',
+  const iconSizeClasses = {
+    sm: 'h-4 w-4',
+    md: 'h-[1.1rem] w-[1.1rem]',
+    lg: 'h-5 w-5'
+  };
+
+  const variantClasses: Record<ButtonVariant, string> = {
+    primary: 'bg-triagen-primary text-white hover:bg-triagen-secondary',
     secondary: darkMode
-      ? 'bg-gray-800 text-gray-100 border border-gray-600 hover:bg-gray-700/80 focus:ring-gray-500/50'
-      : 'bg-white text-triagen-primary border border-neutral-200 hover:bg-neutral-50 focus:ring-neutral-200/50',
+      ? 'bg-gray-800 text-gray-100 border border-gray-600 hover:bg-gray-700/80'
+      : 'bg-white text-triagen-primary border border-triagen-border-light hover:bg-neutral-50',
     outline: darkMode
       ? 'border border-gray-600 text-gray-300 hover:bg-gray-800/30'
-      : 'border border-neutral-200 text-triagen-primary hover:bg-neutral-50',
-    'outline-purple': darkMode
-      ? 'border border-triagen-primary text-triagen-primary hover:bg-triagen-primary/5'
-      : 'border border-triagen-primary text-triagen-primary hover:bg-triagen-primary/5',
-    'green-test': darkMode
-      ? 'bg-gray-800 border border-gray-600 text-gray-300 hover:bg-gray-700'
-      : 'bg-white border border-neutral-200 text-triagen-primary hover:bg-neutral-50',
-    'purple-test': darkMode
-      ? 'bg-gray-800 border border-gray-600 text-gray-300 hover:bg-gray-700'
-      : 'bg-white border border-neutral-200 text-triagen-primary hover:bg-neutral-50',
-    'favorite-toggle': darkMode
-      ? 'text-yellow-400 hover:text-yellow-300'
-      : 'text-gray-400 hover:text-gray-800',
+      : 'border border-triagen-border-light text-triagen-primary hover:bg-neutral-50',
     ghost: darkMode
       ? 'text-gray-300 hover:bg-gray-800/30 hover:text-gray-100'
       : 'text-triagen-secondary hover:bg-neutral-100 hover:text-triagen-primary',
-    danger: darkMode
-      ? 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500/50'
-      : 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500/50',
-    success: darkMode
-      ? 'bg-triagen-primary text-white hover:bg-triagen-secondary'
-      : 'bg-triagen-primary text-white hover:bg-triagen-secondary'
+    danger: 'bg-red-600 text-white hover:bg-red-700'
   };
 
   const widthClass = fullWidth ? 'w-full' : '';
@@ -82,7 +72,7 @@ function Button({
     right: 'justify-end'
   };
 
-  const classes = `${baseClasses} ${sizeClasses[size]} ${variantClasses[variant]} ${widthClass}`;
+  const classes = `${baseClasses} ${sizeClasses[size]} ${variantClasses[variant]} ${widthClass} ${className}`;
 
   return (
     <button
@@ -90,25 +80,20 @@ function Button({
       disabled={disabled || isLoading}
       onClick={onClick}
       type={type}
+      aria-busy={isLoading}
+      title={title}
     >
-      <div className={`relative flex items-center ${alignmentClasses[contentAlignment]} space-x-2`}>
+      <span className={`relative flex items-center gap-2 ${alignmentClasses[contentAlignment]}`}>
         {isLoading ? (
-          <>
-            <Loader2 className="h-5 w-5 animate-spin" />
-            <span>Carregando...</span>
-          </>
+          <Loader2 className={`${iconSizeClasses[size]} animate-spin`} aria-hidden="true" />
         ) : (
-          <>
-            {Icon && iconPosition === 'left' && (
-              <Icon className="h-5 w-5 group-hover:scale-105 transition-transform duration-200" />
-            )}
-            {children && <span>{children}</span>}
-            {Icon && iconPosition === 'right' && (
-              <Icon className="h-5 w-5 group-hover:scale-105 transition-transform duration-200" />
-            )}
-          </>
+          Icon && iconPosition === 'left' && <Icon className={iconSizeClasses[size]} aria-hidden="true" />
         )}
-      </div>
+        {children && <span>{children}</span>}
+        {!isLoading && Icon && iconPosition === 'right' && (
+          <Icon className={iconSizeClasses[size]} aria-hidden="true" />
+        )}
+      </span>
     </button>
   );
 }

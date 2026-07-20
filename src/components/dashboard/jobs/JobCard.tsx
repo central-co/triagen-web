@@ -1,6 +1,6 @@
-import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Pencil, Archive } from 'lucide-react';
+import { ArrowRight, Users } from 'lucide-react';
 import { JobWithStats } from '../../../types/company';
+import { getJobDisplayStatus, getJobStatusColor, getJobStatusLabel, JobDisplayStatus } from '../../../utils/jobStatus';
 
 interface JobCardProps {
   job: JobWithStats;
@@ -8,40 +8,45 @@ interface JobCardProps {
   onClick: (jobId: string) => void;
 }
 
-function JobCard({ job, darkMode, onClick }: JobCardProps) {
-  const navigate = useNavigate();
+const WORK_MODEL_LABELS: Record<string, string> = {
+  remoto: 'Remoto',
+  hibrido: 'Híbrido',
+  presencial: 'Presencial',
+};
 
-  // Use the ID snippet to simulate the ref structure from mockups
-  const shortId = job.id ? job.id.substring(0, 3).toUpperCase() : 'NEW';
-  const displayRef = `REF-2026-${shortId}`;
-  
-  // Custom minimalistic badge colors based entirely on semantic state
-  const getStatusInfo = () => {
-    switch(job.status) {
-       case 'closed': return { label: 'CLOSED', style: darkMode ? 'bg-red-900/30 text-red-400' : 'bg-neutral-200 text-neutral-600', icon: Archive };
-       case 'paused': return { label: 'DRAFT', style: darkMode ? 'bg-gray-700 text-gray-300' : 'bg-[#e2e8e4] text-triagen-secondary', icon: Pencil };
-       default: return { label: 'ACTIVE', style: darkMode ? 'bg-gray-800 text-gray-300' : 'bg-[#eaefee] text-triagen-primary', icon: ArrowRight };
-    }
-  }
+const STATUS_ACCENT: Record<JobDisplayStatus, string> = {
+  active: 'bg-triagen-secondary-green',
+  paused: 'bg-amber-500',
+  expired: 'bg-red-400',
+  closed: 'bg-gray-300 dark:bg-gray-600',
+};
 
-  const { label, style, icon: Icon } = getStatusInfo();
+function JobCard({ job, darkMode, onClick }: Readonly<JobCardProps>) {
+  const displayStatus = getJobDisplayStatus(job);
+  const workModel = job.work_model ? WORK_MODEL_LABELS[job.work_model] || job.work_model : null;
+  const deadline = job.deadline
+    ? new Date(job.deadline).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })
+    : null;
 
   return (
-    <div
+    <button
       onClick={() => onClick(job.id)}
-      className={`relative p-8 flex flex-col h-[280px] w-full rounded cursor-pointer border transition-all duration-300 group ${
-        darkMode 
-          ? 'bg-gray-800/40 border-gray-700 hover:border-gray-500' 
-          : 'bg-white border-neutral-200 hover:border-neutral-300 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] hover:shadow-[0_8px_30px_-4px_rgba(0,0,0,0.05)]'
+      className={`relative p-8 pt-9 flex flex-col min-h-[260px] w-full text-left rounded-lg border overflow-hidden transition-all duration-300 group ${
+        darkMode
+          ? 'bg-gray-800/40 border-gray-700 hover:border-gray-500'
+          : 'bg-white border-triagen-border-light hover:border-neutral-300 shadow-[0_2px_10px_-4px_rgba(44,62,80,0.08)] hover:shadow-[0_10px_32px_-8px_rgba(44,62,80,0.16)] hover:-translate-y-0.5'
       }`}
     >
+      <span aria-hidden="true" className={`absolute top-0 left-0 right-0 h-[3px] ${STATUS_ACCENT[displayStatus]}`} />
       <div className="flex items-center justify-between mb-8">
-        <span className={`px-2.5 py-1 rounded-full text-[0.6rem] font-bold tracking-widest uppercase ${style}`}>
-          {label}
+        <span className={`px-2.5 py-1 rounded-full text-[0.6rem] font-bold tracking-widest uppercase ${getJobStatusColor(displayStatus)}`}>
+          {getJobStatusLabel(displayStatus)}
         </span>
-        <span className={`text-[0.65rem] tracking-widest font-semibold uppercase ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
-          {displayRef}
-        </span>
+        {deadline && (
+          <span className={`text-[0.65rem] tracking-widest font-semibold uppercase ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+            Prazo {deadline}
+          </span>
+        )}
       </div>
 
       <div className="flex flex-col flex-grow">
@@ -49,25 +54,30 @@ function JobCard({ job, darkMode, onClick }: JobCardProps) {
           {job.title}
         </h3>
         <p className={`font-sans text-xs uppercase tracking-wider font-semibold ${darkMode ? 'text-gray-400' : 'text-triagen-secondary'}`}>
-          {job.department || 'General'} • {job.location || 'Remote'}
+          {[workModel, job.location].filter(Boolean).join(' • ') || 'Local não informado'}
         </p>
       </div>
 
       <div className="flex items-end justify-between mt-auto pt-4">
-        <div className="flex flex-col">
-          <span className={`text-4xl font-heading leading-none mb-1 ${darkMode ? 'text-white' : 'text-triagen-primary'}`}>
-            {job.candidatesCount || 0}
-          </span>
-          <span className={`text-[0.65rem] font-semibold tracking-widest uppercase ${darkMode ? 'text-gray-500' : 'text-triagen-secondary'}`}>
-            Candidates
-          </span>
+        <div className="flex items-center gap-3">
+          <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${darkMode ? 'bg-gray-700 text-gray-300' : 'bg-triagen-neutral text-triagen-secondary'}`}>
+            <Users className="w-4 h-4" aria-hidden="true" />
+          </div>
+          <div className="flex flex-col">
+            <span className={`text-2xl font-heading leading-none ${darkMode ? 'text-white' : 'text-triagen-primary'}`}>
+              {job.candidatesCount || 0}
+            </span>
+            <span className={`text-[0.6rem] font-semibold tracking-widest uppercase mt-0.5 ${darkMode ? 'text-gray-500' : 'text-triagen-secondary'}`}>
+              {job.candidatesCount === 1 ? 'Candidato' : 'Candidatos'}
+            </span>
+          </div>
         </div>
-        
+
         <div className={`transition-transform duration-300 group-hover:translate-x-1 ${darkMode ? 'text-gray-400' : 'text-triagen-primary'}`}>
-          <Icon strokeWidth={1.5} className="h-5 w-5" />
+          <ArrowRight strokeWidth={1.5} className="h-5 w-5" />
         </div>
       </div>
-    </div>
+    </button>
   );
 }
 

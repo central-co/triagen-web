@@ -5,10 +5,10 @@ import Card from './ui/Card';
 import PageHeader from './ui/PageHeader';
 
 function InterviewFinishedPage() {
-    const { darkMode } = useDarkMode(true);
+    const { darkMode } = useDarkMode();
 
     return (
-        <div className={`min-h-screen transition-all duration-500 ${darkMode ? 'dark bg-gray-900' : 'bg-triagen-light-bg'}`}>
+        <div className={`min-h-screen transition-all duration-500 ${darkMode ? 'bg-gray-900' : 'bg-triagen-light-bg'}`}>
             <AnimatedBackground darkMode={darkMode} />
             <PageHeader darkMode={darkMode} />
 
