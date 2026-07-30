@@ -1,5 +1,8 @@
 // Scoring helpers for interview_reports.criteria_scores, which stores per-criterion
-// scores on a 0-3 scale: [{ criterion, covered, score, reasoning, evidence, gaps }, ...].
+// scores on a 0-3 scale: [{ criterion, covered, evidence, reasoning, score, gaps }, ...].
+// Field order matches the analyzer's structured output (evidence -> reasoning ->
+// score), where reasoning is generated before score so the model reasons before
+// committing to a number, rather than justifying a score already decided.
 // jobs.criteria stores the weight (0-1) used to evaluate each named criterion.
 //
 // All scores exposed to the UI are on a 0-100 scale.
@@ -7,9 +10,9 @@
 export interface CriterionScoreEntry {
   criterion: string;
   covered?: boolean;
-  score: number; // 0-3
-  reasoning?: string | null;
   evidence?: string[];
+  reasoning?: string | null;
+  score: number; // 0-3
   gaps?: string | null;
 }
 
@@ -22,10 +25,10 @@ export interface JobCriterionEntry {
 /** Structured per-criterion data ready for rendering (score on 0-100). */
 export interface DisplayCriterionScore {
   criterion: string;
-  score: number;
   covered: boolean;
-  reasoning: string | null;
   evidence: string[];
+  reasoning: string | null;
+  score: number;
   gaps: string | null;
 }
 
@@ -60,7 +63,7 @@ export function parseJobCriteria(value: unknown): JobCriterionEntry[] {
 }
 
 /**
- * Weighted average of criteria_scores (1-4 scale), using jobs.criteria weights
+ * Weighted average of criteria_scores (0-3 scale), using jobs.criteria weights
  * matched by name, normalized to a 0-100 scale. Criteria with no matching
  * weight are split evenly across the remaining weight.
  */
