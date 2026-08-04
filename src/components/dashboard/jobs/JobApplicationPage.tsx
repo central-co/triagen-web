@@ -11,6 +11,7 @@ import AnimatedBackground from '../../ui/AnimatedBackground';
 import PageHeader from '../../ui/PageHeader';
 import LoadingSpinner from '../../ui/LoadingSpinner';
 import { Input, Textarea } from '../../ui/Field';
+import ResumeUploadField from '../../ui/ResumeUploadField';
 import { JobWithCompany } from '../../../types/company';
 import { isJobAcceptingApplications } from '../../../utils/jobStatus';
 
@@ -43,6 +44,7 @@ function JobApplicationPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [resumeMode, setResumeMode] = useState<'upload' | 'manual'>('upload');
   const { darkMode } = useDarkMode();
 
   const [formData, setFormData] = useState({
@@ -141,6 +143,19 @@ function JobApplicationPage() {
       formatted = `(${digits}`;
     }
     setFormData(prev => ({ ...prev, phone: formatted }));
+  };
+
+  const handleResumeExtracted = (text: string) => {
+    setFormData(prev => ({ ...prev, resume_text: text }));
+  };
+
+  const handleResumeRemoved = () => {
+    setFormData(prev => ({ ...prev, resume_text: '' }));
+  };
+
+  const toggleResumeMode = () => {
+    setResumeMode(prev => (prev === 'upload' ? 'manual' : 'upload'));
+    setFormData(prev => ({ ...prev, resume_text: '' }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -390,17 +405,43 @@ function JobApplicationPage() {
               autoComplete="tel"
             />
 
-            <Textarea
-              label="Resumo do seu currículo (opcional)"
-              id="resume_text"
-              name="resume_text"
-              darkMode={darkMode}
-              value={formData.resume_text}
-              onChange={handleInputChange}
-              placeholder="Descreva brevemente sua experiência profissional, formação e principais habilidades..."
-              rows={4}
-              hint="Essas informações ajudam nossa IA a personalizar a entrevista para você."
-            />
+            {resumeMode === 'upload' ? (
+              <div>
+                <ResumeUploadField
+                  darkMode={darkMode}
+                  onTextExtracted={handleResumeExtracted}
+                  onRemove={handleResumeRemoved}
+                />
+                <button
+                  type="button"
+                  onClick={toggleResumeMode}
+                  className={`mt-2 text-xs font-medium underline underline-offset-2 ${darkMode ? 'text-gray-400 hover:text-gray-200' : 'text-triagen-secondary hover:text-triagen-primary'}`}
+                >
+                  Prefere escrever? Preencha manualmente
+                </button>
+              </div>
+            ) : (
+              <div>
+                <Textarea
+                  label="Resumo do seu currículo (opcional)"
+                  id="resume_text"
+                  name="resume_text"
+                  darkMode={darkMode}
+                  value={formData.resume_text}
+                  onChange={handleInputChange}
+                  placeholder="Descreva brevemente sua experiência profissional, formação e principais habilidades..."
+                  rows={4}
+                  hint="Essas informações ajudam nossa IA a personalizar a entrevista para você."
+                />
+                <button
+                  type="button"
+                  onClick={toggleResumeMode}
+                  className={`mt-2 text-xs font-medium underline underline-offset-2 ${darkMode ? 'text-gray-400 hover:text-gray-200' : 'text-triagen-secondary hover:text-triagen-primary'}`}
+                >
+                  Prefere anexar um arquivo? Volte para o upload
+                </button>
+              </div>
+            )}
 
             {job?.pre_interview_questions && job.pre_interview_questions.length > 0 && (
               <div className="space-y-4 pt-2">
