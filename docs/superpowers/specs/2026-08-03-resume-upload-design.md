@@ -10,7 +10,7 @@ Substituir o textarea "Resumo do seu currículo" em `src/components/dashboard/jo
 ## Arquitetura
 
 - **Extração:** `pdfjs-dist` (worker via bundler, padrão do Vite). Ao selecionar o arquivo, extrair o texto de todas as páginas (`getTextContent`) e concatenar com quebras de linha por página.
-- **Componente novo:** `ResumeUploadField` (arquivo próprio em `src/components/ui/` ou junto da página, seguindo o padrão dos componentes de UI existentes com prop `darkMode`). Responsabilidade única: receber um `File`, extrair texto, reportar `onTextExtracted(text, fileName)` ou erro. A página continua dona do estado `resume_text`.
+- **Componente novo:** `src/components/ui/ResumeUploadField.tsx`, seguindo o padrão dos componentes de UI existentes (prop `darkMode`, estilo dos componentes de `Field.tsx`). Responsabilidade única: receber um `File`, extrair texto, reportar `onTextExtracted(text, fileName)` ou erro. A página continua dona do estado `resume_text`.
 - **Payload:** inalterado — `resume_text` segue como string opcional.
 
 ## UX
