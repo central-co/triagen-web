@@ -287,7 +287,7 @@ function JobDetailsPage() {
           {/* Description */}
           <section>
             {sectionTitle('Sobre a vaga')}
-            <p className={`text-base leading-relaxed whitespace-pre-line max-w-3xl ${darkMode ? 'text-gray-300' : 'text-triagen-secondary'}`}>
+            <p className={`text-base leading-relaxed whitespace-pre-line text-justify max-w-3xl ${darkMode ? 'text-gray-300' : 'text-triagen-secondary'}`}>
               {job.description}
             </p>
           </section>

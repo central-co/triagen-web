@@ -319,7 +319,7 @@ function JobApplicationPage() {
 
       {/* Description */}
       <div className="mb-10">
-        <p className={`font-sans leading-relaxed whitespace-pre-line ${darkMode ? 'text-gray-300' : 'text-triagen-text-dark'}`}>
+        <p className={`font-sans leading-relaxed whitespace-pre-line text-justify ${darkMode ? 'text-gray-300' : 'text-triagen-text-dark'}`}>
           {job?.description}
         </p>
       </div>
