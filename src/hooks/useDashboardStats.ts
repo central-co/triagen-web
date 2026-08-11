@@ -44,7 +44,7 @@ export function useDashboardStats() {
 
         const companyId = companies[0].id;
 
-        const [jobsRes, candidatesRes, completedRes, pendingRes] = await Promise.all([
+        const [jobsRes, candidatesRes, completedRes] = await Promise.all([
           supabase
             .from('jobs')
             .select('*', { count: 'exact', head: true })
@@ -55,26 +55,23 @@ export function useDashboardStats() {
             .select('*, jobs!inner(*)', { count: 'exact', head: true })
             .eq('jobs.company_id', companyId),
           supabase
-            .from('candidates')
-            .select('*, jobs!inner(*)', { count: 'exact', head: true })
-            .eq('jobs.company_id', companyId)
-            .not('interview_completed_at', 'is', null),
-          supabase
-            .from('candidates')
-            .select('*, jobs!inner(*)', { count: 'exact', head: true })
-            .eq('jobs.company_id', companyId)
-            .eq('status', 'pending'),
+            .from('interview_reports')
+            .select('*, candidates!inner(jobs!inner(*))', { count: 'exact', head: true })
+            .eq('candidates.jobs.company_id', companyId)
+            .eq('status', 'completed'),
         ]);
 
-        const firstError = jobsRes.error || candidatesRes.error || completedRes.error || pendingRes.error;
+        const firstError = jobsRes.error || candidatesRes.error || completedRes.error;
         if (firstError) throw firstError;
 
         if (!cancelled) {
+          const totalCandidates = candidatesRes.count || 0;
+          const completedInterviews = completedRes.count || 0;
           setStats({
-            totalCandidates: candidatesRes.count || 0,
+            totalCandidates,
             activeJobs: jobsRes.count || 0,
-            completedInterviews: completedRes.count || 0,
-            pendingReviews: pendingRes.count || 0,
+            completedInterviews,
+            pendingReviews: Math.max(totalCandidates - completedInterviews, 0),
           });
         }
       } catch (err) {

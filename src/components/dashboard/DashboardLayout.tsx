@@ -10,17 +10,19 @@ import {
 import { useAuth } from '../../hooks/useAuth';
 import useDarkMode from '../../hooks/useDarkMode';
 
+// Evaluations live on the candidate they belong to, so there is no separate
+// "Relatórios" destination — a report is an attribute of a person, not an entity.
 const NAV_ITEMS = [
   { label: 'Visão Geral', path: '/dashboard' },
   { label: 'Vagas', path: '/dashboard/jobs' },
   { label: 'Candidatos', path: '/dashboard/candidates' },
-  { label: 'Relatórios', path: '/dashboard/reports' },
 ];
 
 function DashboardLayout() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
+  const userMenuTriggerRef = useRef<HTMLButtonElement>(null);
   const { user, signOut } = useAuth();
   const { darkMode } = useDarkMode();
   const navigate = useNavigate();
@@ -35,6 +37,22 @@ function DashboardLayout() {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // Escape closes the menu and returns focus to the trigger, so keyboard users
+  // aren't stranded inside an open overlay.
+  useEffect(() => {
+    if (!userMenuOpen) return;
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        setUserMenuOpen(false);
+        userMenuTriggerRef.current?.focus();
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [userMenuOpen]);
 
   // Close menus on navigation
   useEffect(() => {
@@ -106,6 +124,7 @@ function DashboardLayout() {
             {/* User menu */}
             <div className="relative" ref={userMenuRef}>
               <button
+                ref={userMenuTriggerRef}
                 onClick={() => setUserMenuOpen(prev => !prev)}
                 aria-haspopup="menu"
                 aria-expanded={userMenuOpen}
@@ -120,7 +139,7 @@ function DashboardLayout() {
               </button>
 
               {userMenuOpen && (
-                <div className={`absolute right-0 mt-2 w-60 rounded border shadow-lg overflow-hidden ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-triagen-border-light'}`}>
+                <div className={`pop-in absolute right-0 mt-2 w-60 rounded border shadow-lg overflow-hidden ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-triagen-border-light'}`}>
                   <div className={`px-4 py-3 border-b ${darkMode ? 'border-gray-700' : 'border-neutral-100'}`}>
                     <p className={`text-[0.65rem] uppercase tracking-widest font-semibold mb-0.5 ${darkMode ? 'text-gray-500' : 'text-triagen-secondary'}`}>
                       Conectado como
@@ -161,7 +180,7 @@ function DashboardLayout() {
 
       {/* Mobile Nav Overlay */}
       {mobileMenuOpen && (
-        <div className={`md:hidden sticky top-16 left-0 w-full border-b shadow-sm z-40 ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-triagen-border-light'}`}>
+        <div className={`settle-in md:hidden sticky top-16 left-0 w-full border-b shadow-sm z-40 ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-triagen-border-light'}`}>
           <nav className="flex flex-col px-6 py-4 gap-1" aria-label="Navegação principal">
             {[...NAV_ITEMS, { label: 'Configurações', path: '/dashboard/settings' }].map((item) => (
               <button

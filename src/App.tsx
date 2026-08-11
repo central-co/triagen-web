@@ -1,6 +1,7 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useParams } from 'react-router-dom';
 import { useAuth } from './hooks/useAuth';
 import LoadingSpinner from './components/ui/LoadingSpinner';
+import { AppToaster } from './components/ui/Toast';
 import LandingPage from './components/LandingPage';
 import InterviewPage from './components/InterviewPage';
 import TestInterviewRoom from './components/TestInterviewRoom';
@@ -14,7 +15,6 @@ import JobDetailsPage from './components/dashboard/jobs/JobDetailsPage';
 import JobApplicationPage from './components/dashboard/jobs/JobApplicationPage';
 import CandidatesPage from './components/dashboard/candidates/CandidatesPage';
 import CandidateProfilePage from './components/dashboard/candidates/CandidateProfilePage';
-import ReportsPage from './components/dashboard/reports/ReportsPage';
 import DashboardReportDetailPage from './components/dashboard/reports/DashboardReportDetailPage';
 import SettingsPage from './components/dashboard/settings/SettingsPage';
 
@@ -48,9 +48,17 @@ function PublicRoute({ children }: Readonly<{ children: React.ReactNode }>) {
   return <>{children}</>;
 }
 
+/** Old deep links to a candidate's report now land on the candidate's page. */
+function CandidateReportRedirect() {
+  const { candidateId } = useParams();
+  return <Navigate to={`/dashboard/candidates/${candidateId}`} replace />;
+}
+
 function App() {
   return (
-    <Routes>
+    <>
+      <AppToaster />
+      <Routes>
       {/* Public routes */}
       <Route path="/" element={<LandingPage />} />
       <Route path="/interview" element={<InterviewPage />} />
@@ -79,15 +87,18 @@ function App() {
         <Route path="jobs/:jobId" element={<JobDetailsPage />} />
         <Route path="candidates" element={<CandidatesPage />} />
         <Route path="candidates/:candidateId" element={<CandidateProfilePage />} />
-        <Route path="candidates/:candidateId/report" element={<DashboardReportDetailPage />} />
-        <Route path="reports" element={<ReportsPage />} />
+        {/* The report is now part of the candidate page; keep old links working. */}
+        <Route path="candidates/:candidateId/report" element={<CandidateReportRedirect />} />
+        <Route path="reports" element={<Navigate to="/dashboard/candidates" replace />} />
+        {/* Reports with no candidate attached still need a home. */}
         <Route path="reports/:reportId" element={<DashboardReportDetailPage />} />
         <Route path="settings" element={<SettingsPage />} />
       </Route>
 
-      {/* 404 */}
-      <Route path="*" element={<NotFoundPage />} />
-    </Routes>
+        {/* 404 */}
+        <Route path="*" element={<NotFoundPage />} />
+      </Routes>
+    </>
   );
 }
 

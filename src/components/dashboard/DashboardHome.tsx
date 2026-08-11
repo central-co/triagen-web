@@ -50,13 +50,26 @@ function DashboardHome() {
   return (
     <div className="flex flex-col gap-12 max-w-6xl mx-auto pb-12">
       {/* Header Area */}
-      <div className="mt-4">
-        <h1 className={`text-4xl md:text-[3.5rem] leading-[1.1] font-heading font-normal tracking-tight ${
-          darkMode ? 'text-gray-100' : 'text-triagen-primary'
-        }`}>
-          Bem-vindo ao <span className="italic text-triagen-secondary">TriaGen.</span><br />
-          Seu ecossistema de <span className={darkMode ? 'text-gray-500' : 'text-gray-400'}>contratação.</span>
-        </h1>
+      <div className="mt-4 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+        <div>
+          <h1 className={`text-4xl md:text-[3.5rem] leading-[1.1] font-heading font-normal tracking-tight ${
+            darkMode ? 'text-gray-100' : 'text-triagen-primary'
+          }`}>
+            Visão <span className="italic text-triagen-secondary">Geral</span>
+          </h1>
+          <p className={`text-lg font-sans mt-4 max-w-xl ${darkMode ? 'text-gray-400' : 'text-triagen-secondary'}`}>
+            O estado atual do seu processo seletivo, em um só lugar.
+          </p>
+        </div>
+        <Button
+          variant="primary"
+          size="md"
+          onClick={() => navigate('/dashboard/jobs/new')}
+          icon={Plus}
+          iconPosition="left"
+        >
+          Nova vaga
+        </Button>
       </div>
 
       {/* Stats Section with Large Numbers */}
@@ -148,10 +161,10 @@ function DashboardHome() {
               Avaliações recentes
             </h2>
             <button
-              onClick={() => navigate('/dashboard/reports')}
+              onClick={() => navigate('/dashboard/candidates')}
               className={`text-xs font-semibold tracking-wider uppercase transition-colors ${darkMode ? 'text-gray-400 hover:text-white' : 'text-triagen-secondary hover:text-triagen-primary'}`}
             >
-              Ver relatórios
+              Ver candidatos
             </button>
           </div>
 
@@ -180,25 +193,13 @@ function DashboardHome() {
                     variant="secondary"
                     size="sm"
                     darkMode={darkMode}
-                    onClick={() => navigate(`/dashboard/candidates/${report.candidate_id}/report`)}
+                    onClick={() => navigate(`/dashboard/candidates/${report.candidate_id}`)}
                   >
-                    Avaliar
+                    Abrir
                   </Button>
                 </div>
               ))
             )}
-
-            <div className={`mt-2 pt-5 border-t flex justify-end ${darkMode ? 'border-gray-700' : 'border-neutral-100'}`}>
-              <Button
-                variant="primary"
-                size="md"
-                onClick={() => navigate('/dashboard/jobs/new')}
-                icon={Plus}
-                iconPosition="left"
-              >
-                Nova vaga
-              </Button>
-            </div>
           </div>
         </section>
 

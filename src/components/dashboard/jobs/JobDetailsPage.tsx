@@ -16,7 +16,7 @@ import {
   Star,
   HelpCircle,
 } from 'lucide-react';
-import { getStatusColor, getStatusShortText } from '../../../utils/candidateStatus';
+import { getStatusColor, getStatusShortText, deriveCandidateStatus } from '../../../utils/candidateStatus';
 import { getJobDisplayStatus, getJobStatusColor, getJobStatusLabel } from '../../../utils/jobStatus';
 import LoadingSpinner from '../../ui/LoadingSpinner';
 import useDarkMode from '../../../hooks/useDarkMode';
@@ -25,6 +25,7 @@ import { supabase } from '../../../integrations/supabase/client';
 import Button from '../../ui/Button';
 import Avatar from '../../ui/Avatar';
 import StatusMessage from '../../ui/StatusMessage';
+import { toast } from '../../ui/Toast';
 import { Candidate, JobWithStats } from '../../../types/company';
 
 interface JobWithCompany extends JobWithStats {
@@ -123,25 +124,29 @@ function JobDetailsPage() {
 
         const { data: candidatesData, error: candidatesError } = await supabase
           .from('candidates')
-          .select('*')
+          .select('*, interview_reports(status)')
           .eq('job_id', jobId)
           .order('created_at', { ascending: false });
 
         if (candidatesError) throw candidatesError;
 
-        const transformedCandidates: Candidate[] = (candidatesData || []).map(candidate => ({
-          ...candidate,
-          phone: candidate.phone || undefined,
-          resume_url: candidate.resume_url || undefined,
-          notes: candidate.notes || undefined,
-          interview_started_at: candidate.interview_started_at || undefined,
-          interview_completed_at: candidate.interview_completed_at || undefined,
-          status: (candidate.status || 'pending') as Candidate['status'],
-          is_favorite: candidate.is_favorite || false,
-          pre_interview_answers: candidate.pre_interview_answers as Record<string, unknown> | null,
-          created_at: candidate.created_at || new Date().toISOString(),
-          updated_at: candidate.updated_at || new Date().toISOString(),
-        }));
+        const transformedCandidates: Candidate[] = (candidatesData || []).map(candidate => {
+          // interview_reports.interview_id is unique, so this is a one-to-one embed: an object, not an array.
+          const report = candidate.interview_reports as { status: string } | null;
+          return {
+            ...candidate,
+            phone: candidate.phone || undefined,
+            resume_url: candidate.resume_url || undefined,
+            notes: candidate.notes || undefined,
+            interview_started_at: candidate.interview_started_at || undefined,
+            interview_completed_at: candidate.interview_completed_at || undefined,
+            status: deriveCandidateStatus(report?.status),
+            is_favorite: candidate.is_favorite || false,
+            pre_interview_answers: candidate.pre_interview_answers as Record<string, unknown> | null,
+            created_at: candidate.created_at || new Date().toISOString(),
+            updated_at: candidate.updated_at || new Date().toISOString(),
+          };
+        });
 
         if (!cancelled) setCandidates(transformedCandidates);
       } catch (err) {
@@ -158,10 +163,18 @@ function JobDetailsPage() {
 
   const copyApplicationLink = () => {
     const url = `${window.location.origin}/apply/${jobId}`;
-    navigator.clipboard.writeText(url).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    });
+    navigator.clipboard.writeText(url).then(
+      () => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+        toast.success('Link de candidatura copiado', {
+          description: 'Compartilhe com os candidatos para que eles se inscrevam.',
+        });
+      },
+      () => toast.error('Não foi possível copiar o link', {
+        description: 'Copie manualmente: ' + url,
+      }),
+    );
   };
 
   if (loading) {
@@ -287,7 +300,7 @@ function JobDetailsPage() {
           {/* Description */}
           <section>
             {sectionTitle('Sobre a vaga')}
-            <p className={`text-base leading-relaxed whitespace-pre-line text-justify max-w-3xl ${darkMode ? 'text-gray-300' : 'text-triagen-secondary'}`}>
+            <p className={`text-base leading-relaxed whitespace-pre-line max-w-3xl ${darkMode ? 'text-gray-300' : 'text-triagen-secondary'}`}>
               {job.description}
             </p>
           </section>

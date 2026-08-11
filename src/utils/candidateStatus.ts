@@ -2,6 +2,11 @@ import { CheckCircle, Clock, Eye, XCircle, Award, type LucideIcon } from 'lucide
 
 export type CandidateStatus = 'pending' | 'interviewed' | 'completed' | 'rejected' | 'hired';
 
+/** Candidate status is derived from interview_reports, not the (unmaintained) candidates.status column. */
+export function deriveCandidateStatus(reportStatus: string | null | undefined): CandidateStatus {
+  return reportStatus === 'completed' ? 'completed' : 'pending';
+}
+
 /** Badge classes for both themes (dark handled via `dark:` variants). */
 export function getStatusColor(status: string): string {
   switch (status) {

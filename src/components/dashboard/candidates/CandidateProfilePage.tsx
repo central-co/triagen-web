@@ -4,21 +4,23 @@ import {
   ArrowLeft,
   Mail,
   Phone,
-  FileText,
   Calendar,
   Star,
   CheckCircle,
 } from 'lucide-react';
-import { getStatusColor, getStatusShortText } from '../../../utils/candidateStatus';
+import { getStatusColor, getStatusShortText, deriveCandidateStatus } from '../../../utils/candidateStatus';
 import useDarkMode from '../../../hooks/useDarkMode';
 import { useAuth } from '../../../hooks/useAuth';
 import { supabase } from '../../../integrations/supabase/client';
 import Button from '../../ui/Button';
 import StatusMessage from '../../ui/StatusMessage';
+import { toast } from '../../ui/Toast';
 import LoadingSpinner from '../../ui/LoadingSpinner';
 import { ScoreRing } from '../../ui/Score';
 import { Candidate } from '../../../types/company';
-import { computeOverallScore } from '../../../utils/scoring';
+import { computeOverallScore, parseRecommendation } from '../../../utils/scoring';
+import { getInterviewReport, type DashboardReportData } from '../../../api/reports';
+import InterviewReportView, { RecommendationChip } from '../reports/InterviewReportView';
 
 interface Job {
   id: string;
@@ -42,6 +44,7 @@ function CandidateProfilePage() {
   const { candidateId } = useParams();
   const navigate = useNavigate();
   const [candidate, setCandidate] = useState<CandidateWithJob | null>(null);
+  const [report, setReport] = useState<DashboardReportData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [isUpdatingFavorite, setIsUpdatingFavorite] = useState(false);
@@ -77,7 +80,7 @@ function CandidateProfilePage() {
               pre_interview_questions,
               company:companies(id, name)
             ),
-            interview_reports(id, criteria_scores, created_at)
+            interview_reports(id, status, criteria_scores, created_at)
           `)
           .eq('id', candidateId)
           .single();
@@ -90,8 +93,9 @@ function CandidateProfilePage() {
           throw new Error('Acesso negado');
         }
 
-        const reports = candidateData.interview_reports as Array<{ id: string; criteria_scores: unknown }> | null;
-        const report = reports && reports.length > 0 ? reports[0] : null;
+        // interview_reports.interview_id is unique, so this is a one-to-one embed: an object, not an array.
+        const report = candidateData.interview_reports as { id: string; status: string; criteria_scores: unknown } | null;
+        const isCompleted = report?.status === 'completed';
 
         const transformed: CandidateWithJob = {
           ...candidateData,
@@ -100,14 +104,14 @@ function CandidateProfilePage() {
           notes: candidateData.notes || undefined,
           interview_started_at: candidateData.interview_started_at || undefined,
           interview_completed_at: candidateData.interview_completed_at || undefined,
-          status: (candidateData.status || 'pending') as Candidate['status'],
+          status: deriveCandidateStatus(report?.status),
           is_favorite: candidateData.is_favorite || false,
           pre_interview_answers: candidateData.pre_interview_answers as Record<string, unknown> | null,
           created_at: candidateData.created_at || new Date().toISOString(),
           updated_at: candidateData.updated_at || new Date().toISOString(),
           job: candidateData.job,
-          score: report ? computeOverallScore(report.criteria_scores, candidateData.job?.criteria) : undefined,
-          reportId: report ? report.id : undefined,
+          score: isCompleted ? computeOverallScore(report.criteria_scores, candidateData.job?.criteria) : undefined,
+          reportId: isCompleted ? report.id : undefined,
         };
 
         if (!cancelled) setCandidate(transformed);
@@ -123,6 +127,18 @@ function CandidateProfilePage() {
     return () => { cancelled = true; };
   }, [candidateId, userId]);
 
+  // The evaluation is part of the candidate's page, not a separate destination.
+  useEffect(() => {
+    if (!candidateId) return;
+    let cancelled = false;
+
+    getInterviewReport({ candidateId })
+      .then((data) => { if (!cancelled) setReport(data); })
+      .catch((err) => console.error('Error fetching interview report:', err));
+
+    return () => { cancelled = true; };
+  }, [candidateId]);
+
   const toggleFavorite = async () => {
     if (!candidate) return;
 
@@ -136,8 +152,12 @@ function CandidateProfilePage() {
       if (updateError) throw updateError;
 
       setCandidate(prev => prev ? { ...prev, is_favorite: !prev.is_favorite } : null);
+      toast.success(candidate.is_favorite ? 'Removido da pré-seleção' : 'Adicionado à pré-seleção');
     } catch (err) {
       console.error('Error updating favorite:', err);
+      toast.error('Não foi possível atualizar a pré-seleção', {
+        description: 'Verifique sua conexão e tente novamente.',
+      });
     } finally {
       setIsUpdatingFavorite(false);
     }
@@ -188,6 +208,9 @@ function CandidateProfilePage() {
   const formatDate = (value: string) =>
     new Date(value).toLocaleDateString('pt-BR', { year: 'numeric', month: 'long', day: 'numeric' });
 
+  const hasEvaluation = Boolean(report && (report.criteriaScores.length > 0 || report.summary));
+  const recommendation = report ? parseRecommendation(report.summary).recommendation : null;
+
   // The application form stores the free-text resume summary in resume_url
   const resumeText = candidate.resume_url && !/^https?:\/\//i.test(candidate.resume_url)
     ? candidate.resume_url
@@ -218,17 +241,6 @@ function CandidateProfilePage() {
         </button>
         <div className="flex items-center justify-end gap-3">
           {StarButton}
-          {candidate.reportId && (
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={() => navigate(`/dashboard/candidates/${candidate.id}/report`)}
-              icon={FileText}
-              iconPosition="left"
-            >
-              Ver relatório
-            </Button>
-          )}
         </div>
       </div>
 
@@ -246,6 +258,11 @@ function CandidateProfilePage() {
           <h1 className={`text-5xl md:text-6xl font-heading font-normal tracking-tight leading-none break-words ${darkMode ? 'text-white' : 'text-triagen-primary'}`}>
             {candidate.name}
           </h1>
+          {recommendation && (
+            <div className="mt-1">
+              <RecommendationChip recommendation={recommendation} darkMode={darkMode} />
+            </div>
+          )}
         </div>
         <div className="md:col-span-4 flex md:justify-end">
           <div className={`flex items-center gap-5 w-full md:w-auto p-6 border rounded-lg ${darkMode ? 'border-gray-800 bg-gray-900/50' : 'border-triagen-border-light bg-white'}`}>
@@ -308,13 +325,35 @@ function CandidateProfilePage() {
           </div>
         </div>
 
-        {/* Main Content Area */}
+        {/* Main Content Area — the verdict first, then the raw application material */}
         <div className="lg:col-span-8 flex flex-col gap-10">
+          {hasEvaluation && report && (
+            <InterviewReportView report={report} darkMode={darkMode} />
+          )}
+
+          {!hasEvaluation && (
+            <div className={`py-14 px-6 text-center border border-dashed rounded ${darkMode ? 'border-gray-800' : 'border-neutral-300'}`}>
+              <p className={`font-heading text-xl mb-1 ${darkMode ? 'text-gray-200' : 'text-triagen-primary'}`}>
+                Avaliação ainda não disponível
+              </p>
+              <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-triagen-secondary'}`}>
+                Assim que a entrevista for concluída, a análise por critério e as
+                evidências da conversa aparecem aqui.
+              </p>
+            </div>
+          )}
+
+          {(resumeText || screeningAnswers.length > 0 || candidate.notes) && (
+            <h2 className={`font-heading text-2xl pb-4 border-b mt-2 ${darkMode ? 'text-white border-gray-800' : 'text-triagen-primary border-triagen-border-light'}`}>
+              Material da candidatura
+            </h2>
+          )}
+
           {resumeText && (
             <section className="flex flex-col gap-4">
-              <h2 className={`font-heading text-2xl pb-4 border-b ${darkMode ? 'text-white border-gray-800' : 'text-triagen-primary border-triagen-border-light'}`}>
+              <h3 className={`font-heading text-lg ${darkMode ? 'text-gray-100' : 'text-triagen-primary'}`}>
                 Resumo do currículo
-              </h2>
+              </h3>
               <p className={`whitespace-pre-line leading-relaxed text-sm md:text-base ${darkMode ? 'text-gray-300' : 'text-triagen-secondary'}`}>
                 {resumeText}
               </p>
@@ -323,9 +362,9 @@ function CandidateProfilePage() {
 
           {screeningAnswers.length > 0 && (
             <section className="flex flex-col gap-4">
-              <h2 className={`font-heading text-2xl pb-4 border-b ${darkMode ? 'text-white border-gray-800' : 'text-triagen-primary border-triagen-border-light'}`}>
+              <h3 className={`font-heading text-lg ${darkMode ? 'text-gray-100' : 'text-triagen-primary'}`}>
                 Perguntas de triagem
-              </h2>
+              </h3>
               <div className="flex flex-col gap-6">
                 {screeningAnswers.map(({ question, answer }) => (
                   <div key={question} className="flex flex-col gap-2">
@@ -341,9 +380,9 @@ function CandidateProfilePage() {
 
           {candidate.notes && (
             <section className="flex flex-col gap-4">
-              <h2 className={`font-heading text-2xl pb-4 border-b ${darkMode ? 'text-white border-gray-800' : 'text-triagen-primary border-triagen-border-light'}`}>
+              <h3 className={`font-heading text-lg ${darkMode ? 'text-gray-100' : 'text-triagen-primary'}`}>
                 Anotações internas
-              </h2>
+              </h3>
               <div className={`p-6 rounded border ${darkMode ? 'bg-gray-800/50 border-gray-700' : 'bg-neutral-50 border-triagen-border-light'}`}>
                 <p className={`text-sm md:text-base leading-relaxed whitespace-pre-line ${darkMode ? 'text-gray-300' : 'text-triagen-secondary'}`}>
                   {candidate.notes}
@@ -352,13 +391,6 @@ function CandidateProfilePage() {
             </section>
           )}
 
-          {/* Empty state if nothing to show */}
-          {!resumeText && screeningAnswers.length === 0 && !candidate.notes && (
-            <div className={`py-16 px-4 text-center border border-dashed rounded ${darkMode ? 'border-gray-800 text-gray-500' : 'border-neutral-300 text-gray-400'}`}>
-              <p className="font-heading text-xl">Nenhuma informação adicional</p>
-              <p className="text-sm mt-2">Currículo, anotações e respostas de triagem aparecerão aqui.</p>
-            </div>
-          )}
         </div>
       </div>
     </div>

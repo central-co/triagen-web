@@ -6,10 +6,11 @@ import { useAuth } from '../../../hooks/useAuth';
 import { supabase } from '../../../integrations/supabase/client';
 import LoadingSpinner from '../../ui/LoadingSpinner';
 import StatusMessage from '../../ui/StatusMessage';
+import { toast } from '../../ui/Toast';
 import Avatar from '../../ui/Avatar';
 import { ScoreRing } from '../../ui/Score';
 import { computeOverallScore } from '../../../utils/scoring';
-import { getStatusColor, getStatusShortText } from '../../../utils/candidateStatus';
+import { getStatusColor, getStatusShortText, deriveCandidateStatus } from '../../../utils/candidateStatus';
 
 interface Job {
   id: string;
@@ -82,7 +83,7 @@ function CandidatesPage() {
           .select(`
             *,
             job:jobs(id, title, criteria),
-            interview_reports(criteria_scores)
+            interview_reports(status, criteria_scores)
           `)
           .in('job_id', jobsData.map(job => job.id))
           .order('created_at', { ascending: false });
@@ -91,16 +92,18 @@ function CandidatesPage() {
 
         const transformed = (candidatesData || []).map(candidate => {
           const job = candidate.job as Job | null;
-          const reports = candidate.interview_reports as Array<{ criteria_scores: unknown }> | null;
+          // interview_reports.interview_id is unique, so this is a one-to-one embed: an object, not an array.
+          const report = candidate.interview_reports as { status: string; criteria_scores: unknown } | null;
+          const isCompleted = report?.status === 'completed';
           return {
             id: candidate.id,
             name: candidate.name || 'Sem nome',
             email: candidate.email,
-            status: candidate.status || 'pending',
+            status: deriveCandidateStatus(report?.status),
             job,
             is_favorite: candidate.is_favorite || false,
-            score: reports && reports.length > 0
-              ? computeOverallScore(reports[0].criteria_scores, job?.criteria)
+            score: isCompleted
+              ? computeOverallScore(report.criteria_scores, job?.criteria)
               : undefined,
           };
         });
@@ -136,6 +139,9 @@ function CandidatesPage() {
     if (updateError) {
       console.error('Error updating shortlist:', updateError);
       setCandidates(prev => prev.map(c => c.id === candidate.id ? { ...c, is_favorite: !nextValue } : c));
+      toast.error('Não foi possível atualizar a pré-seleção', {
+        description: 'Verifique sua conexão e tente novamente.',
+      });
     }
   };
 
