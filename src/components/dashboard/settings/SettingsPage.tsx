@@ -6,6 +6,7 @@ import { supabase } from '../../../integrations/supabase/client';
 import Button from '../../ui/Button';
 import Card from '../../ui/Card';
 import StatusMessage from '../../ui/StatusMessage';
+import { toast } from '../../ui/Toast';
 import LoadingSpinner from '../../ui/LoadingSpinner';
 import { Input, Textarea } from '../../ui/Field';
 
@@ -29,7 +30,6 @@ function SettingsPage() {
 
   const [companyId, setCompanyId] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-  const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   const { darkMode, toggleDarkMode } = useDarkMode();
@@ -83,7 +83,6 @@ function SettingsPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
-    setSuccess('');
     setError('');
 
     try {
@@ -110,7 +109,7 @@ function SettingsPage() {
 
       if (companyError) throw companyError;
 
-      setSuccess('Configurações salvas com sucesso!');
+      toast.success('Configurações salvas');
     } catch (err) {
       console.error('Error saving settings:', err);
       setError('Erro ao salvar configurações. Tente novamente.');
@@ -258,9 +257,6 @@ function SettingsPage() {
         </Card>
 
         {/* Messages */}
-        {success && (
-          <StatusMessage type="success" message={success} darkMode={darkMode} />
-        )}
         {error && (
           <StatusMessage type="error" message={error} darkMode={darkMode} />
         )}
