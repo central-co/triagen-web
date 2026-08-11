@@ -1,59 +1,64 @@
 import React from 'react';
+import { cva, type VariantProps } from 'class-variance-authority';
 
-interface CardProps {
+/**
+ * Surface container. Like Button, it themes itself through `dark:` variants, so
+ * the `darkMode` prop is accepted only for source compatibility.
+ */
+const card = cva(
+  'rounded-lg border transition-[border-color,box-shadow] duration-200 ease-out bg-white border-triagen-border-light dark:bg-gray-900 dark:border-gray-800',
+  {
+    variants: {
+      padding: {
+        sm: 'p-4',
+        md: 'p-6',
+        lg: 'p-8',
+      },
+      hoverEffect: {
+        true: 'hover:shadow-sm hover:border-neutral-300 dark:hover:border-gray-700',
+        false: '',
+      },
+      clickable: {
+        true: 'cursor-pointer text-left w-full',
+        false: '',
+      },
+    },
+    defaultVariants: {
+      padding: 'md',
+      hoverEffect: false,
+      clickable: false,
+    },
+  },
+);
+
+interface CardProps extends Omit<VariantProps<typeof card>, 'clickable'> {
   children: React.ReactNode;
+  /** @deprecated Theming is handled by `dark:` variants; kept for compatibility. */
   darkMode?: boolean;
   className?: string;
-  hoverEffect?: boolean;
+  /** Retained for call-site compatibility; all variants render the same surface. */
   variant?: 'default' | 'glass' | 'solid';
-  padding?: 'sm' | 'md' | 'lg';
   onClick?: () => void;
 }
 
 function Card({
   children,
-  darkMode = false,
-  className = '',
+  className,
   hoverEffect = false,
-  variant = 'glass',
   padding = 'md',
-  onClick
-}: CardProps) {
-  const baseClasses = 'rounded-lg border transition-all duration-300';
+  onClick,
+}: Readonly<CardProps>) {
+  const classes = card({ padding, hoverEffect, clickable: Boolean(onClick), className });
 
-  const variantClasses = {
-    default: darkMode
-      ? 'bg-gray-900 border-gray-800'
-      : 'bg-white border-triagen-border-light',
-    glass: darkMode
-      ? 'bg-gray-900 border-gray-800'
-      : 'bg-white border-triagen-border-light',
-    solid: darkMode
-      ? 'bg-gray-900 border-gray-800'
-      : 'bg-white border-triagen-border-light'
-  };
+  if (onClick) {
+    return (
+      <button type="button" className={classes} onClick={onClick}>
+        {children}
+      </button>
+    );
+  }
 
-  const paddingClasses = {
-    sm: 'p-4',
-    md: 'p-6',
-    lg: 'p-8'
-  };
-
-  const hoverClasses = hoverEffect
-    ? onClick
-      ? 'hover:shadow-sm cursor-pointer' + (darkMode ? ' hover:border-gray-700' : ' hover:border-neutral-300')
-      : 'hover:shadow-sm' + (darkMode ? ' hover:border-gray-700' : ' hover:border-neutral-300')
-    : '';
-
-  const classes = `${baseClasses} ${variantClasses[variant]} ${paddingClasses[padding]} ${hoverClasses} ${className}`;
-
-  const Component = onClick ? 'button' : 'div';
-
-  return (
-    <Component className={classes} onClick={onClick} {...(onClick ? { type: 'button' as const } : {})}>
-      {children}
-    </Component>
-  );
+  return <div className={classes}>{children}</div>;
 }
 
 export default Card;
