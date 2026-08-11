@@ -1,12 +1,14 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, X } from 'lucide-react';
+import { ArrowLeft, Plus, X, Building } from 'lucide-react';
 import useDarkMode from '../../../hooks/useDarkMode';
 import { useAuth } from '../../../hooks/useAuth';
 import { supabase } from '../../../integrations/supabase/client';
 import Button from '../../ui/Button';
 import Card from '../../ui/Card';
 import StatusMessage from '../../ui/StatusMessage';
+import LoadingSpinner from '../../ui/LoadingSpinner';
+import { toast } from '../../ui/Toast';
 import { Input, Textarea, Select } from '../../ui/Field';
 
 interface DynamicListProps {
@@ -82,9 +84,32 @@ function NewJobPage() {
   const [preInterviewQuestions, setPreInterviewQuestions] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [companyId, setCompanyId] = useState<string | null>(null);
+  const [checkingCompany, setCheckingCompany] = useState(true);
   const { darkMode } = useDarkMode();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const userId = user?.id;
+
+  // A job belongs to a company, so resolve it up front — asking someone to fill
+  // in the whole form before telling them it can't be saved is a dead end.
+  useEffect(() => {
+    if (!userId) return;
+    let cancelled = false;
+
+    supabase
+      .from('companies')
+      .select('id')
+      .eq('user_id', userId)
+      .then(({ data, error: companyError }) => {
+        if (cancelled) return;
+        if (companyError) console.error('Error loading company:', companyError);
+        setCompanyId(data && data.length > 0 ? data[0].id : null);
+        setCheckingCompany(false);
+      });
+
+    return () => { cancelled = true; };
+  }, [userId]);
 
   const setField = (field: keyof typeof formData) =>
     (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
@@ -93,8 +118,8 @@ function NewJobPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!user?.id) {
-      setError('Usuário não encontrado');
+    if (!companyId) {
+      setError('Cadastre os dados da sua empresa em Configurações antes de criar uma vaga.');
       return;
     }
 
@@ -102,21 +127,10 @@ function NewJobPage() {
     setError('');
 
     try {
-      const { data: companies, error: companyError } = await supabase
-        .from('companies')
-        .select('id')
-        .eq('user_id', user.id);
-
-      if (companyError) throw companyError;
-
-      if (!companies || companies.length === 0) {
-        throw new Error('Empresa não encontrada. Configure os dados da sua empresa em Configurações antes de criar uma vaga.');
-      }
-
       const { error: jobError } = await supabase
         .from('jobs')
         .insert({
-          company_id: companies[0].id,
+          company_id: companyId,
           title: formData.title,
           description: formData.description,
           location: formData.location || null,
@@ -138,6 +152,9 @@ function NewJobPage() {
 
       if (jobError) throw jobError;
 
+      toast.success('Vaga criada', {
+        description: 'Copie o link de candidatura na página da vaga para começar a receber candidatos.',
+      });
       navigate('/dashboard/jobs');
     } catch (err) {
       console.error('Error creating job:', err);
@@ -159,6 +176,41 @@ function NewJobPage() {
       )}
     </div>
   );
+
+  if (checkingCompany) {
+    return <LoadingSpinner />;
+  }
+
+  if (!companyId) {
+    return (
+      <div className="flex flex-col max-w-3xl mx-auto pb-16">
+        <div className="flex items-center justify-between pt-6 mb-10">
+          <button
+            onClick={() => navigate('/dashboard/jobs')}
+            className={`flex items-center gap-2 text-xs uppercase tracking-widest font-semibold hover:opacity-70 transition-opacity ${darkMode ? 'text-gray-400' : 'text-triagen-secondary'}`}
+          >
+            <ArrowLeft className="w-4 h-4" /> Vagas
+          </button>
+        </div>
+
+        <div className={`flex flex-col items-center gap-5 text-center py-20 px-6 border border-dashed rounded ${darkMode ? 'border-gray-700' : 'border-neutral-300'}`}>
+          <Building className={`h-9 w-9 ${darkMode ? 'text-gray-600' : 'text-gray-300'}`} aria-hidden="true" />
+          <div>
+            <p className={`font-heading text-2xl mb-2 ${darkMode ? 'text-gray-100' : 'text-triagen-primary'}`}>
+              Cadastre sua empresa primeiro
+            </p>
+            <p className={`text-sm max-w-md ${darkMode ? 'text-gray-400' : 'text-triagen-secondary'}`}>
+              O nome da empresa aparece para os candidatos na página da vaga.
+              Leva menos de um minuto e só precisa ser feito uma vez.
+            </p>
+          </div>
+          <Button variant="primary" size="md" onClick={() => navigate('/dashboard/settings')}>
+            Ir para Configurações
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col max-w-3xl mx-auto pb-16">
