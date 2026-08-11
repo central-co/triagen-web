@@ -82,6 +82,84 @@ h1, h2, h3, h4, h5, h6 {
   background-color: rgba(148, 163, 184, 0.3);
 }
 
+/* ── Motion: one shared vocabulary for the whole product ───────────── */
+
+:root {
+  --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+/* Page-load reveal used on public pages. Decorative only — content is
+   visible immediately when reduced motion is requested. */
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.rise-in {
+  animation: rise-in 0.6s var(--ease-out-strong) both;
+}
+
+.rise-in-delay-1 { animation-delay: 80ms; }
+.rise-in-delay-2 { animation-delay: 160ms; }
+.rise-in-delay-3 { animation-delay: 240ms; }
+
+/* Menus and popovers: scale from the trigger, never from nothing. */
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.97) translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.pop-in {
+  animation: pop-in 0.15s var(--ease-out-strong) both;
+  transform-origin: top right;
+}
+
+/* Messages that appear in place (form errors) — bridges the teleport. */
+@keyframes settle-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.settle-in {
+  animation: settle-in 0.18s var(--ease-out-strong) both;
+}
+
+/* Reduced motion keeps the fade (it aids comprehension), drops the movement. */
+@media (prefers-reduced-motion: reduce) {
+  .rise-in {
+    animation: none;
+  }
+
+  .pop-in,
+  .settle-in {
+    animation-name: fade-only;
+    animation-duration: 0.12s;
+  }
+
+  @keyframes fade-only {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+}
+
 /* ── Focus: visible for keyboard users, quiet for pointer users ────── */
 
 :focus-visible {
@@ -109,7 +187,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .lk-button {
   border-radius: 0.75rem;
-  transition: all 0.3s ease;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 /* Hide reCAPTCHA badge (attribution text is shown inline instead) */

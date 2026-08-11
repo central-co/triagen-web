@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import InterviewRoom from './InterviewRoom';
 import useDarkMode from '../hooks/useDarkMode';
-import AnimatedBackground from './ui/AnimatedBackground';
 import Card from './ui/Card';
 import StatusMessage from './ui/StatusMessage';
 import Button from './ui/Button';
@@ -41,15 +40,14 @@ function TestInterviewRoom() {
   // No token provided
   if (!token) {
     return (
-      <div className={`min-h-screen transition-all duration-500 ${darkMode ? 'bg-gray-900' : 'bg-triagen-light-bg'}`}>
-        <AnimatedBackground darkMode={darkMode} />
+      <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-triagen-neutral'}`}>
         <div className="flex items-center justify-center min-h-screen px-4">
           <Card darkMode={darkMode} className="max-w-md">
             <div className="text-center mb-6">
               <div className={`w-16 h-16 mx-auto mb-4 rounded-full bg-yellow-500/20 flex items-center justify-center`}>
                 <AlertCircle className="h-8 w-8 text-yellow-500" />
               </div>
-              <h1 className={`text-2xl font-bold mb-2 ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
+              <h1 className={`text-2xl font-bold mb-2 ${darkMode ? 'text-white' : 'text-triagen-primary'}`}>
                 Modo de Teste - Token Necessário
               </h1>
             </div>
@@ -61,7 +59,7 @@ function TestInterviewRoom() {
             />
 
             <div className={`mt-6 p-4 rounded-lg ${darkMode ? 'bg-gray-800' : 'bg-gray-50'}`}>
-              <p className={`text-sm mb-2 font-semibold ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
+              <p className={`text-sm mb-2 font-semibold ${darkMode ? 'text-white' : 'text-triagen-primary'}`}>
                 Como usar:
               </p>
               <code className={`text-xs block p-2 rounded ${darkMode ? 'bg-gray-900 text-green-400' : 'bg-white text-green-600'}`}>
@@ -107,8 +105,7 @@ function TestInterviewRoom() {
 
   // Loading state
   return (
-    <div className={`min-h-screen transition-all duration-500 ${darkMode ? 'bg-gray-900' : 'bg-triagen-light-bg'}`}>
-      <AnimatedBackground darkMode={darkMode} />
+    <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-triagen-neutral'}`}>
       <div className="flex items-center justify-center min-h-screen px-4">
         <Card darkMode={darkMode}>
           <StatusMessage

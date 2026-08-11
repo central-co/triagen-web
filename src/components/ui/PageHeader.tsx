@@ -10,57 +10,51 @@ interface PageHeaderProps {
   className?: string;
 }
 
+/** Shared header for all public pages: wordmark on the left, quiet actions on the right. */
 function PageHeader({
   darkMode,
   toggleDarkMode,
   onLogoClick,
   rightContent,
   className = ''
-}: PageHeaderProps) {
+}: Readonly<PageHeaderProps>) {
   const navigate = useNavigate();
 
   const handleLogoClick = () => {
     if (onLogoClick) {
       onLogoClick();
     } else {
-      // Always navigate to home by default
       navigate('/');
     }
   };
 
   return (
-    <header className={`backdrop-blur-xl border-b transition-all duration-300 sticky top-0 z-40 h-20 ${
-      darkMode 
-        ? 'bg-gray-900/80 border-triagen-border-dark' 
-        : 'bg-triagen-light-bg/80 border-triagen-border-light'
-    } ${className}`}>
-      <div className="px-4 sm:px-6 lg:px-8 h-full">
-        <div className="flex justify-between items-center h-full">
-          {/* Left side - Logo with fixed positioning */}
-          <div className="flex items-center min-w-0 flex-shrink-0">
-            <Logo darkMode={darkMode} onClick={handleLogoClick} />
-          </div>
-          
-          {/* Right side - Actions */}
-          <div className="flex items-center space-x-3 flex-shrink-0">
-            {/* Dark mode toggle */}
-            {toggleDarkMode && (
-              <button
-                onClick={toggleDarkMode}
-                className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-102 flex-shrink-0 ${
-                  darkMode 
-                    ? 'bg-gray-800/50 text-triagen-secondary-green hover:bg-gray-700/50' 
-                    : 'bg-triagen-light-bg/50 text-triagen-dark-bg hover:bg-triagen-light-bg/70'
-                }`}
-                title={darkMode ? 'Modo claro' : 'Modo escuro'}
-              >
-                {darkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-              </button>
-            )}
-            
-            {/* Custom right content */}
-            {rightContent}
-          </div>
+    <header
+      className={`sticky top-0 z-40 h-16 border-b backdrop-blur ${
+        darkMode
+          ? 'bg-gray-900/90 border-gray-800'
+          : 'bg-triagen-neutral/90 border-triagen-border-light'
+      } ${className}`}
+    >
+      <div className="max-w-6xl mx-auto px-6 md:px-8 h-full flex items-center justify-between">
+        <Logo darkMode={darkMode} onClick={handleLogoClick} />
+
+        <div className="flex items-center gap-2 sm:gap-3">
+          {toggleDarkMode && (
+            <button
+              onClick={toggleDarkMode}
+              className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors ${
+                darkMode
+                  ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-800'
+                  : 'text-triagen-secondary hover:text-triagen-primary hover:bg-neutral-200/60'
+              }`}
+              title={darkMode ? 'Modo claro' : 'Modo escuro'}
+              aria-label={darkMode ? 'Ativar modo claro' : 'Ativar modo escuro'}
+            >
+              {darkMode ? <Sun className="h-[1.1rem] w-[1.1rem]" /> : <Moon className="h-[1.1rem] w-[1.1rem]" />}
+            </button>
+          )}
+          {rightContent}
         </div>
       </div>
     </header>

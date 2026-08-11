@@ -1,53 +1,146 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ReCAPTCHA from 'react-google-recaptcha';
-import {
-  Users,
-  Bot,
-  ArrowRight,
-  Building,
-  Target,
-  Brain,
-  Mail,
-  MessageSquare,
-  X,
-  Shield,
-  FileText,
-  CheckCircle,
-  BarChart3,
-  Heart,
-  Mic,
-  UserCheck,
-  Clock,
-  Download,
-  Zap,
-  UserPlus,
-  Play,
-  LogIn
-} from 'lucide-react';
+import { ArrowRight, Quote, CheckCircle2 } from 'lucide-react';
 import useDarkMode from '../hooks/useDarkMode';
 import { useAuth } from '../hooks/useAuth';
 import { config } from '../utils/config';
 import { submitWaitlistSignup } from '../api';
-import AnimatedBackground from './ui/AnimatedBackground';
 import Button from './ui/Button';
 import PageHeader from './ui/PageHeader';
-import SectionHeader from './ui/SectionHeader';
-import FeatureCard from './ui/FeatureCard';
 import Footer from './ui/Footer';
-import Card from './ui/Card';
 import StatusMessage from './ui/StatusMessage';
-import UserDropdown from './ui/UserDropdown';
+import { Input } from './ui/Field';
+import { ScoreRing, ScoreMeter } from './ui/Score';
+
+const STEPS = [
+  {
+    number: '01',
+    title: 'Publique a vaga',
+    description:
+      'Defina requisitos, diferenciais e perguntas de triagem. Compartilhe o link de candidatura onde preferir — o TriaGen cuida do resto.',
+  },
+  {
+    number: '02',
+    title: 'A IA entrevista cada candidato',
+    description:
+      'Cada candidato conversa por voz com a IA no horário que puder, sem agendamento. Ninguém é descartado por falta de palavra-chave no currículo.',
+  },
+  {
+    number: '03',
+    title: 'Você decide com contexto',
+    description:
+      'Para cada entrevista, um relatório com pontuação por critério, trechos da conversa como evidência e uma recomendação objetiva.',
+  },
+];
+
+const PRINCIPLES = [
+  {
+    title: 'A IA não decide por você',
+    description:
+      'Ela conduz a conversa e organiza o que ouviu em evidências. A decisão final é sempre de quem contrata.',
+  },
+  {
+    title: 'Toda avaliação mostra suas fontes',
+    description:
+      'Cada pontuação vem acompanhada de trechos reais da entrevista. Nada de caixa-preta.',
+  },
+  {
+    title: 'Uma etapa a mais de escuta',
+    description:
+      'O TriaGen amplia o topo do seu funil — não substitui a entrevista com o seu time.',
+  },
+];
+
+/** Static, clearly-labeled illustration of the interview report — no real data. */
+function ReportSpecimen({ darkMode }: Readonly<{ darkMode: boolean }>) {
+  const criteria = [
+    { label: 'Comunicação', score: 88 },
+    { label: 'Experiência com atendimento', score: 76 },
+    { label: 'Disponibilidade', score: 92 },
+  ];
+
+  return (
+    <div
+      className={`rounded-lg border overflow-hidden ${
+        darkMode
+          ? 'bg-gray-800/40 border-gray-700'
+          : 'bg-white border-triagen-border-light shadow-[0_12px_40px_-16px_rgba(44,62,80,0.18)]'
+      }`}
+      aria-label="Exemplo ilustrativo de relatório de entrevista"
+    >
+      <div
+        className={`px-6 py-3 border-b flex items-center justify-between ${
+          darkMode ? 'border-gray-700 bg-gray-800/60' : 'border-triagen-border-light bg-neutral-50'
+        }`}
+      >
+        <span className={`text-[0.6rem] uppercase tracking-widest font-bold ${darkMode ? 'text-gray-400' : 'text-triagen-secondary'}`}>
+          Relatório de entrevista
+        </span>
+        <span className={`text-[0.6rem] uppercase tracking-widest font-semibold ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+          Exemplo ilustrativo
+        </span>
+      </div>
+
+      <div className="p-6 md:p-8">
+        <div className="flex items-start justify-between gap-6 mb-6">
+          <div className="min-w-0">
+            <p className={`font-heading text-2xl leading-tight ${darkMode ? 'text-white' : 'text-triagen-primary'}`}>
+              Candidata de exemplo
+            </p>
+            <p className={`text-[0.65rem] uppercase tracking-widest font-semibold mt-1 ${darkMode ? 'text-gray-400' : 'text-triagen-secondary'}`}>
+              Analista de Atendimento
+            </p>
+            <span
+              className={`inline-flex items-center gap-1.5 mt-4 px-3 py-1.5 rounded-full border text-xs font-semibold ${
+                darkMode
+                  ? 'bg-triagen-secondary-green/20 text-emerald-300 border-triagen-secondary-green/30'
+                  : 'bg-triagen-sage-tint text-triagen-secondary-green border-triagen-secondary-green/25'
+              }`}
+            >
+              <CheckCircle2 className="w-3.5 h-3.5" aria-hidden="true" />
+              Avançar
+            </span>
+          </div>
+          <ScoreRing score={84} size="md" darkMode={darkMode} />
+        </div>
+
+        <div className="flex flex-col gap-4 mb-6">
+          {criteria.map((criterion) => (
+            <div key={criterion.label}>
+              <div className="flex items-baseline justify-between mb-1.5">
+                <span className={`text-sm font-medium ${darkMode ? 'text-gray-200' : 'text-triagen-primary'}`}>
+                  {criterion.label}
+                </span>
+                <span className={`text-xs font-semibold ${darkMode ? 'text-gray-400' : 'text-triagen-secondary'}`}>
+                  {criterion.score}/100
+                </span>
+              </div>
+              <ScoreMeter score={criterion.score} darkMode={darkMode} />
+            </div>
+          ))}
+        </div>
+
+        <div>
+          <p className={`flex items-center gap-1.5 text-[0.6rem] uppercase tracking-widest font-bold mb-2 ${darkMode ? 'text-gray-500' : 'text-triagen-secondary'}`}>
+            <Quote className="w-3 h-3" aria-hidden="true" /> Evidência da conversa
+          </p>
+          <blockquote
+            className={`border-l-2 pl-4 py-0.5 text-sm leading-relaxed italic ${
+              darkMode ? 'border-triagen-secondary-green/50 text-gray-400' : 'border-triagen-secondary-green/40 text-triagen-secondary'
+            }`}
+          >
+            “No pico de atendimento, eu priorizava os casos por urgência e mantinha
+            o cliente informado do prazo — isso reduziu bastante as reclamações.”
+          </blockquote>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function LandingPage() {
-  const [scrollY, setScrollY] = useState(0);
-  const [showWaitlistForm, setShowWaitlistForm] = useState(false);
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    company: '',
-    job_title: ''
-  });
+  const [formData, setFormData] = useState({ name: '', email: '', company: '', job_title: '' });
   const [newsletterConsent, setNewsletterConsent] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -57,27 +150,12 @@ function LandingPage() {
   const navigate = useNavigate();
   const recaptchaRef = useRef<ReCAPTCHA>(null);
 
-  useEffect(() => {
-    const handleScroll = () => setScrollY(window.scrollY);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  // The waitlist endpoint rejects submissions without a reCAPTCHA token, so the
+  // form can only be sent when the site key is configured for this environment.
+  const recaptchaSiteKey = config.recaptchaSiteKey;
 
-  const handleStartInterview = () => {
-    navigate('/interview');
-  };
-
-  const handleWaitlistClick = () => {
-    setShowWaitlistForm(true);
-    setIsSubmitted(false);
-    setError('');
-    // Scroll to the form area
-    setTimeout(() => {
-      const formElement = document.getElementById('waitlist-form');
-      if (formElement) {
-        formElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-    }, 100);
+  const scrollToForm = () => {
+    document.getElementById('acesso-antecipado')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -89,16 +167,20 @@ function LandingPage() {
     e.preventDefault();
 
     if (!formData.name || !formData.email) {
-      setError('Por favor, preencha todos os campos obrigatórios');
+      setError('Preencha nome e e-mail para continuar.');
       return;
     }
 
     if (!newsletterConsent) {
-      setError('É necessário aceitar receber comunicações para continuar');
+      setError('É necessário aceitar receber comunicações para continuar.');
       return;
     }
 
-    // Get reCAPTCHA token
+    if (!recaptchaSiteKey) {
+      setError('A verificação de segurança não está disponível no momento. Escreva para contato@triagen.app e retornamos o contato.');
+      return;
+    }
+
     const recaptchaToken = await recaptchaRef.current?.executeAsync();
     if (!recaptchaToken) {
       setError('Falha na verificação de segurança. Tente novamente.');
@@ -123,660 +205,312 @@ function LandingPage() {
       setNewsletterConsent(false);
     } catch (err) {
       console.error('Waitlist submission error:', err);
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError('Erro de conexão. Verifique sua internet e tente novamente.');
-      }
+      setError(err instanceof Error ? err.message : 'Erro de conexão. Verifique sua internet e tente novamente.');
     } finally {
       setIsLoading(false);
       recaptchaRef.current?.reset();
     }
   };
 
-  const handleCloseForm = () => {
-    setShowWaitlistForm(false);
-    setIsSubmitted(false);
-    setError('');
-    setFormData({ name: '', email: '', company: '', job_title: '' });
-    setNewsletterConsent(false);
-    recaptchaRef.current?.reset();
-  };
-
-  // Create right content based on authentication status
-  const rightContent = (() => {
-    // Only show loading when auth is actually being processed
+  const headerActions = (() => {
     if (loading) {
-      return (
-        <div className="w-8 h-8 rounded-full border-2 border-triagen-primary-blue border-t-transparent animate-spin"></div>
-      );
+      return <div className="w-8 h-8 rounded-full border-2 border-triagen-secondary border-t-transparent animate-spin" />;
     }
 
     if (user) {
-      return <UserDropdown />;
+      return (
+        <Button variant="primary" size="sm" onClick={() => navigate('/dashboard')} icon={ArrowRight}>
+          Ir para o painel
+        </Button>
+      );
     }
 
-    // Default state: show login, waitlist and interview buttons
     return (
-      <div className="flex items-center space-x-3">
-        <Button
-          variant="secondary"
-          size="sm"
-          darkMode={darkMode}
-          onClick={handleWaitlistClick}
-          icon={UserPlus}
-          iconPosition="left"
-        >
-          Junte-se à Lista de Espera
+      <>
+        <Button variant="ghost" size="sm" darkMode={darkMode} onClick={() => navigate('/interview')}>
+          Sou candidato
         </Button>
-
-        <Button
-          variant="primary"
-          size="sm"
-          onClick={handleStartInterview}
-          icon={Play}
-          iconPosition="left"
-        >
-          Iniciar Entrevista
-        </Button>
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={() => navigate('/auth/login')}
-          icon={LogIn}
-          iconPosition="left"
-          darkMode={darkMode}
-        >
+        <Button variant="secondary" size="sm" darkMode={darkMode} onClick={() => navigate('/auth/login')}>
           Entrar
         </Button>
-      </div>
+      </>
     );
   })();
 
-  const stats = [
-    { icon: Users, value: '2.5K+', title: 'Candidatos ouvidos', iconColor: 'bg-triagen-dark-bg' },
-    { icon: Building, value: '50+', title: 'Empresas parceiras', iconColor: 'bg-triagen-secondary-green' },
-    { icon: Clock, value: '80%', title: 'Redução no tempo de triagem', iconColor: 'bg-triagen-primary-blue' },
-    { icon: Heart, value: '95%', title: 'Satisfação dos candidatos', iconColor: 'bg-triagen-highlight-purple' }
-  ];
-
-  const features = [
-    {
-      icon: Mic,
-      title: 'Escuta Empática e Inclusiva',
-      description: 'Nossa IA conversa com cada candidato de forma natural e acessível, garantindo que todas as vozes sejam ouvidas, independente do perfil ou background.',
-      iconColor: 'bg-triagen-dark-bg'
-    },
-    {
-      icon: Brain,
-      title: 'Contexto Primeiro, Não Apenas Palavras-chave',
-      description: 'Análise profunda que vai além do currículo, entendendo a compatibilidade real entre candidato e vaga através de conversas estruturadas.',
-      iconColor: 'bg-triagen-secondary-green'
-    },
-    {
-      icon: UserCheck,
-      title: 'Etapa Adicional, Não Substituta',
-      description: 'Amplificamos seu funil de candidatos e entregamos apenas os perfis com maior fit, poupando horas de trabalho manual sem substituir o toque humano.',
-      iconColor: 'bg-triagen-primary-blue'
-    }
-  ];
+  const sectionEyebrow = (text: string) => (
+    <p className={`text-[0.65rem] uppercase tracking-[0.2em] font-bold mb-4 ${darkMode ? 'text-gray-500' : 'text-triagen-secondary'}`}>
+      {text}
+    </p>
+  );
 
   return (
-    <div className={`min-h-screen transition-all duration-500 ${darkMode ? 'bg-gray-900' : 'bg-triagen-light-bg'}`}>
-      {/* Animated Background */}
-      <AnimatedBackground darkMode={darkMode} scrollY={scrollY} />
+    <div className={`min-h-screen font-sans ${darkMode ? 'bg-gray-900 text-gray-100' : 'bg-triagen-neutral text-triagen-primary'}`}>
+      <PageHeader darkMode={darkMode} toggleDarkMode={toggleDarkMode} rightContent={headerActions} />
 
-      {/* Header */}
-      <PageHeader
-        darkMode={darkMode}
-        toggleDarkMode={toggleDarkMode}
-        rightContent={rightContent}
-      />
-
-      {/* Hero Section */}
-      <section className="pt-20 pb-32 relative">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-4xl mx-auto">
-            <div className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-medium mb-8 backdrop-blur-sm border ${
-              darkMode
-                ? 'bg-gray-800/30 border-triagen-border-dark text-gray-300'
-                : 'bg-white/40 border-triagen-border-light text-triagen-text-dark'
-            }`}>
-              <Zap className="h-4 w-4 mr-2 text-triagen-secondary-green" />
-              Democratizando a escuta no recrutamento
-            </div>
-
-            <h1 className={`font-heading text-5xl md:text-7xl font-bold mb-8 transition-colors duration-300 ${
-              darkMode ? 'text-white' : 'text-triagen-dark-bg'
-            }`}>
-              Mais{' '}
-              <span className="text-triagen-primary-blue">
-                alcance
-              </span>
-              , mais{' '}
-              <span className="text-triagen-secondary-green">
-                precisão
-              </span>
-            </h1>
-
-            <p className={`font-sans text-xl md:text-2xl mb-12 transition-colors duration-300 leading-relaxed ${
-              darkMode ? 'text-gray-400' : 'text-triagen-text-light'
-            }`}>
-              Amplie seu funil de candidatos e afunile com contexto. Nossa IA empática entrevista todos que se candidatam,
-              entregando apenas os perfis com maior fit — humanizando o processo sem inflar os custos.
+      <main>
+        {/* Hero */}
+        <section className="max-w-6xl mx-auto px-6 md:px-8 pt-20 md:pt-28 pb-20 md:pb-28">
+          <div className="max-w-3xl">
+            <p className={`rise-in text-[0.65rem] uppercase tracking-[0.2em] font-bold mb-6 ${darkMode ? 'text-gray-500' : 'text-triagen-secondary'}`}>
+              Triagem com entrevistas de voz por IA
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button
-                variant="primary"
-                size="lg"
-                onClick={handleWaitlistClick}
-                icon={ArrowRight}
-               contentAlignment="center"
-              >
-                Junte-se à Lista de Espera
+            <h1
+              className={`rise-in rise-in-delay-1 font-heading font-normal tracking-tight text-5xl md:text-7xl leading-[1.05] mb-8 ${
+                darkMode ? 'text-white' : 'text-triagen-primary'
+              }`}
+            >
+              A primeira entrevista,<br />
+              para <span className="italic text-triagen-secondary-green">todos</span> os candidatos.
+            </h1>
+
+            <p className={`rise-in rise-in-delay-2 text-lg md:text-xl leading-relaxed max-w-2xl mb-10 ${darkMode ? 'text-gray-400' : 'text-triagen-secondary'}`}>
+              O TriaGen entrevista por voz cada pessoa que se candidata às suas vagas
+              e transforma cada conversa em um relatório comparável — pontuação por
+              critério, evidências e uma recomendação clara. A decisão continua sendo sua.
+            </p>
+
+            <div className="rise-in rise-in-delay-3 flex flex-col sm:flex-row sm:items-center gap-4">
+              <Button variant="primary" size="lg" onClick={scrollToForm} icon={ArrowRight}>
+                Quero acesso antecipado
+              </Button>
+              <Button variant="ghost" size="lg" darkMode={darkMode} onClick={() => navigate('/interview')}>
+                Recebi um código de entrevista
               </Button>
             </div>
 
-            {/* Interview Access for Candidates */}
-            <div className="mt-12 pt-8 border-t border-triagen-border-light dark:border-triagen-border-dark">
-              <div className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-medium mb-4 backdrop-blur-sm border ${
-                darkMode
-                  ? 'bg-triagen-primary-blue/10 border-triagen-primary-blue/30 text-triagen-primary-blue'
-                  : 'bg-triagen-primary-blue/10 border-triagen-primary-blue/30 text-triagen-primary-blue'
-              }`}>
-                <Bot className="h-4 w-4 mr-2" />
-                Para Candidatos
-              </div>
+            <p className={`rise-in rise-in-delay-3 mt-10 text-sm ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+              Em fase de piloto com as primeiras empresas.
+            </p>
+          </div>
+        </section>
 
-              <h2 className={`font-heading text-2xl font-bold mb-4 transition-colors duration-300 ${
-                darkMode ? 'text-white' : 'text-triagen-dark-bg'
-              }`}>
-                Recebeu um código de entrevista?
-              </h2>
+        {/* How it works */}
+        <section className={`border-t ${darkMode ? 'border-gray-800' : 'border-triagen-border-light'}`}>
+          <div className="max-w-6xl mx-auto px-6 md:px-8 py-20 md:py-24">
+            {sectionEyebrow('Como funciona')}
+            <h2 className={`font-heading font-normal tracking-tight text-3xl md:text-4xl mb-14 ${darkMode ? 'text-white' : 'text-triagen-primary'}`}>
+              Da vaga publicada à decisão, em três etapas.
+            </h2>
 
-              <p className={`font-sans text-lg mb-6 transition-colors duration-300 ${
-                darkMode ? 'text-gray-400' : 'text-triagen-text-light'
-              }`}>
-                Inicie sua entrevista personalizada com nossa IA empática
-              </p>
-
-              <Button
-                variant="primary"
-                size="lg"
-                onClick={handleStartInterview}
-                icon={Play}
-                iconPosition="left"
-               contentAlignment="center"
-              >
-                Iniciar Minha Entrevista
-              </Button>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-8">
+              {STEPS.map((step) => (
+                <div key={step.number} className={`border-t pt-6 ${darkMode ? 'border-gray-700' : 'border-triagen-primary/20'}`}>
+                  <span className={`font-heading text-lg ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+                    {step.number}
+                  </span>
+                  <h3 className={`font-heading text-xl mt-3 mb-3 ${darkMode ? 'text-white' : 'text-triagen-primary'}`}>
+                    {step.title}
+                  </h3>
+                  <p className={`text-sm leading-relaxed ${darkMode ? 'text-gray-400' : 'text-triagen-secondary'}`}>
+                    {step.description}
+                  </p>
+                </div>
+              ))}
             </div>
+          </div>
+        </section>
 
-            {/* Waitlist Form */}
-            {showWaitlistForm && (
-              <div id="waitlist-form" className="mt-16 max-w-2xl mx-auto">
-                <Card darkMode={darkMode} hoverEffect>
-                  {isSubmitted ? (
-                    <div className="text-center">
-                      <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-triagen-secondary-green flex items-center justify-center">
-                        <Mail className="h-8 w-8 text-white" />
-                      </div>
-
-                      <h3 className={`font-heading text-xl font-bold mb-4 transition-colors duration-300 ${
-                        darkMode ? 'text-white' : 'text-triagen-dark-bg'
-                      }`}>
-                        Obrigado por se inscrever!
-                      </h3>
-
-                      <p className={`font-sans mb-6 transition-colors duration-300 ${
-                        darkMode ? 'text-gray-400' : 'text-triagen-text-light'
-                      }`}>
-                        Você foi adicionado à nossa lista. Verifique seu email para confirmação.
+        {/* The report */}
+        <section className={`border-t ${darkMode ? 'border-gray-800' : 'border-triagen-border-light'}`}>
+          <div className="max-w-6xl mx-auto px-6 md:px-8 py-20 md:py-24">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+              <div>
+                {sectionEyebrow('O relatório')}
+                <h2 className={`font-heading font-normal tracking-tight text-3xl md:text-4xl mb-6 ${darkMode ? 'text-white' : 'text-triagen-primary'}`}>
+                  Cada entrevista vira um documento de decisão.
+                </h2>
+                <p className={`text-base md:text-lg leading-relaxed mb-8 ${darkMode ? 'text-gray-400' : 'text-triagen-secondary'}`}>
+                  Em vez de uma pilha de currículos, você recebe relatórios com a mesma
+                  estrutura para todos os candidatos — fáceis de comparar e de justificar.
+                </p>
+                <ul className="flex flex-col gap-4">
+                  {[
+                    ['Recomendação objetiva', 'Avançar, avançar com ressalvas ou não avançar — sem ambiguidade.'],
+                    ['Pontuação por critério', 'Os critérios vêm da sua vaga, não de uma régua genérica.'],
+                    ['Evidências reais', 'Cada avaliação cita trechos do que o candidato disse na conversa.'],
+                  ].map(([title, description]) => (
+                    <li key={title} className="flex items-start gap-3">
+                      <span className={`mt-[0.55rem] w-1.5 h-1.5 rounded-full shrink-0 ${darkMode ? 'bg-emerald-400' : 'bg-triagen-secondary-green'}`} />
+                      <p className={`text-sm md:text-base leading-relaxed ${darkMode ? 'text-gray-300' : 'text-triagen-primary'}`}>
+                        <strong className="font-semibold">{title}.</strong>{' '}
+                        <span className={darkMode ? 'text-gray-400' : 'text-triagen-secondary'}>{description}</span>
                       </p>
-
-                      <Button
-                        variant="primary"
-                        size="md"
-                        onClick={handleCloseForm}
-                        fullWidth
-                       contentAlignment="center"
-                      >
-                        Fechar
-                      </Button>
-                    </div>
-                  ) : (
-                    <>
-                      <div className="flex justify-between items-center mb-6">
-                        <div className="text-center flex-1">
-                          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-triagen-dark-bg flex items-center justify-center">
-                            <UserCheck className="h-8 w-8 text-white" />
-                          </div>
-
-                          <h3 className={`font-heading text-xl font-bold mb-2 transition-colors duration-300 ${
-                            darkMode ? 'text-white' : 'text-triagen-dark-bg'
-                          }`}>
-                            Junte-se à Lista de Espera
-                          </h3>
-
-                          <p className={`font-sans text-sm transition-colors duration-300 ${
-                            darkMode ? 'text-gray-400' : 'text-triagen-text-light'
-                          }`}>
-                            Seja um dos primeiros a testar nossa plataforma
-                          </p>
-                        </div>
-
-                        <button
-                          onClick={handleCloseForm}
-                          className={`p-2 rounded-full transition-colors ${
-                            darkMode
-                              ? 'hover:bg-gray-700 text-gray-400 hover:text-gray-300'
-                              : 'hover:bg-triagen-border-light text-triagen-text-light hover:text-triagen-text-dark'
-                          }`}
-                        >
-                          <X className="h-5 w-5" />
-                        </button>
-                      </div>
-
-                      <form onSubmit={handleFormSubmit} className="space-y-4">
-                        {/* Nome e Email lado a lado */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            <label htmlFor="name" className={`block text-sm font-medium mb-2 transition-colors duration-300 ${
-                              darkMode ? 'text-gray-300' : 'text-triagen-dark-bg'
-                            }`}>
-                              Nome completo *
-                            </label>
-                            <input
-                              type="text"
-                              id="name"
-                              name="name"
-                              value={formData.name}
-                              onChange={handleInputChange}
-                              placeholder="Seu nome completo"
-                              className={`font-sans w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-triagen-secondary-green/50 focus:border-triagen-secondary-green ${
-                                darkMode
-                                  ? 'bg-gray-800/50 border-triagen-border-dark text-white placeholder-gray-400'
-                                  : 'bg-white/70 border-triagen-border-light text-triagen-dark-bg placeholder-triagen-text-light'
-                              }`}
-                              disabled={isLoading}
-                              required
-                            />
-                          </div>
-
-                          <div>
-                            <label htmlFor="email" className={`block text-sm font-medium mb-2 transition-colors duration-300 ${
-                              darkMode ? 'text-gray-300' : 'text-triagen-dark-bg'
-                            }`}>
-                              Email *
-                            </label>
-                            <input
-                              type="email"
-                              id="email"
-                              name="email"
-                              value={formData.email}
-                              onChange={handleInputChange}
-                              placeholder="seu@email.com"
-                              className={`font-sans w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-triagen-secondary-green/50 focus:border-triagen-secondary-green ${
-                                darkMode
-                                  ? 'bg-gray-800/50 border-triagen-border-dark text-white placeholder-gray-400'
-                                  : 'bg-white/70 border-triagen-border-light text-triagen-dark-bg placeholder-triagen-text-light'
-                              }`}
-                              disabled={isLoading}
-                              required
-                            />
-                          </div>
-                        </div>
-
-                        {/* Empresa e Cargo lado a lado */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            <label htmlFor="company" className={`block text-sm font-medium mb-2 transition-colors duration-300 ${
-                              darkMode ? 'text-gray-300' : 'text-triagen-dark-bg'
-                            }`}>
-                              Empresa
-                            </label>
-                            <input
-                              type="text"
-                              id="company"
-                              name="company"
-                              value={formData.company}
-                              onChange={handleInputChange}
-                              placeholder="Sua empresa"
-                              className={`font-sans w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-triagen-secondary-green/50 focus:border-triagen-secondary-green ${
-                                darkMode
-                                  ? 'bg-gray-800/50 border-triagen-border-dark text-white placeholder-gray-400'
-                                  : 'bg-white/70 border-triagen-border-light text-triagen-dark-bg placeholder-triagen-text-light'
-                              }`}
-                              disabled={isLoading}
-                            />
-                          </div>
-
-                          <div>
-                            <label htmlFor="job_title" className={`block text-sm font-medium mb-2 transition-colors duration-300 ${
-                              darkMode ? 'text-gray-300' : 'text-triagen-dark-bg'
-                            }`}>
-                              Cargo
-                            </label>
-                            <input
-                              type="text"
-                              id="job_title"
-                              name="job_title"
-                              value={formData.job_title}
-                              onChange={handleInputChange}
-                              placeholder="Seu cargo"
-                              className={`font-sans w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:ring-2 focus:ring-triagen-secondary-green/50 focus:border-triagen-secondary-green ${
-                                darkMode
-                                  ? 'bg-gray-800/50 border-triagen-border-dark text-white placeholder-gray-400'
-                                  : 'bg-white/70 border-triagen-border-light text-triagen-dark-bg placeholder-triagen-text-light'
-                              }`}
-                              disabled={isLoading}
-                            />
-                          </div>
-                        </div>
-
-                        {/* Newsletter Consent */}
-                        <div className="flex items-start space-x-3">
-                          <input
-                            type="checkbox"
-                            id="newsletter_consent"
-                            checked={newsletterConsent}
-                            onChange={(e) => setNewsletterConsent(e.target.checked)}
-                            className="mt-1 h-4 w-4 text-triagen-secondary-green focus:ring-triagen-secondary-green border-triagen-border-light rounded"
-                            disabled={isLoading}
-                            required
-                          />
-                          <label htmlFor="newsletter_consent" className={`font-sans text-sm transition-colors duration-300 ${
-                            darkMode ? 'text-gray-300' : 'text-triagen-text-light'
-                          }`}>
-                            Aceito receber comunicações sobre o TriaGen e concordo com os{' '}
-                            <a href="#" className="text-triagen-secondary-green hover:text-triagen-secondary-green/80 underline">
-                              termos de uso
-                            </a>
-                            {' '}e{' '}
-                            <a href="#" className="text-triagen-secondary-green hover:text-triagen-secondary-green/80 underline">
-                              política de privacidade
-                            </a>
-                            . *
-                          </label>
-                        </div>
-
-                        {/* reCAPTCHA */}
-                        <div className="flex justify-center">
-                          <ReCAPTCHA
-                            ref={recaptchaRef}
-                            sitekey={config.recaptchaSiteKey || ''}
-                            size="invisible"
-                            theme={darkMode ? 'dark' : 'light'}
-                          />
-                        </div>
-
-                        {/* reCAPTCHA Attribution Text */}
-                        <div className={`font-sans text-xs text-center transition-colors duration-300 ${
-                          darkMode ? 'text-gray-500' : 'text-triagen-text-light'
-                        }`}>
-                          This site is protected by reCAPTCHA and the Google{' '}
-                          <a
-                            href="https://policies.google.com/privacy"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-triagen-secondary-green hover:text-triagen-secondary-green/80 underline"
-                          >
-                            Privacy Policy
-                          </a>
-                          {' '}and{' '}
-                          <a
-                            href="https://policies.google.com/terms"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-triagen-secondary-green hover:text-triagen-secondary-green/80 underline"
-                          >
-                            Terms of Service
-                          </a>
-                          {' '}apply.
-                        </div>
-
-                        {error && (
-                          <StatusMessage
-                            type="error"
-                            message={error}
-                            darkMode={darkMode}
-                          />
-                        )}
-
-                        <Button
-                          type="submit"
-                          variant="primary"
-                          size="lg"
-                          fullWidth
-                          isLoading={isLoading}
-                          disabled={!formData.name || !formData.email || !newsletterConsent}
-                          icon={MessageSquare}
-                         contentAlignment="center"
-                        >
-                          {isLoading ? 'Enviando...' : 'Junte-se à Lista de Espera'}
-                        </Button>
-                      </form>
-
-                      <StatusMessage
-                        type="info"
-                        title="Transparência e Confiança"
-                        message="Seus dados são protegidos e você tem controle total sobre como nossa IA conduz as entrevistas. Sem surpresas, apenas resultados."
-                        darkMode={darkMode}
-                        className="mt-4"
-                        icon={Shield}
-                      />
-                    </>
-                  )}
-                </Card>
+                    </li>
+                  ))}
+                </ul>
               </div>
-            )}
-          </div>
-        </div>
-      </section>
 
-      {/* Stats Section */}
-      <section className="py-20 relative">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {stats.map((stat) => {
-              const StatIcon = stat.icon;
-              return (
-                <div key={stat.title} className="flex flex-col items-center text-center gap-3">
-                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${stat.iconColor}`}>
-                    <StatIcon className="h-6 w-6 text-white" aria-hidden="true" />
-                  </div>
-                  <span className={`font-heading text-4xl ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
-                    {stat.value}
-                  </span>
-                  <span className={`text-xs font-sans tracking-widest uppercase font-semibold ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
-                    {stat.title}
-                  </span>
+              <ReportSpecimen darkMode={darkMode} />
+            </div>
+          </div>
+        </section>
+
+        {/* Principles */}
+        <section className={`border-t ${darkMode ? 'border-gray-800' : 'border-triagen-border-light'}`}>
+          <div className="max-w-6xl mx-auto px-6 md:px-8 py-20 md:py-24">
+            {sectionEyebrow('Princípios')}
+            <h2 className={`font-heading font-normal tracking-tight text-3xl md:text-4xl mb-14 ${darkMode ? 'text-white' : 'text-triagen-primary'}`}>
+              O que guia o produto.
+            </h2>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-8">
+              {PRINCIPLES.map((principle) => (
+                <div key={principle.title}>
+                  <h3 className={`font-heading text-xl italic mb-3 ${darkMode ? 'text-white' : 'text-triagen-primary'}`}>
+                    {principle.title}
+                  </h3>
+                  <p className={`text-sm leading-relaxed ${darkMode ? 'text-gray-400' : 'text-triagen-secondary'}`}>
+                    {principle.description}
+                  </p>
                 </div>
-              );
-            })}
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Features Section */}
-      <section className="py-32 relative">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <SectionHeader
-            icon={Heart}
-            label="Como Funciona"
-            title="Eficiência sem frieza, tecnologia com empatia"
-            description="Nossa IA não substitui você — ela amplifica sua capacidade de ouvir todos os candidatos e identificar os melhores fits com precisão e humanidade."
-            darkMode={darkMode}
-          />
+        {/* Early access */}
+        <section
+          id="acesso-antecipado"
+          className={`border-t scroll-mt-16 ${darkMode ? 'border-gray-800' : 'border-triagen-border-light'}`}
+        >
+          <div className="max-w-6xl mx-auto px-6 md:px-8 py-20 md:py-24">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20">
+              <div>
+                {sectionEyebrow('Acesso antecipado')}
+                <h2 className={`font-heading font-normal tracking-tight text-3xl md:text-4xl mb-6 ${darkMode ? 'text-white' : 'text-triagen-primary'}`}>
+                  Estamos abrindo o TriaGen para um primeiro grupo de empresas.
+                </h2>
+                <p className={`text-base md:text-lg leading-relaxed ${darkMode ? 'text-gray-400' : 'text-triagen-secondary'}`}>
+                  Deixe seu contato e conversamos sobre o seu processo seletivo —
+                  sem compromisso. Você acompanha de perto e ajuda a moldar o produto.
+                </p>
+              </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {features.map((feature, index) => (
-              <FeatureCard
-                key={index}
-                icon={feature.icon}
-                title={feature.title}
-                description={feature.description}
-                darkMode={darkMode}
-                iconColor={feature.iconColor}
-              />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Report Example Section */}
-      <section className="py-32 relative">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <SectionHeader
-            icon={FileText}
-            label="Relatórios Inteligentes"
-            title="Insights que fazem a diferença"
-            description="Receba análises detalhadas e transparentes sobre cada candidato, com dados que realmente importam para sua decisão."
-            darkMode={darkMode}
-          />
-
-          <div className="max-w-4xl mx-auto">
-            <Card darkMode={darkMode} hoverEffect className="overflow-hidden">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Left side - Report preview */}
-                <div>
-                  <div className="flex items-center justify-between mb-6">
-                    <h3 className={`font-heading text-xl font-bold ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
-                      Análise do Candidato
+              <div className={`rounded-lg border p-6 md:p-8 ${darkMode ? 'bg-gray-800/40 border-gray-700' : 'bg-white border-triagen-border-light'}`}>
+                {isSubmitted ? (
+                  <div className="py-6 text-center">
+                    <div className={`w-14 h-14 mx-auto mb-5 rounded-full flex items-center justify-center ${darkMode ? 'bg-triagen-secondary-green/20' : 'bg-triagen-sage-tint'}`}>
+                      <CheckCircle2 className={`h-7 w-7 ${darkMode ? 'text-emerald-300' : 'text-triagen-secondary-green'}`} aria-hidden="true" />
+                    </div>
+                    <h3 className={`font-heading text-2xl mb-3 ${darkMode ? 'text-white' : 'text-triagen-primary'}`}>
+                      Contato recebido
                     </h3>
-                    <div className="flex items-center space-x-2">
-                      <div className="w-8 h-8 rounded-full bg-triagen-secondary-green flex items-center justify-center">
-                        <span className="text-white text-sm font-bold">8.7</span>
-                      </div>
-                      <span className={`font-sans text-sm ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
-                        Compatibilidade
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Competências */}
-                  <div className="space-y-4 mb-6">
-                    <div>
-                      <div className="flex justify-between items-center mb-2">
-                        <span className={`font-sans text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-triagen-dark-bg'}`}>
-                          Comunicação
-                        </span>
-                        <span className="text-triagen-secondary-green text-sm font-bold">Excelente</span>
-                      </div>
-                      <div className={`h-2 rounded-full ${darkMode ? 'bg-gray-700' : 'bg-triagen-border-light'}`}>
-                        <div className="h-full bg-triagen-secondary-green rounded-full" style={{ width: '90%' }}></div>
-                      </div>
-                    </div>
-
-                    <div>
-                      <div className="flex justify-between items-center mb-2">
-                        <span className={`font-sans text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-triagen-dark-bg'}`}>
-                          Experiência Técnica
-                        </span>
-                        <span className="text-triagen-primary-blue text-sm font-bold">Muito Bom</span>
-                      </div>
-                      <div className={`h-2 rounded-full ${darkMode ? 'bg-gray-700' : 'bg-triagen-border-light'}`}>
-                        <div className="h-full bg-triagen-primary-blue rounded-full" style={{ width: '75%' }}></div>
-                      </div>
-                    </div>
-
-                    <div>
-                      <div className="flex justify-between items-center mb-2">
-                        <span className={`font-sans text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-triagen-dark-bg'}`}>
-                          Fit Cultural
-                        </span>
-                        <span className="text-triagen-primary-blue text-sm font-bold">Excelente</span>
-                      </div>
-                      <div className={`h-2 rounded-full ${darkMode ? 'bg-gray-700' : 'bg-triagen-border-light'}`}>
-                        <div className="h-full bg-triagen-dark-bg rounded-full" style={{ width: '95%' }}></div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Action buttons */}
-                  <div className="flex space-x-3">
-                    <Button
-                      variant="primary"
-                      size="sm"
-                      icon={Download}
-                     contentAlignment="center"
-                    >
-                      Baixar PDF
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      icon={BarChart3}
-                      darkMode={darkMode}
-                     contentAlignment="center"
-                    >
-                      Ver Detalhes
-                    </Button>
-                  </div>
-                </div>
-
-                {/* Right side - Key insights */}
-                <div>
-                  <h4 className={`font-heading text-lg font-bold mb-4 ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
-                    Pontos-chave da Entrevista
-                  </h4>
-
-                  <div className="space-y-4">
-                    <div className="flex items-start space-x-3">
-                      <CheckCircle className="h-5 w-5 text-triagen-secondary-green flex-shrink-0 mt-0.5" />
-                      <div>
-                        <p className={`font-sans text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-triagen-dark-bg'}`}>
-                          Pontos Fortes
-                        </p>
-                        <p className={`font-sans text-sm ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
-                          Comunicação clara, experiência sólida em React, demonstrou proatividade
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-start space-x-3">
-                      <Target className="h-5 w-5 text-triagen-highlight-purple flex-shrink-0 mt-0.5" />
-                      <div>
-                        <p className={`font-sans text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-triagen-dark-bg'}`}>
-                          Áreas de Desenvolvimento
-                        </p>
-                        <p className={`font-sans text-sm ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
-                          Poderia aprofundar conhecimentos em TypeScript e testes automatizados
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-start space-x-3">
-                      <Brain className="h-5 w-5 text-triagen-primary-blue flex-shrink-0 mt-0.5" />
-                      <div>
-                        <p className={`font-sans text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-triagen-dark-bg'}`}>
-                          Recomendação da IA
-                        </p>
-                        <p className={`font-sans text-sm ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
-                          Candidato promissor para posição júnior/pleno. Agendar entrevista técnica.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className={`mt-6 p-4 rounded-xl ${
-                    darkMode ? 'bg-triagen-secondary-green/10 border border-triagen-secondary-green/20' : 'bg-triagen-secondary-green/10 border border-triagen-secondary-green/30'
-                  }`}>
-                    <p className={`font-sans text-sm ${darkMode ? 'text-gray-300' : 'text-triagen-dark-bg'}`}>
-                      <strong>Checklist Automático:</strong> Todos os pontos-chave da vaga foram cobertos durante a conversa,
-                      garantindo uma avaliação completa e justa.
+                    <p className={`text-sm leading-relaxed max-w-sm mx-auto ${darkMode ? 'text-gray-400' : 'text-triagen-secondary'}`}>
+                      Obrigado pelo interesse. Enviamos uma confirmação para o seu
+                      e-mail e entraremos em contato em breve.
                     </p>
                   </div>
-                </div>
-              </div>
-            </Card>
-          </div>
-        </div>
-      </section>
+                ) : (
+                  <form onSubmit={handleFormSubmit} className="space-y-5">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                      <Input
+                        label="Nome completo *"
+                        id="name"
+                        name="name"
+                        darkMode={darkMode}
+                        value={formData.name}
+                        onChange={handleInputChange}
+                        placeholder="Seu nome"
+                        autoComplete="name"
+                        disabled={isLoading}
+                        required
+                      />
+                      <Input
+                        label="E-mail corporativo *"
+                        id="email"
+                        name="email"
+                        type="email"
+                        darkMode={darkMode}
+                        value={formData.email}
+                        onChange={handleInputChange}
+                        placeholder="voce@empresa.com"
+                        autoComplete="email"
+                        disabled={isLoading}
+                        required
+                      />
+                      <Input
+                        label="Empresa"
+                        id="company"
+                        name="company"
+                        darkMode={darkMode}
+                        value={formData.company}
+                        onChange={handleInputChange}
+                        placeholder="Nome da empresa"
+                        autoComplete="organization"
+                        disabled={isLoading}
+                      />
+                      <Input
+                        label="Cargo"
+                        id="job_title"
+                        name="job_title"
+                        darkMode={darkMode}
+                        value={formData.job_title}
+                        onChange={handleInputChange}
+                        placeholder="Seu cargo"
+                        autoComplete="organization-title"
+                        disabled={isLoading}
+                      />
+                    </div>
 
-      {/* Footer */}
-      <Footer darkMode={darkMode} onJoinWaitlist={handleWaitlistClick} />
+                    <label htmlFor="newsletter_consent" className="flex items-start gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        id="newsletter_consent"
+                        checked={newsletterConsent}
+                        onChange={(e) => setNewsletterConsent(e.target.checked)}
+                        className="mt-0.5 h-4 w-4 accent-[#3F7A5E] shrink-0"
+                        disabled={isLoading}
+                        required
+                      />
+                      <span className={`text-xs leading-relaxed ${darkMode ? 'text-gray-400' : 'text-triagen-secondary'}`}>
+                        Aceito receber comunicações do TriaGen sobre o acesso antecipado. *
+                      </span>
+                    </label>
+
+                    {recaptchaSiteKey && (
+                      <ReCAPTCHA
+                        ref={recaptchaRef}
+                        sitekey={recaptchaSiteKey}
+                        size="invisible"
+                        theme={darkMode ? 'dark' : 'light'}
+                      />
+                    )}
+
+                    {error && <StatusMessage type="error" message={error} darkMode={darkMode} />}
+
+                    <Button
+                      type="submit"
+                      variant="primary"
+                      size="lg"
+                      fullWidth
+                      isLoading={isLoading}
+                      disabled={!formData.name || !formData.email || !newsletterConsent || !recaptchaSiteKey}
+                      icon={ArrowRight}
+                    >
+                      {isLoading ? 'Enviando...' : 'Solicitar acesso'}
+                    </Button>
+
+                    <p className={`text-[0.65rem] leading-relaxed text-center ${recaptchaSiteKey ? '' : 'hidden'} ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+                      Protegido por reCAPTCHA — aplicam-se a{' '}
+                      <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="underline hover:opacity-70">
+                        Política de Privacidade
+                      </a>{' '}
+                      e os{' '}
+                      <a href="https://policies.google.com/terms" target="_blank" rel="noopener noreferrer" className="underline hover:opacity-70">
+                        Termos de Serviço
+                      </a>{' '}
+                      do Google.
+                    </p>
+                  </form>
+                )}
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <Footer />
     </div>
   );
 }

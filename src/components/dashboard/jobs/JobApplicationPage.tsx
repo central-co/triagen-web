@@ -7,7 +7,6 @@ import { createApplication } from '../../../api/application';
 import Button from '../../ui/Button';
 import Card from '../../ui/Card';
 import StatusMessage from '../../ui/StatusMessage';
-import AnimatedBackground from '../../ui/AnimatedBackground';
 import PageHeader from '../../ui/PageHeader';
 import LoadingSpinner from '../../ui/LoadingSpinner';
 import { Input, Textarea } from '../../ui/Field';
@@ -202,8 +201,7 @@ function JobApplicationPage() {
   };
 
   const pageShell = (content: React.ReactNode) => (
-    <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-triagen-light-bg'}`}>
-      <AnimatedBackground darkMode={darkMode} />
+    <div className={`min-h-screen font-sans ${darkMode ? 'bg-gray-900' : 'bg-triagen-neutral'}`}>
       <PageHeader darkMode={darkMode} />
       {content}
     </div>
@@ -211,7 +209,7 @@ function JobApplicationPage() {
 
   if (loading) {
     return pageShell(
-      <div className="flex items-center justify-center min-h-[calc(100vh-80px)]">
+      <div className="flex items-center justify-center min-h-[calc(100vh-4rem)]">
         <LoadingSpinner label="Carregando vaga" />
       </div>
     );
@@ -219,7 +217,7 @@ function JobApplicationPage() {
 
   if (error && !job) {
     return pageShell(
-      <div className="flex items-center justify-center min-h-[calc(100vh-80px)] px-4">
+      <div className="flex items-center justify-center min-h-[calc(100vh-4rem)] px-4">
         <div className="max-w-md w-full">
           <Card darkMode={darkMode}>
             <StatusMessage
@@ -248,26 +246,27 @@ function JobApplicationPage() {
 
   if (success) {
     return pageShell(
-      <div className="flex items-center justify-center min-h-[calc(100vh-80px)] px-4">
-        <div className="max-w-md w-full">
-          <Card darkMode={darkMode}>
-            <div className="text-center">
-              <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-triagen-secondary-green flex items-center justify-center">
-                <Send className="h-9 w-9 text-white" />
+      <div className="flex items-center justify-center min-h-[calc(100vh-4rem)] px-4">
+        <div className="max-w-md w-full rise-in">
+          <Card darkMode={darkMode} padding="lg">
+            <div className="text-center py-4">
+              <div className={`w-16 h-16 mx-auto mb-6 rounded-full flex items-center justify-center ${darkMode ? 'bg-triagen-secondary-green/20' : 'bg-triagen-sage-tint'}`}>
+                <Send className={`h-7 w-7 ${darkMode ? 'text-emerald-400' : 'text-triagen-secondary-green'}`} aria-hidden="true" />
               </div>
 
-              <h1 className={`font-heading text-2xl font-semibold mb-4 ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
-                Candidatura enviada!
+              <h1 className={`font-heading font-normal tracking-tight text-3xl mb-4 ${darkMode ? 'text-white' : 'text-triagen-primary'}`}>
+                Candidatura enviada
               </h1>
 
-              <p className={`font-sans mb-6 leading-relaxed ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
-                Sua candidatura foi recebida com sucesso. Nossa IA está preparando uma entrevista personalizada para você.
+              <p className={`text-sm leading-relaxed mb-6 ${darkMode ? 'text-gray-400' : 'text-triagen-secondary'}`}>
+                Recebemos sua candidatura. O próximo passo é a entrevista por voz
+                com a IA — o link chega por e-mail em instantes.
               </p>
 
               <StatusMessage
                 type="info"
-                title="Próximos passos"
-                message="Você receberá um e-mail com o link da sua entrevista em breve. Verifique também a caixa de spam."
+                title="Fique de olho no e-mail"
+                message="Se não encontrar a mensagem, verifique também a caixa de spam."
                 darkMode={darkMode}
               />
             </div>
@@ -280,7 +279,7 @@ function JobApplicationPage() {
   const workModelLabel = job?.work_model ? WORK_MODEL_LABELS[job.work_model] || job.work_model : null;
 
   const infoTag = (Icon: typeof MapPin, text: string) => (
-    <span className={`inline-flex items-center gap-1.5 text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-triagen-text-light'}`}>
+    <span className={`inline-flex items-center gap-1.5 text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-triagen-secondary'}`}>
       <Icon className="w-4 h-4" aria-hidden="true" /> {text}
     </span>
   );
@@ -294,7 +293,7 @@ function JobApplicationPage() {
         {items.map((item) => (
           <li key={item} className="flex items-start gap-2.5">
             <span className={`mt-[0.5rem] w-1 h-1 rounded-full shrink-0 ${darkMode ? 'bg-gray-500' : 'bg-triagen-secondary'}`} />
-            <span className={`text-sm leading-relaxed ${darkMode ? 'text-gray-300' : 'text-triagen-text-dark'}`}>{item}</span>
+            <span className={`text-sm leading-relaxed ${darkMode ? 'text-gray-300' : 'text-triagen-primary'}`}>{item}</span>
           </li>
         ))}
       </ul>
@@ -304,11 +303,11 @@ function JobApplicationPage() {
   return pageShell(
     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative">
       {/* Job Header */}
-      <div className="mb-10">
-        <p className={`text-xs uppercase tracking-widest font-semibold mb-3 ${darkMode ? 'text-gray-400' : 'text-triagen-secondary'}`}>
+      <div className="mb-10 rise-in">
+        <p className={`text-[0.65rem] uppercase tracking-[0.2em] font-bold mb-3 ${darkMode ? 'text-gray-500' : 'text-triagen-secondary'}`}>
           Vaga aberta
         </p>
-        <h1 className={`font-heading text-4xl md:text-5xl font-normal tracking-tight leading-tight mb-4 ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
+        <h1 className={`font-heading text-4xl md:text-5xl font-normal tracking-tight leading-tight mb-4 ${darkMode ? 'text-white' : 'text-triagen-primary'}`}>
           {job?.title}
         </h1>
         <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
@@ -319,7 +318,7 @@ function JobApplicationPage() {
 
       {/* Description */}
       <div className="mb-10">
-        <p className={`font-sans leading-relaxed whitespace-pre-line text-justify ${darkMode ? 'text-gray-300' : 'text-triagen-text-dark'}`}>
+        <p className={`font-sans leading-relaxed whitespace-pre-line ${darkMode ? 'text-gray-300' : 'text-triagen-primary'}`}>
           {job?.description}
         </p>
       </div>
@@ -342,7 +341,7 @@ function JobApplicationPage() {
               <h3 className={`flex items-center gap-2 text-xs uppercase tracking-widest font-bold mb-2 ${darkMode ? 'text-gray-400' : 'text-triagen-secondary'}`}>
                 <CircleDollarSign className="w-3.5 h-3.5" aria-hidden="true" /> Faixa salarial
               </h3>
-              <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-triagen-text-dark'}`}>{job.salary_range}</p>
+              <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-triagen-primary'}`}>{job.salary_range}</p>
             </div>
           )}
           {job.benefits && (
@@ -350,7 +349,7 @@ function JobApplicationPage() {
               <h3 className={`flex items-center gap-2 text-xs uppercase tracking-widest font-bold mb-2 ${darkMode ? 'text-gray-400' : 'text-triagen-secondary'}`}>
                 <Gift className="w-3.5 h-3.5" aria-hidden="true" /> Benefícios
               </h3>
-              <p className={`text-sm leading-relaxed whitespace-pre-line ${darkMode ? 'text-gray-300' : 'text-triagen-text-dark'}`}>{job.benefits}</p>
+              <p className={`text-sm leading-relaxed whitespace-pre-line ${darkMode ? 'text-gray-300' : 'text-triagen-primary'}`}>{job.benefits}</p>
             </div>
           )}
         </div>
@@ -359,10 +358,10 @@ function JobApplicationPage() {
       {/* Application Form or closed notice */}
       {acceptingApplications ? (
         <Card darkMode={darkMode} padding="lg">
-          <h2 className={`font-heading text-2xl font-semibold mb-2 ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
+          <h2 className={`font-heading text-2xl font-normal mb-2 ${darkMode ? 'text-white' : 'text-triagen-primary'}`}>
             Candidate-se à vaga
           </h2>
-          <p className={`text-sm mb-8 ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
+          <p className={`text-sm mb-8 ${darkMode ? 'text-gray-400' : 'text-triagen-secondary'}`}>
             Preencha seus dados abaixo. Depois, você receberá por e-mail o link para uma entrevista por voz com nossa IA.
           </p>
 
@@ -445,7 +444,7 @@ function JobApplicationPage() {
 
             {job?.pre_interview_questions && job.pre_interview_questions.length > 0 && (
               <div className="space-y-4 pt-2">
-                <h3 className={`font-heading text-lg font-semibold ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
+                <h3 className={`font-heading text-lg font-normal ${darkMode ? 'text-white' : 'text-triagen-primary'}`}>
                   Perguntas da vaga
                 </h3>
                 {job.pre_interview_questions.map((q) => (

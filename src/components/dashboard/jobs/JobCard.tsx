@@ -31,7 +31,7 @@ function JobCard({ job, darkMode, onClick }: Readonly<JobCardProps>) {
   return (
     <button
       onClick={() => onClick(job.id)}
-      className={`relative p-8 pt-9 flex flex-col min-h-[260px] w-full text-left rounded-lg border overflow-hidden transition-all duration-300 group ${
+      className={`relative p-8 pt-9 flex flex-col min-h-[260px] w-full text-left rounded-lg border overflow-hidden transition-[border-color,box-shadow,transform] duration-200 ease-out group ${
         darkMode
           ? 'bg-gray-800/40 border-gray-700 hover:border-gray-500'
           : 'bg-white border-triagen-border-light hover:border-neutral-300 shadow-[0_2px_10px_-4px_rgba(44,62,80,0.08)] hover:shadow-[0_10px_32px_-8px_rgba(44,62,80,0.16)] hover:-translate-y-0.5'

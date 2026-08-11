@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { Mic, MicOff, Volume2, CheckCircle2, XCircle, ArrowRight } from 'lucide-react';
+import { Mic, MicOff, Volume2, CheckCircle2, ArrowRight } from 'lucide-react';
 import useDarkMode from '../hooks/useDarkMode';
-import AnimatedBackground from './ui/AnimatedBackground';
 import Button from './ui/Button';
 import Card from './ui/Card';
 import StatusMessage from './ui/StatusMessage';
@@ -14,7 +13,7 @@ interface PreInterviewRoomProps {
   onBack: () => void;
 }
 
-function PreInterviewRoom({ onConfirm, onBack }: PreInterviewRoomProps) {
+function PreInterviewRoom({ onConfirm, onBack }: Readonly<PreInterviewRoomProps>) {
   const { darkMode } = useDarkMode();
   const [step, setStep] = useState<Step>('mic');
 
@@ -99,10 +98,6 @@ function PreInterviewRoom({ onConfirm, onBack }: PreInterviewRoomProps) {
     };
   }, []);
 
-  const handleGoToAudioStep = () => {
-    setStep('audio');
-  };
-
   const playTestSound = async () => {
     const ctx = audioCtxRef.current ?? new AudioContext();
     audioCtxRef.current = ctx;
@@ -123,74 +118,71 @@ function PreInterviewRoom({ onConfirm, onBack }: PreInterviewRoomProps) {
     oscillator.onended = () => setIsPlayingTest(false);
   };
 
+  const stepIcon = () => {
+    if (step === 'audio') {
+      return <Volume2 className={`h-8 w-8 ${darkMode ? 'text-gray-300' : 'text-triagen-primary'}`} />;
+    }
+    if (micPermission === false) {
+      return <MicOff className="h-8 w-8 text-red-500" />;
+    }
+    if (micPassed) {
+      return <CheckCircle2 className={`h-8 w-8 ${darkMode ? 'text-emerald-400' : 'text-triagen-secondary-green'}`} />;
+    }
+    return <Mic className={`h-8 w-8 ${darkMode ? 'text-gray-300' : 'text-triagen-primary'}`} />;
+  };
+
+  const stepIconBg = () => {
+    if (step === 'mic' && micPermission === false) return 'bg-red-500/10';
+    if (step === 'mic' && micPassed) return darkMode ? 'bg-triagen-secondary-green/20' : 'bg-triagen-sage-tint';
+    return darkMode ? 'bg-gray-800' : 'bg-neutral-100';
+  };
+
   return (
-    <div className={`min-h-screen transition-all duration-500 ${darkMode ? 'bg-gray-900' : 'bg-triagen-light-bg'}`}>
-      <AnimatedBackground darkMode={darkMode} />
+    <div className={`min-h-screen font-sans ${darkMode ? 'bg-gray-900' : 'bg-triagen-neutral'}`}>
       <PageHeader darkMode={darkMode} />
 
-      <div className="flex items-center justify-center min-h-[calc(100vh-80px)] px-4 sm:px-6 lg:px-8">
+      <div className="flex items-center justify-center min-h-[calc(100vh-4rem)] px-4 sm:px-6 py-12">
         <div className="max-w-md w-full">
 
           {/* Step indicator */}
-          <div className="flex items-center justify-center gap-3 mb-6">
-            {(['mic', 'audio'] as Step[]).map((s, i) => (
-              <div key={s} className="flex items-center gap-3">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-colors ${
-                  step === s
-                    ? 'bg-triagen-primary-blue text-white'
-                    : s === 'mic' && step === 'audio'
-                      ? 'bg-green-500 text-white'
-                      : darkMode ? 'bg-gray-700 text-gray-400' : 'bg-gray-200 text-gray-500'
-                }`}>
-                  {s === 'mic' && step === 'audio' ? <CheckCircle2 className="h-4 w-4" /> : i + 1}
-                </div>
-                {i < 1 && (
-                  <div className={`w-12 h-0.5 ${step === 'audio' ? 'bg-green-500' : darkMode ? 'bg-gray-700' : 'bg-gray-200'}`} />
-                )}
-              </div>
-            ))}
-          </div>
+          <p className={`text-[0.65rem] uppercase tracking-[0.2em] font-bold mb-6 text-center ${darkMode ? 'text-gray-500' : 'text-triagen-secondary'}`}>
+            Preparação — etapa {step === 'mic' ? '1' : '2'} de 2
+          </p>
 
-          <Card darkMode={darkMode}>
+          <Card darkMode={darkMode} padding="lg">
+            <div className="text-center mb-8">
+              <div className={`w-16 h-16 mx-auto mb-6 rounded-full flex items-center justify-center transition-colors ${stepIconBg()}`}>
+                {stepIcon()}
+              </div>
+              <h1 className={`font-heading font-normal tracking-tight text-3xl mb-2 ${darkMode ? 'text-white' : 'text-triagen-primary'}`}>
+                {step === 'mic' ? 'Teste de microfone' : 'Teste de áudio'}
+              </h1>
+              <p className={`text-sm leading-relaxed ${darkMode ? 'text-gray-400' : 'text-triagen-secondary'}`}>
+                {step === 'mic'
+                  ? (micPassed ? 'Microfone funcionando.' : 'Fale algo em voz alta para verificarmos seu microfone.')
+                  : 'Toque o som de teste e confirme se consegue ouvir.'}
+              </p>
+            </div>
+
             {step === 'mic' && (
               <>
-                <div className="text-center mb-8">
-                  <div className={`w-20 h-20 mx-auto mb-6 rounded-3xl flex items-center justify-center transition-colors ${
-                    micPermission === false ? 'bg-red-500/20' :
-                    micPassed ? 'bg-green-500/20' : 'bg-triagen-primary-blue/20'
-                  }`}>
-                    {micPermission === false
-                      ? <MicOff className="h-10 w-10 text-red-500" />
-                      : micPassed
-                        ? <CheckCircle2 className="h-10 w-10 text-green-500" />
-                        : <Mic className="h-10 w-10 text-triagen-primary-blue" />
-                    }
-                  </div>
-                  <h1 className={`font-heading text-2xl font-bold mb-2 ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
-                    Teste de Microfone
-                  </h1>
-                  <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
-                    {micPassed ? 'Microfone funcionando! ✅' : 'Fale algo para verificar seu microfone'}
-                  </p>
-                </div>
-
                 {micPermission === false ? (
                   <StatusMessage
                     type="error"
-                    title="Acesso negado"
-                    message="Permita o acesso ao microfone nas configurações do browser e recarregue a página."
+                    title="Acesso ao microfone negado"
+                    message="Permita o acesso ao microfone nas configurações do navegador e recarregue a página."
                     darkMode={darkMode}
                   />
                 ) : (
                   <div className="mb-8">
-                    <div className={`h-4 rounded-full overflow-hidden ${darkMode ? 'bg-gray-700' : 'bg-triagen-border-light'}`}>
+                    <div className={`h-2 rounded-full overflow-hidden ${darkMode ? 'bg-gray-700' : 'bg-neutral-200'}`}>
                       <div
-                        className={`h-full rounded-full ${micPassed ? 'bg-green-500' : 'bg-gradient-to-r from-triagen-secondary-green to-triagen-primary-blue'}`}
+                        className={`h-full rounded-full transition-[width] duration-75 ${micPassed ? 'bg-triagen-secondary-green' : darkMode ? 'bg-gray-400' : 'bg-triagen-secondary'}`}
                         style={{ width: `${micLevel}%` }}
                       />
                     </div>
-                    <p className={`text-xs mt-2 text-center ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
-                      {micPassed ? 'Sinal detectado com sucesso' : 'Aguardando sinal de áudio...'}
+                    <p className={`text-xs mt-3 text-center ${micPassed ? (darkMode ? 'text-emerald-400' : 'text-triagen-secondary-green') : (darkMode ? 'text-gray-500' : 'text-gray-400')}`}>
+                      {micPassed ? 'Sinal detectado' : 'Aguardando sinal de áudio...'}
                     </p>
                   </div>
                 )}
@@ -203,7 +195,7 @@ function PreInterviewRoom({ onConfirm, onBack }: PreInterviewRoomProps) {
                     variant="primary"
                     size="lg"
                     fullWidth
-                    onClick={handleGoToAudioStep}
+                    onClick={() => setStep('audio')}
                     disabled={!micPassed}
                     icon={ArrowRight}
                   >
@@ -215,18 +207,6 @@ function PreInterviewRoom({ onConfirm, onBack }: PreInterviewRoomProps) {
 
             {step === 'audio' && (
               <>
-                <div className="text-center mb-8">
-                  <div className={`w-20 h-20 mx-auto mb-6 rounded-3xl flex items-center justify-center bg-triagen-primary-blue/20`}>
-                    <Volume2 className="h-10 w-10 text-triagen-primary-blue" />
-                  </div>
-                  <h1 className={`font-heading text-2xl font-bold mb-2 ${darkMode ? 'text-white' : 'text-triagen-dark-bg'}`}>
-                    Teste de Áudio
-                  </h1>
-                  <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-triagen-text-light'}`}>
-                    Clique para reproduzir um som e confirme se consegue ouvir
-                  </p>
-                </div>
-
                 <div className="mb-8 flex justify-center">
                   <Button
                     variant="secondary"
@@ -234,13 +214,14 @@ function PreInterviewRoom({ onConfirm, onBack }: PreInterviewRoomProps) {
                     onClick={playTestSound}
                     disabled={isPlayingTest}
                     icon={Volume2}
+                    iconPosition="left"
                     darkMode={darkMode}
                   >
                     {isPlayingTest ? 'Reproduzindo...' : 'Tocar som de teste'}
                   </Button>
                 </div>
 
-                <p className={`text-sm text-center mb-6 font-medium ${darkMode ? 'text-gray-300' : 'text-triagen-dark-bg'}`}>
+                <p className={`text-sm text-center mb-6 font-medium ${darkMode ? 'text-gray-300' : 'text-triagen-primary'}`}>
                   Você conseguiu ouvir o som?
                 </p>
 
@@ -250,7 +231,6 @@ function PreInterviewRoom({ onConfirm, onBack }: PreInterviewRoomProps) {
                     size="lg"
                     fullWidth
                     onClick={() => setStep('mic')}
-                    icon={XCircle}
                     darkMode={darkMode}
                   >
                     Não ouvi
@@ -260,9 +240,9 @@ function PreInterviewRoom({ onConfirm, onBack }: PreInterviewRoomProps) {
                     size="lg"
                     fullWidth
                     onClick={onConfirm}
-                    icon={CheckCircle2}
+                    icon={ArrowRight}
                   >
-                    Sim, ouvi!
+                    Sim, iniciar entrevista
                   </Button>
                 </div>
               </>

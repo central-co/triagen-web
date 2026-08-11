@@ -4,8 +4,21 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="TriaGen - Mais alcance, mais precisão. Democratize a escuta no recrutamento com nossa IA empática que entrevista todos os candidatos." />
-    <title>TriaGen - Mais alcance, mais precisão</title>
+    <meta name="description" content="TriaGen entrevista por voz cada candidato às suas vagas e transforma cada conversa em um relatório comparável, com evidências. A primeira entrevista, para todos os candidatos." />
+    <title>TriaGen — A primeira entrevista, para todos os candidatos</title>
+    <script>
+      // Apply the stored theme before first paint. Without this the page paints
+      // light and then flips to dark once React mounts — a visible flash.
+      (function () {
+        try {
+          var stored = localStorage.getItem('darkMode');
+          var dark = stored === null
+            ? window.matchMedia('(prefers-color-scheme: dark)').matches
+            : stored === 'true';
+          if (dark) document.documentElement.classList.add('dark');
+        } catch (e) { /* private mode — fall back to the light theme */ }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
