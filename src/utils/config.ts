@@ -11,5 +11,7 @@ export const config: AppConfig = {
   supabasePublishableKey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
   livekitUrl: import.meta.env.VITE_LIVEKIT_URL,
   apiUrl: import.meta.env.VITE_API_URL,
-  recaptchaSiteKey: import.meta.env.VITE_RECAPTCHA_SITE_KEY,
+  // Treat a blank value as absent: some environments inject the variable as an
+  // empty string, and passing "" to the reCAPTCHA widget throws at render time.
+  recaptchaSiteKey: import.meta.env.VITE_RECAPTCHA_SITE_KEY?.trim() || undefined,
 };
