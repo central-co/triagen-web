@@ -8,9 +8,9 @@ import {
 } from 'livekit-client';
 import { Mic, MicOff, PhoneOff } from 'lucide-react';
 import useDarkMode from '../hooks/useDarkMode';
-import useAudioLevel from '../hooks/useAudioLevel';
 import { config } from '../utils/config';
 import StatusMessage from './ui/StatusMessage';
+import VoiceBars from './ui/VoiceBars';
 import RemoteAudioTrackComponent from './RemoteAudioTrack';
 
 interface InterviewRoomProps {
@@ -26,9 +26,9 @@ function InterviewRoom({ jwtToken, onFinished }: Readonly<InterviewRoomProps>) {
   const [localAudioTrack, setLocalAudioTrack] = useState<LocalAudioTrack | null>(null);
   const [remoteAudioTracks, setRemoteAudioTracks] = useState<RemoteAudioTrack[]>([]);
   const [elapsedTime, setElapsedTime] = useState(0);
+  const [isSpeaking, setIsSpeaking] = useState(false);
 
   const { darkMode } = useDarkMode();
-  const audioLevel = useAudioLevel(localAudioTrack);
   const roomRef = useRef<Room | null>(null);
   const isConnectingRef = useRef(false);
 
@@ -109,36 +109,6 @@ function InterviewRoom({ jwtToken, onFinished }: Readonly<InterviewRoomProps>) {
     room?.disconnect();
   };
 
-  const isSpeaking = audioLevel > 0.05 && !isMuted;
-
-  // Audio visualization bars driven by the local audio level
-  const renderAudioBars = () => {
-    const bars = 9;
-    return (
-      <div className="flex items-center justify-center gap-1.5 md:gap-2.5 h-32 mb-12" aria-hidden="true">
-        {Array.from({ length: bars }).map((_, i) => {
-          const distanceFromCenter = Math.abs(i - Math.floor(bars / 2));
-          const baseHeight = 100 - (distanceFromCenter * 20);
-
-          const activeHeight = isSpeaking
-            ? baseHeight * (0.5 + Math.random() * audioLevel * 2)
-            : baseHeight * 0.3;
-
-          return (
-            <div
-              key={i}
-              className={`w-1.5 md:w-2 rounded-full transition-all duration-75 ${darkMode ? 'bg-gray-400' : 'bg-triagen-secondary'}`}
-              style={{
-                height: `${Math.max(15, Math.min(100, activeHeight))}%`,
-                opacity: 1 - (distanceFromCenter * 0.15)
-              }}
-            />
-          );
-        })}
-      </div>
-    );
-  };
-
   if (!isConnected && !error) {
     return (
       <div className={`min-h-screen flex flex-col items-center justify-center ${darkMode ? 'bg-gray-900 text-white' : 'bg-triagen-neutral text-triagen-primary'}`}>
@@ -177,8 +147,13 @@ function InterviewRoom({ jwtToken, onFinished }: Readonly<InterviewRoomProps>) {
           {/* Main Stage */}
           <main className="flex-1 flex flex-col items-center justify-center p-6 mt-16 max-w-4xl mx-auto w-full text-center">
 
-            {/* Audio Visualization */}
-            {renderAudioBars()}
+            {/* Live voice meter — reflects the candidate's own microphone */}
+            <VoiceBars
+              track={localAudioTrack}
+              muted={isMuted}
+              darkMode={darkMode}
+              onSpeakingChange={setIsSpeaking}
+            />
 
             <div className="space-y-4 mb-20 md:mb-32">
               <p className={`text-xs uppercase tracking-[0.2em] font-semibold ${darkMode ? 'text-gray-500' : 'text-triagen-secondary'}`}>
