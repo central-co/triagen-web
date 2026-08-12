@@ -1,35 +1,38 @@
 /**
  * Unified score visualization. Every compatibility score in the product
  * renders through these components so color-coding stays consistent:
- * sage ≥ 75, amber ≥ 50, red below — always on a 0-100 scale.
+ * sage ≥ 75%, amber ≥ 50%, red below — computed as a percentage of
+ * maxScore, so the same thresholds apply whether a score is 0-100
+ * (aggregate/overall scores) or 0-3 (per-criterion scores).
  */
 
 export type ScoreTier = 'strong' | 'medium' | 'weak';
 
-export function scoreTier(score: number): ScoreTier {
-  if (score >= 75) return 'strong';
-  if (score >= 50) return 'medium';
+export function scoreTier(score: number, maxScore = 100): ScoreTier {
+  const pct = maxScore > 0 ? (score / maxScore) * 100 : 0;
+  if (pct >= 75) return 'strong';
+  if (pct >= 50) return 'medium';
   return 'weak';
 }
 
-export function scoreTextColor(score: number, darkMode: boolean): string {
-  switch (scoreTier(score)) {
+export function scoreTextColor(score: number, darkMode: boolean, maxScore = 100): string {
+  switch (scoreTier(score, maxScore)) {
     case 'strong': return darkMode ? 'text-emerald-400' : 'text-triagen-secondary-green';
     case 'medium': return darkMode ? 'text-amber-400' : 'text-triagen-amber';
     case 'weak': return darkMode ? 'text-red-400' : 'text-red-600';
   }
 }
 
-export function scoreStrokeColor(score: number): string {
-  switch (scoreTier(score)) {
+export function scoreStrokeColor(score: number, maxScore = 100): string {
+  switch (scoreTier(score, maxScore)) {
     case 'strong': return '#3F7A5E';
     case 'medium': return '#D97706';
     case 'weak': return '#DC2626';
   }
 }
 
-export function scoreBarColor(score: number): string {
-  switch (scoreTier(score)) {
+export function scoreBarColor(score: number, maxScore = 100): string {
+  switch (scoreTier(score, maxScore)) {
     case 'strong': return 'bg-triagen-secondary-green';
     case 'medium': return 'bg-amber-500';
     case 'weak': return 'bg-red-500';
@@ -108,6 +111,40 @@ export function ScoreMeter({ score, darkMode = false, className = '' }: Readonly
         className={`h-full rounded-full ${scoreBarColor(clamped)}`}
         style={{ width: `${clamped}%` }}
       />
+    </div>
+  );
+}
+
+interface SegmentedMeterProps {
+  /** Current value, on the same scale as `max`. */
+  value: number;
+  /** Number of discrete segments (e.g. 3 for a 0-3 criterion score). */
+  max: number;
+  darkMode?: boolean;
+  size?: 'xs' | 'sm';
+  className?: string;
+}
+
+/** Discrete block meter for small integer scales (e.g. 0-3 criterion scores). */
+export function SegmentedMeter({ value, max, darkMode = false, size = 'sm', className = '' }: Readonly<SegmentedMeterProps>) {
+  const clamped = Math.min(max, Math.max(0, value));
+  const filled = Math.round(clamped);
+  const color = scoreBarColor(clamped, max);
+  const trackColor = darkMode ? 'bg-gray-700' : 'bg-triagen-primary/10';
+  const height = size === 'xs' ? 'h-1' : 'h-1.5';
+
+  return (
+    <div
+      className={`flex gap-1 ${className}`}
+      role="img"
+      aria-label={`${Math.round(clamped)} de ${max}`}
+    >
+      {Array.from({ length: max }, (_, i) => (
+        <span
+          key={i}
+          className={`flex-1 ${height} rounded-full ${i < filled ? color : trackColor}`}
+        />
+      ))}
     </div>
   );
 }
