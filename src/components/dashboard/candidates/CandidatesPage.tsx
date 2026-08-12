@@ -314,7 +314,7 @@ function CandidatesPage() {
                   </span>
                 </div>
 
-                <div className="col-span-4 md:col-span-3 flex items-center gap-3">
+                <div className="col-span-4 md:col-span-3 flex items-center justify-center">
                   {candidate.score !== undefined ? (
                     <ScoreRing score={candidate.score} size="sm" darkMode={darkMode} />
                   ) : (
