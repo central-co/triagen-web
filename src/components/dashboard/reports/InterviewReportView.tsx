@@ -54,13 +54,15 @@ interface InterviewReportViewProps {
   darkMode: boolean;
 }
 
-/**
- * The body of an interview evaluation: summary, highlights and per-criterion
- * analysis with evidence. Rendered inside the candidate profile, and reused by
- * the standalone report route for reports with no candidate attached.
- */
-function InterviewReportView({ report, darkMode }: Readonly<InterviewReportViewProps>) {
-  const { summary, highlights, criteriaScores } = report;
+const sectionTitle = (text: string, darkMode: boolean) => (
+  <h2 className={`font-heading text-2xl pb-3 border-b ${darkMode ? 'text-white border-gray-800' : 'text-triagen-primary border-triagen-border-light'}`}>
+    {text}
+  </h2>
+);
+
+/** Executive summary + interview highlights — the narrative half of a report. */
+export function ReportSummarySection({ report, darkMode }: Readonly<InterviewReportViewProps>) {
+  const { summary, highlights } = report;
   const { summaryText } = parseRecommendation(summary);
 
   const highlightItems = (highlights || '')
@@ -68,17 +70,13 @@ function InterviewReportView({ report, darkMode }: Readonly<InterviewReportViewP
     .map((line) => line.replace(/^[-•*]\s*/, '').trim())
     .filter(Boolean);
 
-  const sectionTitle = (text: string) => (
-    <h2 className={`font-heading text-2xl pb-3 border-b ${darkMode ? 'text-white border-gray-800' : 'text-triagen-primary border-triagen-border-light'}`}>
-      {text}
-    </h2>
-  );
+  if (!summaryText && highlightItems.length === 0) return null;
 
   return (
     <div className="flex flex-col gap-12">
       {summaryText && (
         <section className="flex flex-col gap-5">
-          {sectionTitle('Resumo executivo')}
+          {sectionTitle('Resumo executivo', darkMode)}
           <p className={`text-base md:text-lg leading-relaxed whitespace-pre-line max-w-3xl ${darkMode ? 'text-gray-300' : 'text-triagen-secondary'}`}>
             {summaryText}
           </p>
@@ -100,114 +98,143 @@ function InterviewReportView({ report, darkMode }: Readonly<InterviewReportViewP
           </ul>
         </section>
       )}
+    </div>
+  );
+}
 
-      {criteriaScores.length > 0 && (
-        <section className="flex flex-col gap-6">
-          <div className={`flex items-baseline justify-between pb-3 border-b ${darkMode ? 'border-gray-800' : 'border-triagen-border-light'}`}>
-            <h2 className={`font-heading text-2xl ${darkMode ? 'text-white' : 'text-triagen-primary'}`}>
-              Critérios avaliados
-            </h2>
-            <span className={`text-xs uppercase tracking-widest font-semibold ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
-              {criteriaScores.length} {criteriaScores.length === 1 ? 'critério' : 'critérios'}
-            </span>
-          </div>
+/**
+ * Per-criterion analysis: the at-a-glance overview strip plus full evidence
+ * cards. Kept separate from ReportSummarySection so pages with a narrow
+ * sidebar (candidate profile) can give this section the full page width
+ * instead of squeezing it into the same column as the summary.
+ */
+export function ReportCriteriaSection({ report, darkMode }: Readonly<InterviewReportViewProps>) {
+  const { criteriaScores } = report;
 
-          <div
-            className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 p-5 rounded-lg border ${darkMode ? 'bg-gray-800/20 border-gray-800' : 'bg-neutral-50/60 border-triagen-border-light'}`}
+  if (criteriaScores.length === 0) return null;
+
+  return (
+    <section className="flex flex-col gap-6">
+      <div className={`flex items-baseline justify-between pb-3 border-b ${darkMode ? 'border-gray-800' : 'border-triagen-border-light'}`}>
+        <h2 className={`font-heading text-2xl ${darkMode ? 'text-white' : 'text-triagen-primary'}`}>
+          Critérios avaliados
+        </h2>
+        <span className={`text-xs uppercase tracking-widest font-semibold ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+          {criteriaScores.length} {criteriaScores.length === 1 ? 'critério' : 'critérios'}
+        </span>
+      </div>
+
+      <div
+        className={`grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-3 p-5 rounded-lg border ${darkMode ? 'bg-gray-800/20 border-gray-800' : 'bg-neutral-50/60 border-triagen-border-light'}`}
+      >
+        {criteriaScores.map((criterion) => (
+          <button
+            key={criterion.criterion}
+            type="button"
+            onClick={() => {
+              document.getElementById(criterionSlug(criterion.criterion))?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }}
+            className={`flex items-center gap-3 p-3 rounded text-left transition-colors ${darkMode ? 'hover:bg-gray-700/40' : 'hover:bg-white'}`}
           >
-            {criteriaScores.map((criterion) => (
-              <button
-                key={criterion.criterion}
-                type="button"
-                onClick={() => {
-                  document.getElementById(criterionSlug(criterion.criterion))?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }}
-                className={`flex items-center gap-3 p-3 rounded text-left transition-colors ${darkMode ? 'hover:bg-gray-700/40' : 'hover:bg-white'}`}
-              >
-                <span className={`flex-1 min-w-0 text-xs font-semibold uppercase tracking-wide truncate ${darkMode ? 'text-gray-300' : 'text-triagen-primary'}`}>
+            <span className={`flex-1 min-w-0 text-xs font-semibold uppercase tracking-wide leading-snug line-clamp-2 ${darkMode ? 'text-gray-300' : 'text-triagen-primary'}`}>
+              {criterion.criterion.replace(/_/g, ' ')}
+            </span>
+            <SegmentedMeter value={criterion.score} max={MAX_CRITERION_SCORE} darkMode={darkMode} size="xs" className="w-12 shrink-0" />
+            <span className={`shrink-0 text-xs font-heading ${scoreTextColor(criterion.score, darkMode, MAX_CRITERION_SCORE)}`}>
+              {criterion.score}/{MAX_CRITERION_SCORE}
+            </span>
+          </button>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+        {criteriaScores.map((criterion) => (
+          <article
+            key={criterion.criterion}
+            id={criterionSlug(criterion.criterion)}
+            className={`p-6 md:p-8 rounded-lg border scroll-mt-24 ${darkMode ? 'bg-gray-800/30 border-gray-800' : 'bg-white border-triagen-border-light'}`}
+          >
+            <div className="flex items-start justify-between gap-6 mb-5">
+              <div className="min-w-0">
+                <h3 className={`font-heading text-xl leading-snug ${darkMode ? 'text-white' : 'text-triagen-primary'}`}>
                   {criterion.criterion.replace(/_/g, ' ')}
-                </span>
-                <SegmentedMeter value={criterion.score} max={MAX_CRITERION_SCORE} darkMode={darkMode} size="xs" className="w-12 shrink-0" />
-                <span className={`shrink-0 text-xs font-heading ${scoreTextColor(criterion.score, darkMode, MAX_CRITERION_SCORE)}`}>
-                  {criterion.score}/{MAX_CRITERION_SCORE}
-                </span>
-              </button>
-            ))}
-          </div>
+                </h3>
+                {!criterion.covered && (
+                  <span className={`inline-flex items-center gap-1 mt-2 text-[0.65rem] uppercase tracking-widest font-semibold ${darkMode ? 'text-amber-400' : 'text-triagen-amber'}`}>
+                    <AlertTriangle className="w-3 h-3" /> Cobertura parcial na entrevista
+                  </span>
+                )}
+              </div>
+              <div className="flex items-baseline gap-1 shrink-0">
+                <span className={`font-heading text-3xl ${scoreTextColor(criterion.score, darkMode, MAX_CRITERION_SCORE)}`}>{criterion.score}</span>
+                <span className={`text-sm font-heading ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>/ {MAX_CRITERION_SCORE}</span>
+              </div>
+            </div>
 
-          <div className="flex flex-col gap-6">
-            {criteriaScores.map((criterion) => (
-              <article
-                key={criterion.criterion}
-                id={criterionSlug(criterion.criterion)}
-                className={`p-6 md:p-8 rounded-lg border scroll-mt-24 ${darkMode ? 'bg-gray-800/30 border-gray-800' : 'bg-white border-triagen-border-light'}`}
-              >
-                <div className="flex items-start justify-between gap-6 mb-5">
-                  <div className="min-w-0">
-                    <h3 className={`font-heading text-xl leading-snug ${darkMode ? 'text-white' : 'text-triagen-primary'}`}>
-                      {criterion.criterion.replace(/_/g, ' ')}
-                    </h3>
-                    {!criterion.covered && (
-                      <span className={`inline-flex items-center gap-1 mt-2 text-[0.65rem] uppercase tracking-widest font-semibold ${darkMode ? 'text-amber-400' : 'text-triagen-amber'}`}>
-                        <AlertTriangle className="w-3 h-3" /> Cobertura parcial na entrevista
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex items-baseline gap-1 shrink-0">
-                    <span className={`font-heading text-3xl ${scoreTextColor(criterion.score, darkMode, MAX_CRITERION_SCORE)}`}>{criterion.score}</span>
-                    <span className={`text-sm font-heading ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>/ {MAX_CRITERION_SCORE}</span>
-                  </div>
+            <SegmentedMeter value={criterion.score} max={MAX_CRITERION_SCORE} darkMode={darkMode} className="mb-6 max-w-xs" />
+
+            {criterion.reasoning && (
+              <div className="mb-6">
+                <h4 className={`text-[0.65rem] uppercase tracking-widest font-bold mb-2 ${darkMode ? 'text-gray-500' : 'text-triagen-secondary'}`}>
+                  Análise
+                </h4>
+                <p className={`text-sm md:text-base leading-relaxed ${darkMode ? 'text-gray-300' : 'text-triagen-primary'}`}>
+                  {criterion.reasoning}
+                </p>
+              </div>
+            )}
+
+            {criterion.evidence.length > 0 && (
+              <div className={criterion.gaps ? 'mb-6' : ''}>
+                <h4 className={`flex items-center gap-1.5 text-[0.65rem] uppercase tracking-widest font-bold mb-3 ${darkMode ? 'text-gray-500' : 'text-triagen-secondary'}`}>
+                  <Quote className="w-3 h-3" /> Evidências da entrevista
+                </h4>
+                <div className="flex flex-col gap-3">
+                  {criterion.evidence.map((quote) => (
+                    <blockquote
+                      key={quote}
+                      className={`border-l-2 pl-4 py-1 text-sm leading-relaxed italic ${darkMode ? 'border-triagen-secondary-green/50 text-gray-400' : 'border-triagen-secondary-green/40 text-triagen-secondary'}`}
+                    >
+                      “{quote}”
+                    </blockquote>
+                  ))}
                 </div>
+              </div>
+            )}
 
-                <SegmentedMeter value={criterion.score} max={MAX_CRITERION_SCORE} darkMode={darkMode} className="mb-6" />
+            {criterion.gaps && (
+              <div className={`flex items-start gap-3 p-4 rounded ${darkMode ? 'bg-amber-500/10' : 'bg-triagen-amber-tint/60'}`}>
+                <AlertTriangle className={`w-4 h-4 mt-0.5 shrink-0 ${darkMode ? 'text-amber-400' : 'text-triagen-amber'}`} />
+                <div>
+                  <h4 className={`text-[0.65rem] uppercase tracking-widest font-bold mb-1 ${darkMode ? 'text-amber-400' : 'text-triagen-amber'}`}>
+                    Pontos de atenção
+                  </h4>
+                  <p className={`text-sm leading-relaxed ${darkMode ? 'text-amber-200/80' : 'text-amber-900/80'}`}>
+                    {criterion.gaps}
+                  </p>
+                </div>
+              </div>
+            )}
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
 
-                {criterion.reasoning && (
-                  <div className="mb-6">
-                    <h4 className={`text-[0.65rem] uppercase tracking-widest font-bold mb-2 ${darkMode ? 'text-gray-500' : 'text-triagen-secondary'}`}>
-                      Análise
-                    </h4>
-                    <p className={`text-sm md:text-base leading-relaxed ${darkMode ? 'text-gray-300' : 'text-triagen-primary'}`}>
-                      {criterion.reasoning}
-                    </p>
-                  </div>
-                )}
-
-                {criterion.evidence.length > 0 && (
-                  <div className={criterion.gaps ? 'mb-6' : ''}>
-                    <h4 className={`flex items-center gap-1.5 text-[0.65rem] uppercase tracking-widest font-bold mb-3 ${darkMode ? 'text-gray-500' : 'text-triagen-secondary'}`}>
-                      <Quote className="w-3 h-3" /> Evidências da entrevista
-                    </h4>
-                    <div className="flex flex-col gap-3">
-                      {criterion.evidence.map((quote) => (
-                        <blockquote
-                          key={quote}
-                          className={`border-l-2 pl-4 py-1 text-sm leading-relaxed italic ${darkMode ? 'border-triagen-secondary-green/50 text-gray-400' : 'border-triagen-secondary-green/40 text-triagen-secondary'}`}
-                        >
-                          “{quote}”
-                        </blockquote>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {criterion.gaps && (
-                  <div className={`flex items-start gap-3 p-4 rounded ${darkMode ? 'bg-amber-500/10' : 'bg-triagen-amber-tint/60'}`}>
-                    <AlertTriangle className={`w-4 h-4 mt-0.5 shrink-0 ${darkMode ? 'text-amber-400' : 'text-triagen-amber'}`} />
-                    <div>
-                      <h4 className={`text-[0.65rem] uppercase tracking-widest font-bold mb-1 ${darkMode ? 'text-amber-400' : 'text-triagen-amber'}`}>
-                        Pontos de atenção
-                      </h4>
-                      <p className={`text-sm leading-relaxed ${darkMode ? 'text-amber-200/80' : 'text-amber-900/80'}`}>
-                        {criterion.gaps}
-                      </p>
-                    </div>
-                  </div>
-                )}
-              </article>
-            ))}
-          </div>
-        </section>
-      )}
+/**
+ * The full body of an interview evaluation: summary, highlights and
+ * per-criterion analysis with evidence, stacked in reading order. Used by
+ * the standalone report route, which has no sidebar to work around. Pages
+ * with a narrow sidebar (candidate profile) compose ReportSummarySection
+ * and ReportCriteriaSection directly instead, so criteria can span the
+ * full page width.
+ */
+function InterviewReportView({ report, darkMode }: Readonly<InterviewReportViewProps>) {
+  return (
+    <div className="flex flex-col gap-12">
+      <ReportSummarySection report={report} darkMode={darkMode} />
+      <ReportCriteriaSection report={report} darkMode={darkMode} />
     </div>
   );
 }

@@ -20,7 +20,7 @@ import { ScoreRing } from '../../ui/Score';
 import { Candidate } from '../../../types/company';
 import { computeOverallScore, parseRecommendation } from '../../../utils/scoring';
 import { getInterviewReport, type DashboardReportData } from '../../../api/reports';
-import InterviewReportView, { RecommendationChip } from '../reports/InterviewReportView';
+import { ReportSummarySection, ReportCriteriaSection, RecommendationChip } from '../reports/InterviewReportView';
 
 interface Job {
   id: string;
@@ -284,7 +284,11 @@ function CandidateProfilePage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+      {/* Summary row: sidebar (contact + role) stays narrow beside the executive
+          summary, since both are naturally short. Criteria and application
+          material break out to the full page width below — a persistent
+          sidebar the height of the whole page left everything else cramped. */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 mb-12">
         {/* Left Sidebar: Contact & Metadata */}
         <div className="lg:col-span-4 flex flex-col gap-8">
           <div className={`p-6 rounded border ${darkMode ? 'border-gray-800 bg-gray-900/50' : 'border-triagen-border-light bg-white'}`}>
@@ -325,10 +329,10 @@ function CandidateProfilePage() {
           </div>
         </div>
 
-        {/* Main Content Area — the verdict first, then the raw application material */}
+        {/* Right: the verdict narrative — criteria detail lives below, full width */}
         <div className="lg:col-span-8 flex flex-col gap-10">
           {hasEvaluation && report && (
-            <InterviewReportView report={report} darkMode={darkMode} />
+            <ReportSummarySection report={report} darkMode={darkMode} />
           )}
 
           {!hasEvaluation && (
@@ -342,56 +346,63 @@ function CandidateProfilePage() {
               </p>
             </div>
           )}
-
-          {(resumeText || screeningAnswers.length > 0 || candidate.notes) && (
-            <h2 className={`font-heading text-2xl pb-4 border-b mt-2 ${darkMode ? 'text-white border-gray-800' : 'text-triagen-primary border-triagen-border-light'}`}>
-              Material da candidatura
-            </h2>
-          )}
-
-          {resumeText && (
-            <section className="flex flex-col gap-4">
-              <h3 className={`font-heading text-lg ${darkMode ? 'text-gray-100' : 'text-triagen-primary'}`}>
-                Resumo do currículo
-              </h3>
-              <p className={`whitespace-pre-line leading-relaxed text-sm md:text-base ${darkMode ? 'text-gray-300' : 'text-triagen-secondary'}`}>
-                {resumeText}
-              </p>
-            </section>
-          )}
-
-          {screeningAnswers.length > 0 && (
-            <section className="flex flex-col gap-4">
-              <h3 className={`font-heading text-lg ${darkMode ? 'text-gray-100' : 'text-triagen-primary'}`}>
-                Perguntas de triagem
-              </h3>
-              <div className="flex flex-col gap-6">
-                {screeningAnswers.map(({ question, answer }) => (
-                  <div key={question} className="flex flex-col gap-2">
-                    <h3 className={`text-sm font-bold tracking-tight ${darkMode ? 'text-gray-300' : 'text-triagen-primary'}`}>{question}</h3>
-                    <p className={`text-sm md:text-base leading-relaxed ${darkMode ? 'text-gray-400' : 'text-triagen-secondary'}`}>
-                      {answer}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </section>
-          )}
-
-          {candidate.notes && (
-            <section className="flex flex-col gap-4">
-              <h3 className={`font-heading text-lg ${darkMode ? 'text-gray-100' : 'text-triagen-primary'}`}>
-                Anotações internas
-              </h3>
-              <div className={`p-6 rounded border ${darkMode ? 'bg-gray-800/50 border-gray-700' : 'bg-neutral-50 border-triagen-border-light'}`}>
-                <p className={`text-sm md:text-base leading-relaxed whitespace-pre-line ${darkMode ? 'text-gray-300' : 'text-triagen-secondary'}`}>
-                  {candidate.notes}
-                </p>
-              </div>
-            </section>
-          )}
-
         </div>
+      </div>
+
+      {/* Full width: criteria need the room, and application material reads
+          fine at this width too. */}
+      <div className="flex flex-col gap-10">
+        {hasEvaluation && report && (
+          <ReportCriteriaSection report={report} darkMode={darkMode} />
+        )}
+
+        {(resumeText || screeningAnswers.length > 0 || candidate.notes) && (
+          <h2 className={`font-heading text-2xl pb-4 border-b mt-2 ${darkMode ? 'text-white border-gray-800' : 'text-triagen-primary border-triagen-border-light'}`}>
+            Material da candidatura
+          </h2>
+        )}
+
+        {resumeText && (
+          <section className="flex flex-col gap-4">
+            <h3 className={`font-heading text-lg ${darkMode ? 'text-gray-100' : 'text-triagen-primary'}`}>
+              Resumo do currículo
+            </h3>
+            <p className={`whitespace-pre-line leading-relaxed text-sm md:text-base max-w-3xl ${darkMode ? 'text-gray-300' : 'text-triagen-secondary'}`}>
+              {resumeText}
+            </p>
+          </section>
+        )}
+
+        {screeningAnswers.length > 0 && (
+          <section className="flex flex-col gap-4">
+            <h3 className={`font-heading text-lg ${darkMode ? 'text-gray-100' : 'text-triagen-primary'}`}>
+              Perguntas de triagem
+            </h3>
+            <div className="flex flex-col gap-6">
+              {screeningAnswers.map(({ question, answer }) => (
+                <div key={question} className="flex flex-col gap-2 max-w-3xl">
+                  <h3 className={`text-sm font-bold tracking-tight ${darkMode ? 'text-gray-300' : 'text-triagen-primary'}`}>{question}</h3>
+                  <p className={`text-sm md:text-base leading-relaxed ${darkMode ? 'text-gray-400' : 'text-triagen-secondary'}`}>
+                    {answer}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {candidate.notes && (
+          <section className="flex flex-col gap-4">
+            <h3 className={`font-heading text-lg ${darkMode ? 'text-gray-100' : 'text-triagen-primary'}`}>
+              Anotações internas
+            </h3>
+            <div className={`p-6 rounded border max-w-3xl ${darkMode ? 'bg-gray-800/50 border-gray-700' : 'bg-neutral-50 border-triagen-border-light'}`}>
+              <p className={`text-sm md:text-base leading-relaxed whitespace-pre-line ${darkMode ? 'text-gray-300' : 'text-triagen-secondary'}`}>
+                {candidate.notes}
+              </p>
+            </div>
+          </section>
+        )}
       </div>
     </div>
   );
