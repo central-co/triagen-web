@@ -11,7 +11,7 @@ import PageHeader from './ui/PageHeader';
 import Footer from './ui/Footer';
 import StatusMessage from './ui/StatusMessage';
 import { Input } from './ui/Field';
-import { ScoreRing, ScoreMeter } from './ui/Score';
+import { ScoreRing, SegmentedMeter } from './ui/Score';
 
 const STEPS = [
   {
@@ -55,9 +55,9 @@ const PRINCIPLES = [
 /** Static, clearly-labeled illustration of the interview report — no real data. */
 function ReportSpecimen({ darkMode }: Readonly<{ darkMode: boolean }>) {
   const criteria = [
-    { label: 'Comunicação', score: 88 },
-    { label: 'Experiência com atendimento', score: 76 },
-    { label: 'Disponibilidade', score: 92 },
+    { label: 'Comunicação', score: 3 },
+    { label: 'Experiência com atendimento', score: 2 },
+    { label: 'Disponibilidade', score: 3 },
   ];
 
   return (
@@ -113,10 +113,10 @@ function ReportSpecimen({ darkMode }: Readonly<{ darkMode: boolean }>) {
                   {criterion.label}
                 </span>
                 <span className={`text-xs font-semibold ${darkMode ? 'text-gray-400' : 'text-triagen-secondary'}`}>
-                  {criterion.score}/100
+                  {criterion.score}/3
                 </span>
               </div>
-              <ScoreMeter score={criterion.score} darkMode={darkMode} />
+              <SegmentedMeter value={criterion.score} max={3} darkMode={darkMode} />
             </div>
           ))}
         </div>
