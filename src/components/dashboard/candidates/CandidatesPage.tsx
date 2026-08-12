@@ -223,9 +223,9 @@ function CandidatesPage() {
           darkMode ? 'bg-amber-500/20 text-amber-300' : 'bg-triagen-amber-tint text-triagen-amber')}
         {kpiCard('Compatibilidade média', stats.avgScore !== null
           ? (
-            <span className="flex flex-col gap-1.5">
+            <span className="flex flex-col gap-1.5 w-24">
               <span>{stats.avgScore}<span className={`text-lg ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>/100</span></span>
-              <ScoreMeter score={stats.avgScore} darkMode={darkMode} className="max-w-24" />
+              <ScoreMeter score={stats.avgScore} darkMode={darkMode} />
             </span>
           )
           : <span className={darkMode ? 'text-gray-600' : 'text-gray-300'}>—</span>, Gauge,
