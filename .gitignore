@@ -25,4 +25,4 @@ dist-ssr
 *.sw?
 .env
 
-design_spec/
+design_spec/.superpowers/
