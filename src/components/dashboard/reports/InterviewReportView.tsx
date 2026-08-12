@@ -211,18 +211,13 @@ export function ReportCriteriaSection({ report, darkMode }: Readonly<InterviewRe
                 <h4 className={`flex items-center gap-1.5 text-[0.65rem] uppercase tracking-widest font-bold mb-3 ${darkMode ? 'text-gray-500' : 'text-triagen-secondary'}`}>
                   <Quote className="w-3 h-3" /> Evidências da entrevista
                 </h4>
-                <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-3">
                   {criterion.evidence.map((quote) => (
-                    <blockquote key={quote} className="relative pl-8">
-                      <span
-                        aria-hidden="true"
-                        className={`select-none absolute -left-1 -top-3 font-heading text-6xl leading-none ${darkMode ? 'text-triagen-secondary-green/20' : 'text-triagen-secondary-green/15'}`}
-                      >
-                        “
-                      </span>
-                      <p className={`relative text-sm leading-relaxed italic ${darkMode ? 'text-gray-400' : 'text-triagen-secondary'}`}>
-                        {quote}
-                      </p>
+                    <blockquote
+                      key={quote}
+                      className={`border-l-2 pl-4 py-1 text-sm leading-relaxed italic ${darkMode ? 'border-triagen-secondary-green/50 text-gray-400' : 'border-triagen-secondary-green/40 text-triagen-secondary'}`}
+                    >
+                      “{quote}”
                     </blockquote>
                   ))}
                 </div>
