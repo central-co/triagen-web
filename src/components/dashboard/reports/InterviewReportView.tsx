@@ -98,7 +98,7 @@ export function ReportSummarySection({ report, darkMode }: Readonly<InterviewRep
       {summaryText && (
         <section className="flex flex-col gap-5">
           {sectionTitle('Resumo executivo', darkMode)}
-          <p className={`text-base md:text-lg leading-relaxed whitespace-pre-line max-w-3xl ${darkMode ? 'text-gray-300' : 'text-triagen-secondary'}`}>
+          <p className={`text-base md:text-lg leading-relaxed whitespace-pre-line max-w-3xl text-justify ${darkMode ? 'text-gray-300' : 'text-triagen-secondary'}`}>
             {summaryText}
           </p>
         </section>
@@ -200,7 +200,7 @@ export function ReportCriteriaSection({ report, darkMode }: Readonly<InterviewRe
                 <h4 className={`text-[0.65rem] uppercase tracking-widest font-bold mb-2 ${darkMode ? 'text-gray-500' : 'text-triagen-secondary'}`}>
                   Análise
                 </h4>
-                <p className={`text-sm md:text-base leading-relaxed ${darkMode ? 'text-gray-300' : 'text-triagen-primary'}`}>
+                <p className={`text-sm md:text-base leading-relaxed text-justify ${darkMode ? 'text-gray-300' : 'text-triagen-primary'}`}>
                   {criterion.reasoning}
                 </p>
               </div>
@@ -231,7 +231,7 @@ export function ReportCriteriaSection({ report, darkMode }: Readonly<InterviewRe
                   <h4 className={`text-[0.65rem] uppercase tracking-widest font-bold mb-1 ${darkMode ? 'text-amber-400' : 'text-triagen-amber'}`}>
                     Pontos de atenção
                   </h4>
-                  <p className={`text-sm leading-relaxed ${darkMode ? 'text-amber-200/80' : 'text-amber-900/80'}`}>
+                  <p className={`text-sm leading-relaxed text-justify ${darkMode ? 'text-amber-200/80' : 'text-amber-900/80'}`}>
                     {criterion.gaps}
                   </p>
                 </div>

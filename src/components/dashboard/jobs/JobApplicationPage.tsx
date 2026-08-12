@@ -318,7 +318,7 @@ function JobApplicationPage() {
 
       {/* Description */}
       <div className="mb-10">
-        <p className={`font-sans leading-relaxed whitespace-pre-line ${darkMode ? 'text-gray-300' : 'text-triagen-primary'}`}>
+        <p className={`font-sans leading-relaxed whitespace-pre-line text-justify ${darkMode ? 'text-gray-300' : 'text-triagen-primary'}`}>
           {job?.description}
         </p>
       </div>
@@ -349,7 +349,7 @@ function JobApplicationPage() {
               <h3 className={`flex items-center gap-2 text-xs uppercase tracking-widest font-bold mb-2 ${darkMode ? 'text-gray-400' : 'text-triagen-secondary'}`}>
                 <Gift className="w-3.5 h-3.5" aria-hidden="true" /> Benefícios
               </h3>
-              <p className={`text-sm leading-relaxed whitespace-pre-line ${darkMode ? 'text-gray-300' : 'text-triagen-primary'}`}>{job.benefits}</p>
+              <p className={`text-sm leading-relaxed whitespace-pre-line text-justify ${darkMode ? 'text-gray-300' : 'text-triagen-primary'}`}>{job.benefits}</p>
             </div>
           )}
         </div>

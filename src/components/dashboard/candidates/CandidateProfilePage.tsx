@@ -370,7 +370,7 @@ function CandidateProfilePage() {
             <h3 className={`font-heading text-lg ${darkMode ? 'text-gray-100' : 'text-triagen-primary'}`}>
               Resumo do currículo
             </h3>
-            <p className={`whitespace-pre-line leading-relaxed text-sm md:text-base max-w-3xl ${darkMode ? 'text-gray-300' : 'text-triagen-secondary'}`}>
+            <p className={`whitespace-pre-line leading-relaxed text-sm md:text-base max-w-3xl text-justify ${darkMode ? 'text-gray-300' : 'text-triagen-secondary'}`}>
               {resumeText}
             </p>
           </section>
@@ -385,7 +385,7 @@ function CandidateProfilePage() {
               {screeningAnswers.map(({ question, answer }) => (
                 <div key={question} className="flex flex-col gap-2 max-w-3xl">
                   <h3 className={`text-sm font-bold tracking-tight ${darkMode ? 'text-gray-300' : 'text-triagen-primary'}`}>{question}</h3>
-                  <p className={`text-sm md:text-base leading-relaxed ${darkMode ? 'text-gray-400' : 'text-triagen-secondary'}`}>
+                  <p className={`text-sm md:text-base leading-relaxed text-justify ${darkMode ? 'text-gray-400' : 'text-triagen-secondary'}`}>
                     {answer}
                   </p>
                 </div>
@@ -400,7 +400,7 @@ function CandidateProfilePage() {
               Anotações internas
             </h3>
             <div className={`p-6 rounded border max-w-3xl ${darkMode ? 'bg-gray-800/50 border-gray-700' : 'bg-neutral-50 border-triagen-border-light'}`}>
-              <p className={`text-sm md:text-base leading-relaxed whitespace-pre-line ${darkMode ? 'text-gray-300' : 'text-triagen-secondary'}`}>
+              <p className={`text-sm md:text-base leading-relaxed whitespace-pre-line text-justify ${darkMode ? 'text-gray-300' : 'text-triagen-secondary'}`}>
                 {candidate.notes}
               </p>
             </div>

@@ -300,7 +300,7 @@ function JobDetailsPage() {
           {/* Description */}
           <section>
             {sectionTitle('Sobre a vaga')}
-            <p className={`text-base leading-relaxed whitespace-pre-line max-w-3xl ${darkMode ? 'text-gray-300' : 'text-triagen-secondary'}`}>
+            <p className={`text-base leading-relaxed whitespace-pre-line max-w-3xl text-justify ${darkMode ? 'text-gray-300' : 'text-triagen-secondary'}`}>
               {job.description}
             </p>
           </section>
@@ -309,7 +309,7 @@ function JobDetailsPage() {
           {job.team_context && (
             <section>
               {sectionTitle('Sobre o time')}
-              <p className={`text-base leading-relaxed whitespace-pre-line max-w-3xl ${darkMode ? 'text-gray-300' : 'text-triagen-secondary'}`}>
+              <p className={`text-base leading-relaxed whitespace-pre-line max-w-3xl text-justify ${darkMode ? 'text-gray-300' : 'text-triagen-secondary'}`}>
                 {job.team_context}
               </p>
             </section>
@@ -357,7 +357,7 @@ function JobDetailsPage() {
                         Benefícios
                       </h3>
                     </div>
-                    <p className={`text-sm md:text-base leading-relaxed whitespace-pre-line ${darkMode ? 'text-gray-300' : 'text-triagen-primary'}`}>
+                    <p className={`text-sm md:text-base leading-relaxed whitespace-pre-line text-justify ${darkMode ? 'text-gray-300' : 'text-triagen-primary'}`}>
                       {job.benefits}
                     </p>
                   </div>
