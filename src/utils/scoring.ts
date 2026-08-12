@@ -5,7 +5,8 @@
 // committing to a number, rather than justifying a score already decided.
 // jobs.criteria stores the weight (0-1) used to evaluate each named criterion.
 //
-// All scores exposed to the UI are on a 0-100 scale.
+// Per-criterion scores exposed to the UI stay on their native 0-3 scale.
+// The aggregate score (computeOverallScore) is normalized to 0-100.
 
 export interface CriterionScoreEntry {
   criterion: string;
@@ -22,13 +23,13 @@ export interface JobCriterionEntry {
   mandatory?: boolean;
 }
 
-/** Structured per-criterion data ready for rendering (score on 0-100). */
+/** Structured per-criterion data ready for rendering (score on 0-3). */
 export interface DisplayCriterionScore {
   criterion: string;
   covered: boolean;
   evidence: string[];
   reasoning: string | null;
-  score: number;
+  score: number; // 0-3
   gaps: string | null;
 }
 
@@ -38,6 +39,13 @@ const MAX_RAW_SCORE = 3;
 function normalizeToPercent(rawScore: number): number {
   const clamped = Math.min(MAX_RAW_SCORE, Math.max(MIN_RAW_SCORE, rawScore));
   return ((clamped - MIN_RAW_SCORE) / (MAX_RAW_SCORE - MIN_RAW_SCORE)) * 100;
+}
+
+/** Per-criterion scores are always on this scale (see CriterionScoreEntry.score). */
+export const MAX_CRITERION_SCORE = MAX_RAW_SCORE;
+
+function clampCriterionScore(rawScore: number): number {
+  return Math.round(Math.min(MAX_RAW_SCORE, Math.max(MIN_RAW_SCORE, rawScore)));
 }
 
 export function parseCriteriaScores(value: unknown): CriterionScoreEntry[] {
@@ -119,11 +127,11 @@ export function parseRecommendation(summary: string | undefined): {
   return { recommendation: null, summaryText: text };
 }
 
-/** Maps raw criteria_scores JSON to structured display entries (0-100 scores). */
+/** Maps raw criteria_scores JSON to structured display entries (0-3 scores). */
 export function toDisplayCriteriaScores(criteriaScoresJson: unknown): DisplayCriterionScore[] {
   return parseCriteriaScores(criteriaScoresJson).map((entry) => ({
     criterion: entry.criterion,
-    score: Math.round(normalizeToPercent(entry.score)),
+    score: clampCriterionScore(entry.score),
     covered: entry.covered ?? true,
     reasoning: typeof entry.reasoning === 'string' && entry.reasoning.trim() !== '' ? entry.reasoning : null,
     evidence: (entry.evidence ?? []).filter((quote) => typeof quote === 'string' && quote.trim() !== ''),
