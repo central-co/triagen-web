@@ -8,7 +8,7 @@ import LoadingSpinner from '../../ui/LoadingSpinner';
 import StatusMessage from '../../ui/StatusMessage';
 import { toast } from '../../ui/Toast';
 import Avatar from '../../ui/Avatar';
-import { ScoreRing } from '../../ui/Score';
+import { ScoreRing, ScoreMeter } from '../../ui/Score';
 import { computeOverallScore } from '../../../utils/scoring';
 import { getStatusColor, getStatusShortText, deriveCandidateStatus } from '../../../utils/candidateStatus';
 
@@ -222,7 +222,12 @@ function CandidatesPage() {
         {kpiCard('Pré-selecionados', stats.shortlisted, Star,
           darkMode ? 'bg-amber-500/20 text-amber-300' : 'bg-triagen-amber-tint text-triagen-amber')}
         {kpiCard('Compatibilidade média', stats.avgScore !== null
-          ? <>{stats.avgScore}<span className={`text-lg ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>/100</span></>
+          ? (
+            <span className="flex flex-col gap-1.5">
+              <span>{stats.avgScore}<span className={`text-lg ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>/100</span></span>
+              <ScoreMeter score={stats.avgScore} darkMode={darkMode} className="max-w-24" />
+            </span>
+          )
           : <span className={darkMode ? 'text-gray-600' : 'text-gray-300'}>—</span>, Gauge,
           darkMode ? 'bg-triagen-secondary-green/20 text-emerald-300' : 'bg-triagen-sage-tint text-triagen-secondary-green')}
       </div>
@@ -313,9 +318,12 @@ function CandidatesPage() {
                   {candidate.score !== undefined ? (
                     <>
                       <ScoreRing score={candidate.score} size="sm" darkMode={darkMode} />
-                      <span className={`hidden lg:block text-[0.65rem] uppercase tracking-widest font-semibold ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
-                        / 100
-                      </span>
+                      <div className="hidden md:flex flex-col gap-1 w-16">
+                        <span className={`text-[0.65rem] uppercase tracking-widest font-semibold ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+                          / 100
+                        </span>
+                        <ScoreMeter score={candidate.score} darkMode={darkMode} />
+                      </div>
                     </>
                   ) : (
                     <span className={`text-xs ${darkMode ? 'text-gray-600' : 'text-gray-400'}`}>Aguardando entrevista</span>
