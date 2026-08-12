@@ -3,10 +3,19 @@ import type { DashboardReportData } from '../../../api/reports';
 import { parseRecommendation, MAX_CRITERION_SCORE, type Recommendation } from '../../../utils/scoring';
 import { SegmentedMeter, scoreTextColor } from '../../ui/Score';
 
+/**
+ * Ambient hero accent per recommendation: a border-top color (applied via
+ * inline style, since Tailwind's plain `border-{color}` utility already used
+ * on hero cards sets all four sides and its cascade order relative to
+ * `border-t-{color}` isn't guaranteed) plus a faint background wash class.
+ * Same hex values as Score.tsx's tier stroke colors, for one consistent
+ * verdict palette across the product.
+ */
 export const RECOMMENDATION_META: Record<Recommendation, {
   label: string;
   icon: typeof ThumbsUp;
   chip: (darkMode: boolean) => string;
+  accent: (darkMode: boolean) => { borderTopColor: string; wash: string };
 }> = {
   advance: {
     label: 'Avançar',
@@ -14,6 +23,10 @@ export const RECOMMENDATION_META: Record<Recommendation, {
     chip: (d) => d
       ? 'bg-triagen-secondary-green/20 text-emerald-300 border-triagen-secondary-green/30'
       : 'bg-triagen-sage-tint text-triagen-secondary-green border-triagen-secondary-green/25',
+    accent: (d) => ({
+      borderTopColor: '#3F7A5E',
+      wash: d ? 'bg-triagen-secondary-green/5' : 'bg-triagen-sage-tint/40',
+    }),
   },
   advance_with_reservations: {
     label: 'Avançar com ressalvas',
@@ -21,6 +34,10 @@ export const RECOMMENDATION_META: Record<Recommendation, {
     chip: (d) => d
       ? 'bg-amber-500/15 text-amber-300 border-amber-500/30'
       : 'bg-triagen-amber-tint text-triagen-amber border-triagen-amber/25',
+    accent: (d) => ({
+      borderTopColor: '#D97706',
+      wash: d ? 'bg-amber-500/5' : 'bg-triagen-amber-tint/40',
+    }),
   },
   do_not_advance: {
     label: 'Não avançar',
@@ -28,6 +45,10 @@ export const RECOMMENDATION_META: Record<Recommendation, {
     chip: (d) => d
       ? 'bg-red-500/15 text-red-300 border-red-500/30'
       : 'bg-red-50 text-red-700 border-red-200',
+    accent: (d) => ({
+      borderTopColor: '#DC2626',
+      wash: d ? 'bg-red-500/5' : 'bg-red-50/60',
+    }),
   },
 };
 
@@ -73,7 +94,7 @@ export function ReportSummarySection({ report, darkMode }: Readonly<InterviewRep
   if (!summaryText && highlightItems.length === 0) return null;
 
   return (
-    <div className="flex flex-col gap-12">
+    <div className="flex flex-col gap-12 rise-in rise-in-delay-1">
       {summaryText && (
         <section className="flex flex-col gap-5">
           {sectionTitle('Resumo executivo', darkMode)}
@@ -115,7 +136,7 @@ export function ReportCriteriaSection({ report, darkMode }: Readonly<InterviewRe
 
   return (
     <section className="flex flex-col gap-6">
-      <div className={`flex items-baseline justify-between pb-3 border-b ${darkMode ? 'border-gray-800' : 'border-triagen-border-light'}`}>
+      <div className={`flex items-baseline justify-between pb-3 border-b rise-in rise-in-delay-2 ${darkMode ? 'border-gray-800' : 'border-triagen-border-light'}`}>
         <h2 className={`font-heading text-2xl ${darkMode ? 'text-white' : 'text-triagen-primary'}`}>
           Critérios avaliados
         </h2>
@@ -125,7 +146,7 @@ export function ReportCriteriaSection({ report, darkMode }: Readonly<InterviewRe
       </div>
 
       <div
-        className={`grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-3 p-5 rounded-lg border ${darkMode ? 'bg-gray-800/20 border-gray-800' : 'bg-neutral-50/60 border-triagen-border-light'}`}
+        className={`grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-3 p-5 rounded-lg border rise-in rise-in-delay-2 ${darkMode ? 'bg-gray-800/20 border-gray-800' : 'bg-neutral-50/60 border-triagen-border-light'}`}
       >
         {criteriaScores.map((criterion) => (
           <button
@@ -148,11 +169,12 @@ export function ReportCriteriaSection({ report, darkMode }: Readonly<InterviewRe
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        {criteriaScores.map((criterion) => (
+        {criteriaScores.map((criterion, index) => (
           <article
             key={criterion.criterion}
             id={criterionSlug(criterion.criterion)}
-            className={`p-6 md:p-8 rounded-lg border scroll-mt-24 ${darkMode ? 'bg-gray-800/30 border-gray-800' : 'bg-white border-triagen-border-light'}`}
+            className={`p-6 md:p-8 rounded-lg border scroll-mt-24 rise-in ${darkMode ? 'bg-gray-800/30 border-gray-800' : 'bg-white border-triagen-border-light'}`}
+            style={{ animationDelay: `${240 + Math.min(index, 6) * 40}ms` }}
           >
             <div className="flex items-start justify-between gap-6 mb-5">
               <div className="min-w-0">
@@ -189,13 +211,18 @@ export function ReportCriteriaSection({ report, darkMode }: Readonly<InterviewRe
                 <h4 className={`flex items-center gap-1.5 text-[0.65rem] uppercase tracking-widest font-bold mb-3 ${darkMode ? 'text-gray-500' : 'text-triagen-secondary'}`}>
                   <Quote className="w-3 h-3" /> Evidências da entrevista
                 </h4>
-                <div className="flex flex-col gap-3">
+                <div className="flex flex-col gap-4">
                   {criterion.evidence.map((quote) => (
-                    <blockquote
-                      key={quote}
-                      className={`border-l-2 pl-4 py-1 text-sm leading-relaxed italic ${darkMode ? 'border-triagen-secondary-green/50 text-gray-400' : 'border-triagen-secondary-green/40 text-triagen-secondary'}`}
-                    >
-                      “{quote}”
+                    <blockquote key={quote} className="relative pl-8">
+                      <span
+                        aria-hidden="true"
+                        className={`select-none absolute -left-1 -top-3 font-heading text-6xl leading-none ${darkMode ? 'text-triagen-secondary-green/20' : 'text-triagen-secondary-green/15'}`}
+                      >
+                        “
+                      </span>
+                      <p className={`relative text-sm leading-relaxed italic ${darkMode ? 'text-gray-400' : 'text-triagen-secondary'}`}>
+                        {quote}
+                      </p>
                     </blockquote>
                   ))}
                 </div>

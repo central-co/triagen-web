@@ -8,7 +8,7 @@ import Button from '../../ui/Button';
 import LoadingSpinner from '../../ui/LoadingSpinner';
 import StatusMessage from '../../ui/StatusMessage';
 import { ScoreRing } from '../../ui/Score';
-import InterviewReportView, { RecommendationChip } from './InterviewReportView';
+import InterviewReportView, { RecommendationChip, RECOMMENDATION_META } from './InterviewReportView';
 
 /**
  * Standalone report route. Evaluations normally live on the candidate's page —
@@ -98,8 +98,12 @@ export default function DashboardReportDetailPage() {
         )}
       </div>
 
-      {/* Hero: identity + verdict + score */}
-      <div className={`rounded-lg border p-8 md:p-10 mb-12 ${darkMode ? 'bg-gray-800/40 border-gray-700' : 'bg-white border-triagen-border-light shadow-[0_2px_16px_-8px_rgba(44,62,80,0.12)]'}`}>
+      {/* Hero: identity + verdict + score. Border-top + wash reflect the AI's
+          recommendation, so the verdict reads before any text does. */}
+      <div
+        className={`rounded-lg border p-8 md:p-10 mb-12 rise-in ${recommendation ? `border-t-4 ${RECOMMENDATION_META[recommendation].accent(darkMode).wash}` : ''} ${darkMode ? 'bg-gray-800/40 border-gray-700' : 'bg-white border-triagen-border-light shadow-[0_2px_16px_-8px_rgba(44,62,80,0.12)]'}`}
+        style={recommendation ? { borderTopColor: RECOMMENDATION_META[recommendation].accent(darkMode).borderTopColor } : undefined}
+      >
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
           <div className="flex flex-col gap-4 min-w-0">
             <div className="flex flex-wrap items-center gap-3">

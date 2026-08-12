@@ -20,7 +20,7 @@ import { ScoreRing } from '../../ui/Score';
 import { Candidate } from '../../../types/company';
 import { computeOverallScore, parseRecommendation } from '../../../utils/scoring';
 import { getInterviewReport, type DashboardReportData } from '../../../api/reports';
-import { ReportSummarySection, ReportCriteriaSection, RecommendationChip } from '../reports/InterviewReportView';
+import { ReportSummarySection, ReportCriteriaSection, RecommendationChip, RECOMMENDATION_META } from '../reports/InterviewReportView';
 
 interface Job {
   id: string;
@@ -245,7 +245,7 @@ function CandidateProfilePage() {
       </div>
 
       {/* Profile Header */}
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-8 mb-12 items-end">
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-8 mb-12 items-end rise-in">
         <div className="md:col-span-8 flex flex-col gap-4">
           <div className="flex items-center gap-4">
             <span className={`px-3 py-1 rounded-full text-[0.65rem] font-bold tracking-widest uppercase ${getStatusColor(candidate.status)}`}>
@@ -265,7 +265,10 @@ function CandidateProfilePage() {
           )}
         </div>
         <div className="md:col-span-4 flex md:justify-end">
-          <div className={`flex items-center gap-5 w-full md:w-auto p-6 border rounded-lg ${darkMode ? 'border-gray-800 bg-gray-900/50' : 'border-triagen-border-light bg-white'}`}>
+          <div
+            className={`flex items-center gap-5 w-full md:w-auto p-6 border rounded-lg ${recommendation ? `border-t-4 ${RECOMMENDATION_META[recommendation].accent(darkMode).wash}` : ''} ${darkMode ? 'border-gray-800 bg-gray-900/50' : 'border-triagen-border-light bg-white'}`}
+            style={recommendation ? { borderTopColor: RECOMMENDATION_META[recommendation].accent(darkMode).borderTopColor } : undefined}
+          >
             {candidate.score !== undefined ? (
               <>
                 <ScoreRing score={candidate.score} size="md" darkMode={darkMode} />
