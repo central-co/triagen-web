@@ -316,15 +316,7 @@ function CandidatesPage() {
 
                 <div className="col-span-4 md:col-span-3 flex items-center gap-3">
                   {candidate.score !== undefined ? (
-                    <>
-                      <ScoreRing score={candidate.score} size="sm" darkMode={darkMode} />
-                      <div className="hidden md:flex flex-col gap-1 w-16">
-                        <span className={`text-[0.65rem] uppercase tracking-widest font-semibold ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
-                          / 100
-                        </span>
-                        <ScoreMeter score={candidate.score} darkMode={darkMode} />
-                      </div>
-                    </>
+                    <ScoreRing score={candidate.score} size="sm" darkMode={darkMode} />
                   ) : (
                     <span className={`text-xs ${darkMode ? 'text-gray-600' : 'text-gray-400'}`}>Aguardando entrevista</span>
                   )}
