@@ -1,7 +1,7 @@
 import { AlertTriangle, Quote, Sparkles, ThumbsUp, ShieldAlert, XCircle } from 'lucide-react';
 import type { DashboardReportData } from '../../../api/reports';
-import { parseRecommendation, type Recommendation } from '../../../utils/scoring';
-import { ScoreMeter, scoreTextColor } from '../../ui/Score';
+import { parseRecommendation, MAX_CRITERION_SCORE, type Recommendation } from '../../../utils/scoring';
+import { SegmentedMeter, scoreTextColor } from '../../ui/Score';
 
 export const RECOMMENDATION_META: Record<Recommendation, {
   label: string;
@@ -43,6 +43,10 @@ export function RecommendationChip({ recommendation, darkMode }: Readonly<{
       {meta.label}
     </span>
   );
+}
+
+function criterionSlug(criterion: string): string {
+  return `criterio-${criterion.replace(/[^a-zA-Z0-9]+/g, '-').toLowerCase()}`;
 }
 
 interface InterviewReportViewProps {
@@ -108,11 +112,35 @@ function InterviewReportView({ report, darkMode }: Readonly<InterviewReportViewP
             </span>
           </div>
 
+          <div
+            className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 p-5 rounded-lg border ${darkMode ? 'bg-gray-800/20 border-gray-800' : 'bg-neutral-50/60 border-triagen-border-light'}`}
+          >
+            {criteriaScores.map((criterion) => (
+              <button
+                key={criterion.criterion}
+                type="button"
+                onClick={() => {
+                  document.getElementById(criterionSlug(criterion.criterion))?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }}
+                className={`flex items-center gap-3 p-3 rounded text-left transition-colors ${darkMode ? 'hover:bg-gray-700/40' : 'hover:bg-white'}`}
+              >
+                <span className={`flex-1 min-w-0 text-xs font-semibold uppercase tracking-wide truncate ${darkMode ? 'text-gray-300' : 'text-triagen-primary'}`}>
+                  {criterion.criterion.replace(/_/g, ' ')}
+                </span>
+                <SegmentedMeter value={criterion.score} max={MAX_CRITERION_SCORE} darkMode={darkMode} size="xs" className="w-12 shrink-0" />
+                <span className={`shrink-0 text-xs font-heading ${scoreTextColor(criterion.score, darkMode, MAX_CRITERION_SCORE)}`}>
+                  {criterion.score}/{MAX_CRITERION_SCORE}
+                </span>
+              </button>
+            ))}
+          </div>
+
           <div className="flex flex-col gap-6">
             {criteriaScores.map((criterion) => (
               <article
                 key={criterion.criterion}
-                className={`p-6 md:p-8 rounded-lg border ${darkMode ? 'bg-gray-800/30 border-gray-800' : 'bg-white border-triagen-border-light'}`}
+                id={criterionSlug(criterion.criterion)}
+                className={`p-6 md:p-8 rounded-lg border scroll-mt-24 ${darkMode ? 'bg-gray-800/30 border-gray-800' : 'bg-white border-triagen-border-light'}`}
               >
                 <div className="flex items-start justify-between gap-6 mb-5">
                   <div className="min-w-0">
@@ -126,12 +154,12 @@ function InterviewReportView({ report, darkMode }: Readonly<InterviewReportViewP
                     )}
                   </div>
                   <div className="flex items-baseline gap-1 shrink-0">
-                    <span className={`font-heading text-3xl ${scoreTextColor(criterion.score, darkMode)}`}>{criterion.score}</span>
-                    <span className={`text-sm font-heading ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>/ 100</span>
+                    <span className={`font-heading text-3xl ${scoreTextColor(criterion.score, darkMode, MAX_CRITERION_SCORE)}`}>{criterion.score}</span>
+                    <span className={`text-sm font-heading ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>/ {MAX_CRITERION_SCORE}</span>
                   </div>
                 </div>
 
-                <ScoreMeter score={criterion.score} darkMode={darkMode} className="mb-6" />
+                <SegmentedMeter value={criterion.score} max={MAX_CRITERION_SCORE} darkMode={darkMode} className="mb-6" />
 
                 {criterion.reasoning && (
                   <div className="mb-6">
